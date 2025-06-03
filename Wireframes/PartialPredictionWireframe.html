@@ -1,0 +1,199 @@
+<html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script><script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif']
+            }
+          }
+        }
+      };
+    </script>
+    <script>window.FontAwesomeConfig = { autoReplaceSvg: 'nest'};</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #15151b;}
+        .glass {
+            background: linear-gradient(140deg, rgba(34,33,44,0.80) 60%, rgba(44,43,56,0.70) 100%);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 4px 32px 0 rgba(40,30,90,0.18);
+        }
+        .neumorphic {
+            box-shadow: 0 2px 10px 0 rgba(30,30,40,0.24), 0 1.5px 2.5px 0 rgba(60,60,110,0.06) inset;
+        }
+        .champ-glow {
+            box-shadow: 0 0 0 2px #fbbf24, 0 4px 16px 0 rgba(251,191,36,0.15);
+        }
+        .soft-glow {
+            box-shadow: 0 0 0 2px #6366f1, 0 2px 8px 0 rgba(99,102,241,0.15);
+        }
+        .tooltip-anim {
+            animation: tooltip-slide 0.9s cubic-bezier(.36,1.19,.7,1) 0s 1;
+        }
+        .dotted-border {
+            border-style: dotted !important;
+        }
+        @keyframes tooltip-slide {
+            0% { opacity: 0; transform: translateY(16px);}
+            100% { opacity: 1; transform: translateY(0);}
+        }
+    </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;500;600;700;800;900&amp;display=swap"><style>
+  .highlighted-section {
+    outline: 2px solid #3F20FB;
+    background-color: rgba(63, 32, 251, 0.1);
+  }
+
+  .edit-button {
+    position: absolute;
+    z-index: 1000;
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  html, body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  </style></head>
+<body class="bg-[#181924] text-[#e0e0e0] min-h-[900px]">
+
+    <main id="main-dnd-prediction" class="relative min-h-[900px] w-full flex flex-col items-center justify-start px-2 pt-6 pb-5">
+        
+        <header id="header" class="w-full flex items-center justify-between px-1 pb-2 mb-1">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-trophy text-amber-400 text-xl"></i>
+                <span class="font-bold text-lg tracking-tight text-[#ecebf5]">Bracket Master</span>
+            </div>
+            <button class="flex items-center rounded-full bg-[#26263c]/60 px-4 py-2 text-[#e0e0e0] text-[1rem] font-semibold shadow hover:bg-[#24243a] transition-all duration-200 active:scale-95">
+                <i class="fa-regular fa-user text-indigo-400 mr-2"></i>Sign In
+            </button>
+        </header>
+        
+        <section id="section-dnd-area" class="w-full max-w-[425px] mx-auto mt-2 flex flex-row gap-3 justify-center">
+            <!-- All Players Column -->
+            <div id="block-all-players" class="flex flex-col flex-1">
+                <h2 class="text-base font-semibold mb-2 text-[#e8e8f4] tracking-wide pl-1">All Players</h2>
+                <div id="list-all-players" class="glass neumorphic rounded-2xl py-2 px-1 gap-2 flex flex-col overflow-y-auto max-h-[660px] min-h-[540px]">
+                    <div class="rounded-2xl border-2 border-[#35355b] bg-[#20202e]/80 px-4 py-3 mb-2 text-[1.07rem] font-medium flex items-center touch-manipulation transition-all select-none cursor-grab active:scale-98" style="min-height:48px;">
+                        Albert
+                    </div>
+                    <div class="rounded-2xl border-2 border-[#35355b] bg-[#20202e]/80 px-4 py-3 mb-2 text-[1.07rem] font-medium flex items-center touch-manipulation transition-all select-none cursor-grab active:scale-98" style="min-height:48px;">
+                        Frank
+                    </div>
+                    <div class="rounded-2xl border-2 border-[#35355b] bg-[#20202e]/80 px-4 py-3 mb-2 text-[1.07rem] font-medium flex items-center touch-manipulation transition-all select-none cursor-grab active:scale-98" style="min-height:48px;">
+                        George
+                    </div>
+                    <div class="rounded-2xl border-2 border-[#35355b] bg-[#20202e]/80 px-4 py-3 mb-2 text-[1.07rem] font-medium flex items-center touch-manipulation transition-all select-none cursor-grab active:scale-98" style="min-height:48px;">
+                        Harry
+                    </div>
+                    <div class="rounded-2xl border-2 border-[#35355b] bg-[#20202e]/80 px-4 py-3 mb-2 text-[1.07rem] font-medium flex items-center touch-manipulation transition-all select-none cursor-grab active:scale-98" style="min-height:48px;">
+                        Igor
+                    </div>
+                    <div class="rounded-2xl border-2 border-[#35355b] bg-[#20202e]/80 px-4 py-3 mb-2 text-[1.07rem] font-medium flex items-center touch-manipulation transition-all select-none cursor-grab active:scale-98" style="min-height:48px;">
+                        Jack
+                    </div>
+                    <div class="rounded-2xl border-2 border-[#35355b] bg-[#20202e]/80 px-4 py-3 mb-2 text-[1.07rem] font-medium flex items-center touch-manipulation transition-all select-none cursor-grab active:scale-98" style="min-height:48px;">
+                        Ken
+                    </div>
+                    <div class="rounded-2xl border-2 border-[#35355b] bg-[#20202e]/80 px-4 py-3 mb-2 text-[1.07rem] font-medium flex items-center touch-manipulation transition-all select-none cursor-grab active:scale-98" style="min-height:48px;">
+                        Liam
+                    </div>
+                    <div class="rounded-2xl border-2 border-[#35355b] bg-[#20202e]/80 px-4 py-3 mb-2 text-[1.07rem] font-medium flex items-center touch-manipulation transition-all select-none cursor-grab active:scale-98" style="min-height:48px;">
+                        Mike
+                    </div>
+                    <div class="rounded-2xl border-2 border-[#35355b] bg-[#20202e]/80 px-4 py-3 mb-2 text-[1.07rem] font-medium flex items-center touch-manipulation transition-all select-none cursor-grab active:scale-98" style="min-height:48px;">
+                        Nate
+                    </div>
+                    <div class="rounded-2xl border-2 border-[#35355b] bg-[#20202e]/80 px-4 py-3 mb-2 text-[1.07rem] font-medium flex items-center touch-manipulation transition-all select-none cursor-grab active:scale-98" style="min-height:48px;">
+                        Oscar
+                    </div>
+                </div>
+            </div>
+            <!-- Your Predictions Column -->
+            <div id="block-your-predictions" class="flex-1 flex flex-col ml-1">
+                <h2 class="text-base font-semibold mb-2 text-[#e8e8f4] tracking-wide pl-1">Your Predictions</h2>
+                <div id="list-prediction-slots" class="glass neumorphic rounded-2xl py-2 px-1 gap-2 flex flex-col overflow-y-auto max-h-[520px] min-h-[380px]">
+                    <div id="prediction-champion" class="relative rounded-2xl border-2 champ-glow bg-[#23232e]/80 px-4 py-3 mb-2 flex items-center justify-between min-h-[52px] cursor-pointer transition-all group">
+                        <span class="font-semibold text-[1.09rem] text-amber-200">Champion</span>
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-amber-300/80 text-lg justify-self-end opacity-70"><i class="fa-solid fa-crown"></i></span>
+                    </div>
+                    <div id="prediction-slot-1" class="rounded-2xl border-2 border-[#6366f1] bg-[#23232e]/90 px-4 py-3 mb-2 flex items-center justify-between min-h-[48px] soft-glow transition-all group">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-user text-indigo-400/80 text-lg"></i>
+                            <span class="font-semibold text-[1.05rem] text-[#ecebf5]">Bob</span>
+                        </div>
+                        <button class="flex items-center justify-center w-8 h-8 rounded-full bg-[#232340]/70 hover:bg-[#26263c]/90 transition-all text-[#b8aaff] text-base">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div id="prediction-slot-2" class="rounded-2xl border-2 border-[#6366f1] bg-[#23232e]/90 px-4 py-3 mb-2 flex items-center justify-between min-h-[48px] soft-glow transition-all group">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-user text-indigo-400/80 text-lg"></i>
+                            <span class="font-semibold text-[1.05rem] text-[#ecebf5]">Charlie</span>
+                        </div>
+                        <button class="flex items-center justify-center w-8 h-8 rounded-full bg-[#232340]/70 hover:bg-[#26263c]/90 transition-all text-[#b8aaff] text-base">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div id="prediction-slot-3" class="rounded-2xl border-2 border-[#6366f1] bg-[#23232e]/90 px-4 py-3 mb-2 flex items-center justify-between min-h-[48px] soft-glow transition-all group">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-user text-indigo-400/80 text-lg"></i>
+                            <span class="font-semibold text-[1.05rem] text-[#ecebf5]">David</span>
+                        </div>
+                        <button class="flex items-center justify-center w-8 h-8 rounded-full bg-[#232340]/70 hover:bg-[#26263c]/90 transition-all text-[#b8aaff] text-base">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div id="prediction-slot-4" class="rounded-2xl border-2 border-[#6366f1] bg-[#23232e]/90 px-4 py-3 mb-2 flex items-center justify-between min-h-[48px] soft-glow transition-all group">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-user text-indigo-400/80 text-lg"></i>
+                            <span class="font-semibold text-[1.05rem] text-[#ecebf5]">Evan</span>
+                        </div>
+                        <button class="flex items-center justify-center w-8 h-8 rounded-full bg-[#232340]/70 hover:bg-[#26263c]/90 transition-all text-[#b8aaff] text-base">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div id="prediction-slot-5" class="rounded-2xl border-2 dotted-border border-[#6b6b8c] bg-[#23232e]/70 px-4 py-3 mb-2 flex items-center min-h-[48px] opacity-60 justify-between transition-all group">
+                        <span class="font-medium text-[1.04rem] text-[#c4c7e1]">Top 8 Placement</span>
+                        <span class="text-[#9ca3af] text-base opacity-65"><i class="fa-solid fa-arrow-right-long"></i></span>
+                    </div>
+                    <div id="prediction-slot-6" class="rounded-2xl border-2 dotted-border border-[#6b6b8c] bg-[#23232e]/70 px-4 py-3 mb-2 flex items-center min-h-[48px] opacity-60 justify-between transition-all group">
+                        <span class="font-medium text-[1.04rem] text-[#c4c7e1]">Top 8 Placement</span>
+                        <span class="text-[#9ca3af] text-base opacity-65"><i class="fa-solid fa-arrow-right-long"></i></span>
+                    </div>
+                    <div id="prediction-slot-7" class="rounded-2xl border-2 dotted-border border-[#6b6b8c] bg-[#23232e]/70 px-4 py-3 mb-2 flex items-center min-h-[48px] opacity-60 justify-between transition-all group">
+                        <span class="font-medium text-[1.04rem] text-[#c4c7e1]">Top 8 Placement</span>
+                        <span class="text-[#9ca3af] text-base opacity-65"><i class="fa-solid fa-arrow-right-long"></i></span>
+                    </div>
+                    <div id="prediction-slot-8" class="rounded-2xl border-2 dotted-border border-[#6b6b8c] bg-[#23232e]/70 px-4 py-3 mb-2 flex items-center min-h-[48px] opacity-60 justify-between transition-all group">
+                        <span class="font-medium text-[1.04rem] text-[#c4c7e1]">Top 8 Placement</span>
+                        <span class="text-[#9ca3af] text-base opacity-65"><i class="fa-solid fa-arrow-right-long"></i></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <div id="onboarding-tooltip" class="absolute left-1/2 -translate-x-1/2 bottom-[74px] z-30 tooltip-anim">
+            <div class="glass rounded-xl px-4 py-2 text-sm text-[#faf7ee] bg-amber-400/10 font-medium flex items-center shadow-xl gap-2 border border-amber-300/30 backdrop-blur-lg">
+                <i class="fa-solid fa-hand-pointer text-amber-300 text-base"></i>
+                Drag players across to play
+            </div>
+        </div>
+        
+        <footer id="footer" class="fixed left-0 bottom-0 w-full z-40">
+            <div class="max-w-[425px] mx-auto py-4 px-4 flex items-center justify-center">
+                <button class="w-full rounded-2xl bg-gradient-to-r from-indigo-500 via-violet-600 to-rose-400 shadow-lg text-[#ecebf5] font-semibold py-4 text-lg tracking-wide transition-all duration-200 opacity-60 pointer-events-none select-none">
+                    Submit Prediction
+                </button>
+            </div>
+        </footer>
+    </main>
+
+</body></html>
