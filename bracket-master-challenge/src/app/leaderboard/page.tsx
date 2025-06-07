@@ -36,14 +36,14 @@ const getRankColor = (rank: number) => {
 
 export default function LeaderboardPage() {
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4">
+    <div className="min-h-screen bg-black text-white p-4">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold mb-2">Leaderboard</h1>
           <p className="text-gray-400">See how you rank against other bracket masters</p>
         </div>
 
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="bg-black/70 border-gray-800 rounded-none">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               🏆 Top Players
@@ -56,7 +56,7 @@ export default function LeaderboardPage() {
                 <li
                   key={player.rank}
                   className={`
-                    flex items-center justify-between p-4 rounded-lg border-2 transition-all duration-200
+                    flex items-center justify-between p-4 border-2 transition-all duration-200
                     ${getRankColor(player.rank)}
                     hover:scale-[1.02] hover:shadow-lg
                   `}
@@ -87,7 +87,7 @@ export default function LeaderboardPage() {
               ))}
             </ol>
             
-            <div className="mt-8 p-4 bg-gray-700/50 rounded-lg border border-gray-600">
+            <div className="mt-8 p-4 bg-gray-700/50 border border-gray-600 rounded-none">
               <p className="text-sm text-gray-300 text-center">
                 🔄 Leaderboard updates automatically after each tournament round
               </p>

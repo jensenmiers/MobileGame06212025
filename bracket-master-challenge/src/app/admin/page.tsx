@@ -41,14 +41,14 @@ export default function AdminPage() {
   const isFormComplete = results.every(result => result !== "");
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4">
+    <div className="min-h-screen bg-black text-white p-4">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold mb-2">Admin Panel</h1>
           <p className="text-gray-400">Enter the official tournament results</p>
         </div>
 
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="bg-black/70 border-gray-800 rounded-none">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               🛠️ Tournament Results Entry
@@ -59,7 +59,7 @@ export default function AdminPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             {isCutoffPassed && (
-              <div className="p-4 bg-red-900/30 border border-red-700 rounded-lg">
+              <div className="p-4 bg-red-900/30 border border-red-700 rounded-none">
                 <p className="text-red-300 text-center">
                   ⚠️ The submission deadline has passed. Results can no longer be modified.
                 </p>
@@ -77,7 +77,7 @@ export default function AdminPage() {
                     onChange={(e) => handlePositionChange(index, e.target.value)}
                     disabled={isCutoffPassed}
                     className={`
-                      w-full p-3 rounded-lg border-2 bg-gray-700 text-white
+                      w-full p-3 border-2 bg-gray-900/80 text-white rounded-none
                       ${isCutoffPassed 
                         ? 'border-gray-600 opacity-50 cursor-not-allowed' 
                         : 'border-gray-600 hover:border-gray-500 focus:border-blue-400'
@@ -102,9 +102,9 @@ export default function AdminPage() {
                   <span className="text-gray-300">
                     Progress: {results.filter(r => r !== "").length}/8 positions filled
                   </span>
-                  <div className="w-48 bg-gray-700 rounded-full h-2">
+                  <div className="w-48 bg-gray-700 h-2">
                     <div 
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      className="bg-blue-600 h-2 transition-all duration-300"
                       style={{ width: `${(results.filter(r => r !== "").length / 8) * 100}%` }}
                     />
                   </div>
@@ -131,7 +131,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div className="p-4 bg-blue-900/30 border border-blue-700 rounded-lg">
+            <div className="p-4 bg-blue-900/30 border border-blue-700">
               <p className="text-blue-200 text-sm">
                 💡 <strong>Note:</strong> Once submitted, these results will be used to calculate all player scores and update the leaderboard. 
                 Make sure all positions are correct before submitting.
