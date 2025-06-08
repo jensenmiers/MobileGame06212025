@@ -84,6 +84,19 @@
   animation: rotate-gradient 15s linear infinite;
 }
 
+/* Fix for gradient text clipping issues */
+.gradient-text-fix {
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  padding-bottom: 0.125rem;
+  line-height: 1.1;
+  display: inline-block;
+  /* Ensure proper text rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 body {
   font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }

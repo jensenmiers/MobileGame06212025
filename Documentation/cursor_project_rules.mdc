@@ -44,7 +44,7 @@ alwaysApply: true
     *   `typescript@4.x`: `strict` mode on; avoid `any`.
     *   `tailwindcss@3`: Enable JIT; specify `content: ["app/**/*.{ts,tsx}"]`.
     *   `@shadcn/ui@latest`: Optional for UI primitives; customize via `tailwind.config.js`.
-    *   `@supabase/supabase-js@2`: Use Edge Runtime; do not expose service_role key in client.
+    *   `@supabase/-js@2`: Use Edge Runtime; do not expose service_role key in client.
     *   `vercel@latest`: Deploy all API routes as Edge Functions; leverage automatic scaling.
 
 ## PRD Compliance
@@ -56,7 +56,7 @@ alwaysApply: true
 ## App Flow Integration
 
 *   **Stack-Aligned Flow:**
-    *   Next.js 14 Auth Flow → `app/auth/login/page.tsx` uses server actions with Supabase Auth.
+    *   Next.js 14 Auth Flow → `app/auth/login/page.tsx` uses server actions with  Auth.
     *   Prediction Flow → `app/predictions/page.tsx` as a client component, two-column layout, tap-to-select slots.
     *   Submission Flow → `app/predictions/submit/page.tsx` calls `app/api/submissions/route.ts`.
     *   Admin Flow → `app/admin/page.tsx` calls `app/api/results/route.ts` and triggers `app/api/scoring/route.ts`.

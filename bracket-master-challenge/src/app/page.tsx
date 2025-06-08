@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import Image from "next/image";
+import { SocialLogin } from "@/components/Auth/SocialLogin";
 
 export default function Home() {
   return (
@@ -33,11 +34,7 @@ export default function Home() {
       <div className="w-full max-w-4xl mx-auto">
         <Card className="bg-black/70 border-gray-800 backdrop-blur-sm rounded-none">
           <CardHeader className="space-y-6 text-center">
-            <CardTitle className="text-5xl font-bold gradient-rotate bg-clip-text text-transparent" style={{
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              display: 'inline-block'
-            }}>
+            <CardTitle className="text-5xl font-bold gradient-rotate gradient-text-fix">
               Bracket Master Challenge
             </CardTitle>
             <CardDescription className="text-xl text-gray-300 max-w-2xl mx-auto">
@@ -59,6 +56,15 @@ export default function Home() {
                 <h3 className="text-lg font-semibold text-green-400">📊 Leaderboard</h3>
                 <p className="text-gray-300">See how you rank against other players</p>
               </div>
+            </div>
+            
+            {/* Social Login Section */}
+            <div className="flex flex-col items-center space-y-6">
+              <div className="text-center">
+                <h3 className="text-2xl font-semibold mb-2">Sign in to start predicting</h3>
+                <p className="text-gray-400 mb-6">Choose your preferred login method</p>
+              </div>
+              <SocialLogin />
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
