@@ -9,6 +9,7 @@ interface AuthContextType {
   session: Session | null
   loading: boolean
   signInWithGoogle: () => Promise<void>
+  signInWithDiscord: () => Promise<void>
   signOut: () => Promise<void>
 }
 
@@ -59,6 +60,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const signInWithDiscord = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'discord',
+      options: {
+        redirectTo: `${window.location.origin}/prediction`
+      }
+    })
+    if (error) {
+      console.error('Error signing in with Discord:', error.message)
+    }
+  }
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut()
     if (error) {
@@ -72,6 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       session,
       loading,
       signInWithGoogle,
+      signInWithDiscord,
       signOut
     }}>
       {children}

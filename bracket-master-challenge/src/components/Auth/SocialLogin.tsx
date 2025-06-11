@@ -4,17 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 
 export function SocialLogin() {
-  const { signInWithGoogle } = useAuth();
-
-  const handleAppleLogin = () => {
-    // TODO: Implement Apple login later
-    console.log('Apple login not implemented yet');
-  };
-
-  const handleDiscordLogin = () => {
-    // TODO: Implement Discord login later
-    console.log('Discord login not implemented yet');
-  };
+  const { signInWithGoogle, signInWithDiscord } = useAuth();
 
   return (
     <div className="space-y-4 w-full max-w-sm">
@@ -45,7 +35,7 @@ export function SocialLogin() {
       </Button>
 
       <Button
-        onClick={handleDiscordLogin}
+        onClick={signInWithDiscord}
         variant="outline"
         className="w-full bg-[#5865F2] text-white border-[#5865F2] hover:bg-[#4752C4]"
       >
