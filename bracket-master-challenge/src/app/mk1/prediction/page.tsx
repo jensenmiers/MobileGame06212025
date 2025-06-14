@@ -40,7 +40,7 @@ export default function PredictionPage() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start pt-12 px-4 relative overflow-hidden bg-black">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 relative overflow-hidden bg-black">
       {/* Background elements */}
       <div className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-black"></div>
@@ -61,19 +61,21 @@ export default function PredictionPage() {
         </Link>
       </div>
 
-      <div className="w-full max-w-2xl mb-8">
-        <h1 className="text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text gradient-rotate mb-2" 
-          style={{
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            display: 'inline-block'
-          }}>
-          Bracket Master
-        </h1>
-        <h2 className="text-2xl md:text-3xl font-bold mb-4">
+      <div className="w-full max-w-2xl mb-8 text-center">
+        <div className="w-full">
+          <h1 className="text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text gradient-rotate mb-2 mx-auto" 
+            style={{
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              display: 'inline-block'
+            }}>
+            Bracket Master
+          </h1>
+        </div>
+        <h2 className="text-2xl md:text-3xl font-bold mb-4 w-full">
           Mortal Kombat 1
         </h2>
-        <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+        <p className="text-xl text-gray-300 mb-8 w-full">
           Predict the top 4 players!
         </p>
       </div>
