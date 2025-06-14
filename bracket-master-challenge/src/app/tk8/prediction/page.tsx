@@ -72,7 +72,7 @@ export default function PredictionPage() {
           Tekken 8
         </h2>
         <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-          Predict the top 4 players and win amazing prizes!
+          Predict the top 4 players!
         </p>
       </div>
 
