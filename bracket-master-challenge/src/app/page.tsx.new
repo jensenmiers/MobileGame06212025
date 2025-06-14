@@ -1,0 +1,126 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { tournaments } from '@/types/tournament';
+
+export default function Home() {
+  const [selectedGame, setSelectedGame] = useState<string | null>(null);
+  const activeTournaments = tournaments.filter(t => t.active);
+  const inactiveTournaments = tournaments.filter(t => !t.active);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
+      <main className="container mx-auto px-4 py-8">
+        {/* Header with Logo */}
+        <div className="text-center mb-12">
+          <div className="flex justify-center items-center gap-4 mb-4">
+            <Image 
+              src="/logo.svg" 
+              alt="Bracket Master Logo" 
+              width={60} 
+              height={60} 
+              className="h-12 w-auto"
+            />
+            <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500">
+              Bracket Master Challenge
+            </h1>
+          </div>
+          <p className="text-lg text-gray-300">
+            Select a game to get started
+          </p>
+        </div>
+
+        {/* Active Tournaments */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold mb-6 text-center">Active Tournaments</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {activeTournaments.map((tournament) => (
+              <div 
+                key={tournament.id}
+                onClick={() => setSelectedGame(tournament.id === selectedGame ? null : tournament.id)}
+                className={`relative rounded-xl overflow-hidden cursor-pointer transition-all duration-300 border-2 ${
+                  selectedGame === tournament.id 
+                    ? 'border-green-500 scale-[1.02]' 
+                    : 'border-gray-800 hover:border-gray-600'
+                }`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/80 z-10" />
+                <div className="relative h-48 flex flex-col items-center justify-center p-6">
+                  <div className="relative w-24 h-24 mb-4 z-20">
+                    <Image 
+                      src={tournament.imageUrl} 
+                      alt={tournament.name}
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  <h3 className="text-xl font-bold text-center z-20">{tournament.name}</h3>
+                </div>
+                {selectedGame === tournament.id && (
+                  <div className="absolute -bottom-1 left-0 right-0 h-1 bg-green-500 animate-pulse" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Inactive Tournaments */}
+        {inactiveTournaments.length > 0 && (
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold mb-6 text-center text-gray-400">Coming Soon</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {inactiveTournaments.map((tournament) => (
+                <div 
+                  key={tournament.id}
+                  className="relative rounded-xl overflow-hidden border-2 border-gray-800 opacity-60"
+                >
+                  <div className="absolute inset-0 bg-black/50 z-10" />
+                  <div className="relative h-48 flex flex-col items-center justify-center p-6">
+                    <div className="relative w-20 h-20 mb-4 z-20 opacity-70">
+                      <Image 
+                        src={tournament.imageUrl} 
+                        alt={tournament.name}
+                        fill
+                        className="object-contain grayscale"
+                      />
+                    </div>
+                    <h3 className="text-xl font-bold text-center text-gray-400 z-20">{tournament.name}</h3>
+                    <span className="text-sm text-gray-500 bg-black/50 px-3 py-1 rounded-full mt-2 z-20">
+                      Coming Soon
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="max-w-xl mx-auto mt-12 grid grid-cols-2 gap-6">
+          <Link 
+            href={selectedGame ? `/predict/${selectedGame}` : '#'}
+            className={`text-center py-4 px-6 rounded-lg font-bold text-lg transition-all ${
+              selectedGame 
+                ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white cursor-pointer transform hover:scale-105' 
+                : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            Start Predictions
+          </Link>
+          <Link 
+            href={selectedGame ? `/leaderboard/${selectedGame}` : '#'}
+            className={`text-center py-4 px-6 rounded-lg font-bold text-lg transition-all ${
+              selectedGame 
+                ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white cursor-pointer transform hover:scale-105' 
+                : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            View Leaderboard
+          </Link>
+        </div>
+      </main>
+    </div>
+  );
+}
