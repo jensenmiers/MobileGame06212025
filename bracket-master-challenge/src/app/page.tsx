@@ -44,22 +44,24 @@ export default function Home() {
       <div className="w-full max-w-4xl mx-auto">
         <Card className="bg-black/70 border-gray-800 backdrop-blur-sm rounded-none">
           <CardHeader className="space-y-6">
-            <div className="flex items-center justify-center space-x-4">
-              <div className="w-16 h-16 relative">
-                <div className="animate-slow-rotate w-full h-full">
-                  <Image
-                    src="/images/fullComboLogo.png"
-                    alt="Full Combo Logo"
-                    width={64}
-                    height={64}
-                    className="object-contain w-full h-full"
-                    priority
-                  />
+            <div className="flex flex-col items-center justify-center text-center">
+              <div className="flex items-center justify-center space-x-4 mb-4">
+                <div className="w-16 h-16 relative">
+                  <div className="animate-slow-rotate w-full h-full">
+                    <Image
+                      src="/images/fullComboLogo.png"
+                      alt="Full Combo Logo"
+                      width={64}
+                      height={64}
+                      className="object-contain w-full h-full"
+                      priority
+                    />
+                  </div>
                 </div>
+                <CardTitle className="text-5xl font-bold gradient-rotate gradient-text-fix text-center">
+                  Bracket Master Challenge
+                </CardTitle>
               </div>
-              <CardTitle className="text-5xl font-bold gradient-rotate gradient-text-fix">
-                Bracket Master Challenge
-              </CardTitle>
             </div>
             <CardDescription className="text-xl text-gray-300 max-w-2xl mx-auto">
               Show your skills and become the ultimate Bracket Master!
