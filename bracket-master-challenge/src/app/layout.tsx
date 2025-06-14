@@ -10,7 +10,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Full Combo Tournament",
-  description: "Predict the tournament bracket and compete on the leaderboard",
+  description: "Compete on the leaderboard and become the ultimate Bracket Master!",
 };
 
 export default function RootLayout({

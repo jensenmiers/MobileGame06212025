@@ -3,18 +3,18 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-// Placeholder data for the leaderboard - will be replaced with Supabase data in Phase 3
+// Placeholder data for the Fatal Fury: City of the Wolves leaderboard
 const leaderboardData = [
-  { username: "ProGamer2024", points: 85, rank: 1 },
-  { username: "BracketMaster", points: 78, rank: 2 },
-  { username: "PredictionKing", points: 72, rank: 3 },
-  { username: "GameChanger", points: 68, rank: 4 },
-  { username: "TourneyPro", points: 65, rank: 5 },
-  { username: "SkillzGamer", points: 61, rank: 6 },
-  { username: "ElitePlayer", points: 58, rank: 7 },
-  { username: "ChampionX", points: 55, rank: 8 },
-  { username: "VictorySeeker", points: 52, rank: 9 },
-  { username: "TopTierGamer", points: 49, rank: 10 }
+  { username: "TerryBogard", points: 97, rank: 1 },
+  { username: "RockHoward", points: 91, rank: 2 },
+  { username: "MaiShiranui", points: 87, rank: 3 },
+  { username: "AndyBogard", points: 84, rank: 4 },
+  { username: "JoeHigashi", points: 81, rank: 5 },
+  { username: "BillyKane", points: 78, rank: 6 },
+  { username: "GeeseHoward", points: 75, rank: 7 },
+  { username: "BlueMary", points: 72, rank: 8 },
+  { username: "Yamazaki", points: 69, rank: 9 },
+  { username: "KimKaphwan", points: 66, rank: 10 }
 ];
 
 const getRankIcon = (rank: number) => {
@@ -34,6 +34,19 @@ const getRankColor = (rank: number) => {
   return "bg-gray-900/50 hover:bg-gray-800/50";
 };
 
+const getMedalStyle = (rank: number) => {
+  switch(rank) {
+    case 1: 
+      return 'brightness(0) saturate(100%) invert(83%) sepia(59%) saturate(1031%) hue-rotate(327deg) brightness(102%) contrast(97%)';
+    case 2:
+      return 'brightness(0) saturate(100%) invert(94%) sepia(0%) saturate(0%) hue-rotate(10deg) brightness(90%) contrast(90%)';
+    case 3:
+      return 'brightness(0) saturate(100%) invert(65%) sepia(60%) saturate(600%) hue-rotate(340deg) brightness(90%) contrast(90%)';
+    default:
+      return '';
+  }
+};
+
 export default function LeaderboardPage() {
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4">
@@ -41,7 +54,7 @@ export default function LeaderboardPage() {
         {/* Back Button */}
         <div className="w-full mb-6">
           <Link 
-            href="/?game=dbfz" 
+            href="/?game=ffcotw" 
             className="inline-flex items-center text-gray-300 hover:text-white transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -52,7 +65,7 @@ export default function LeaderboardPage() {
         </div>
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold mb-1 bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-green-600">Leaderboard</h1>
-          <h2 className="text-2xl font-bold mb-2">Dragon Ball Fighter Z</h2>
+          <h2 className="text-2xl font-bold mb-2">Fatal Fury: City of the Wolves</h2>
           <p className="text-gray-300">See how you rank against other bracket masters</p>
         </div>
 
@@ -89,51 +102,31 @@ export default function LeaderboardPage() {
                         <h3 className={`font-bold text-2xl ${player.rank === 1 ? 'text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500' : 'text-white'}`}>
                           {player.username}
                         </h3>
-                        {player.rank === 1 && (
+                        {(player.rank === 1 || player.rank === 2 || player.rank === 3) && (
                           <div className="relative h-6 w-6">
                             <img 
                               src="/images/fullComboLogo.png" 
                               alt="" 
                               className="h-full w-full object-contain"
                               style={{
-                                filter: 'brightness(0) saturate(100%) invert(83%) sepia(59%) saturate(1031%) hue-rotate(327deg) brightness(102%) contrast(97%)',
-                                transform: 'translateY(1px)'
-                              }}
-                            />
-                          </div>
-                        )}
-                        {player.rank === 2 && (
-                          <div className="relative h-6 w-6">
-                            <img 
-                              src="/images/fullComboLogo.png" 
-                              alt="" 
-                              className="h-full w-full object-contain"
-                              style={{
-                                filter: 'brightness(0) saturate(100%) invert(94%) sepia(0%) saturate(0%) hue-rotate(10deg) brightness(90%) contrast(90%)',
-                                transform: 'translateY(1px)'
-                              }}
-                            />
-                          </div>
-                        )}
-                        {player.rank === 3 && (
-                          <div className="relative h-6 w-6">
-                            <img 
-                              src="/images/fullComboLogo.png" 
-                              alt="" 
-                              className="h-full w-full object-contain"
-                              style={{
-                                filter: 'brightness(0) saturate(100%) invert(65%) sepia(60%) saturate(600%) hue-rotate(340deg) brightness(90%) contrast(90%)',
+                                filter: getMedalStyle(player.rank),
                                 transform: 'translateY(1px)'
                               }}
                             />
                           </div>
                         )}
                       </div>
+                      <div className="text-sm text-gray-400">
+                        Rank #{player.rank}
+                      </div>
                     </div>
                   </div>
                   
                   <div className="text-right">
-                    <div className={`text-2xl font-bold ${player.rank === 1 ? 'text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500' : 'text-white'}`}>
+                    <div className={`text-2xl font-bold ${
+                      player.rank === 1 ? 'text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500' : 
+                      'text-white'
+                    }`}>
                       {player.points}
                     </div>
                     <div className={`text-sm ${player.rank === 1 ? 'text-green-200' : 'text-gray-300'}`}>
@@ -157,4 +150,4 @@ export default function LeaderboardPage() {
       </div>
     </div>
   );
-} 
+}

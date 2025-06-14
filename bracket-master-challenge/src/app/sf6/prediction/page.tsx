@@ -6,12 +6,10 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import Slots from "@/components/Prediction/Slots";
 
-// Player data - this would typically come from an API
+// Player data for Street Fighter 6 - this would typically come from an API
 const ALL_PLAYERS = [
-  "Alex Thunder", "Blaze Storm", "Cyber Knight", "Dragon Fire",
-  "Echo Phantom", "Frost Bite", "Ghost Rider", "Hunter X",
-  "Ice Phoenix", "Jet Stream", "King Cobra", "Lightning Bolt",
-  "Mystic Wolf", "Nova Star", "Omega Force", "Phoenix Rising"
+  "Ryu", "Chun-Li", "Guile", "Juri", "Ken", "Cammy", "Zangief", "Dhalsim",
+  "Blanka", "E. Honda", "Dee Jay", "Rashid", "Luke", "Jamie", "Kimberly", "Lily"
 ];
 
 export default function PredictionPage() {
@@ -51,7 +49,7 @@ export default function PredictionPage() {
       {/* Back Button */}
       <div className="w-full max-w-4xl mx-auto mb-6">
         <Link 
-          href={`/?game=dbfz`}
+          href={`/?game=sf6`}
           className="inline-flex items-center text-gray-300 hover:text-white transition-colors"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -73,7 +71,7 @@ export default function PredictionPage() {
           </h1>
         </div>
         <h2 className="text-2xl md:text-3xl font-bold mb-4 w-full">
-          Dragon Ball Fighter Z
+          Street Fighter 6
         </h2>
         <p className="text-xl text-gray-300 mb-8 w-full">
           Predict the top 4 players!

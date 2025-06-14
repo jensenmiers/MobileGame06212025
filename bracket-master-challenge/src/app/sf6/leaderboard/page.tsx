@@ -3,18 +3,18 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-// Placeholder data for the leaderboard - will be replaced with Supabase data in Phase 3
+// Placeholder data for the SF6 leaderboard
 const leaderboardData = [
-  { username: "ProGamer2024", points: 85, rank: 1 },
-  { username: "BracketMaster", points: 78, rank: 2 },
-  { username: "PredictionKing", points: 72, rank: 3 },
-  { username: "GameChanger", points: 68, rank: 4 },
-  { username: "TourneyPro", points: 65, rank: 5 },
-  { username: "SkillzGamer", points: 61, rank: 6 },
-  { username: "ElitePlayer", points: 58, rank: 7 },
-  { username: "ChampionX", points: 55, rank: 8 },
-  { username: "VictorySeeker", points: 52, rank: 9 },
-  { username: "TopTierGamer", points: 49, rank: 10 }
+  { username: "ShoryuMaster", points: 92, rank: 1 },
+  { username: "HadoukenKing", points: 85, rank: 2 },
+  { username: "TatsumakiPro", points: 81, rank: 3 },
+  { username: "ShinAkuma", points: 78, rank: 4 },
+  { username: "RyuTheBest", points: 75, rank: 5 },
+  { username: "ChunLiFan", points: 72, rank: 6 },
+  { username: "GuileTactics", points: 68, rank: 7 },
+  { username: "JuriMain", points: 65, rank: 8 },
+  { username: "KenCombo", points: 62, rank: 9 },
+  { username: "CammyPlayer", points: 58, rank: 10 }
 ];
 
 const getRankIcon = (rank: number) => {
@@ -41,7 +41,7 @@ export default function LeaderboardPage() {
         {/* Back Button */}
         <div className="w-full mb-6">
           <Link 
-            href="/?game=dbfz" 
+            href={`/?game=sf6`} 
             className="inline-flex items-center text-gray-300 hover:text-white transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -52,7 +52,7 @@ export default function LeaderboardPage() {
         </div>
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold mb-1 bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-green-600">Leaderboard</h1>
-          <h2 className="text-2xl font-bold mb-2">Dragon Ball Fighter Z</h2>
+          <h2 className="text-2xl font-bold mb-2">Street Fighter 6</h2>
           <p className="text-gray-300">See how you rank against other bracket masters</p>
         </div>
 
@@ -157,4 +157,4 @@ export default function LeaderboardPage() {
       </div>
     </div>
   );
-} 
+}
