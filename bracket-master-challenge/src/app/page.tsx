@@ -41,46 +41,41 @@ export default function Home() {
         <div className="absolute -right-40 -bottom-40 w-96 h-96 bg-green-500/10 filter blur-3xl animate-pulse animation-delay-2000"></div>
       </div>
 
-      {/* Rotating Logo - Increased size by 30% */}
-      <div className="relative w-full max-w-[208px] mb-8 mt-4">
-        <div className="relative w-full pb-[52%]">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="animate-slow-rotate w-full h-full">
-              <Image
-                src="/images/fullComboLogo.png"
-                alt="Full Combo Logo"
-                width={208}
-                height={83}
-                className="object-contain w-full h-full"
-                priority
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div className="w-full max-w-4xl mx-auto">
         <Card className="bg-black/70 border-gray-800 backdrop-blur-sm rounded-none">
-          <CardHeader className="space-y-6 text-center">
-            <CardTitle className="text-5xl font-bold gradient-rotate gradient-text-fix">
-              Bracket Master Challenge
-            </CardTitle>
+          <CardHeader className="space-y-6">
+            <div className="flex items-center justify-center space-x-4">
+              <div className="w-16 h-16 relative">
+                <div className="animate-slow-rotate w-full h-full">
+                  <Image
+                    src="/images/fullComboLogo.png"
+                    alt="Full Combo Logo"
+                    width={64}
+                    height={64}
+                    className="object-contain w-full h-full"
+                    priority
+                  />
+                </div>
+              </div>
+              <CardTitle className="text-5xl font-bold gradient-rotate gradient-text-fix">
+                Bracket Master Challenge
+              </CardTitle>
+            </div>
             <CardDescription className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Predict the tournament bracket, compete with others, and climb the leaderboard. 
               Show your skills and become the ultimate Bracket Master!
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-8">
             {/* Social Login Section */}
             <div className="flex flex-col items-center space-y-6">
-              <div className="text-center">
-                <h3 className="text-2xl font-semibold mb-2">Sign in to start predicting</h3>
-                <p className="text-gray-400 mb-6">Choose your preferred login method</p>
-              </div>
               <SocialLogin />
             </div>
             
             {/* Game Selection */}
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-white mb-2">Choose Your Tournament</h2>
+              <p className="text-gray-400">Select a game to view predictions and leaderboards</p>
+            </div>
             <div className="grid grid-cols-2 gap-4 w-full max-w-md mx-auto">
               <div className="flex flex-col items-center">
                 <button 
