@@ -16,7 +16,7 @@ export default function Home() {
   // Initialize selectedGame from URL on mount
   useEffect(() => {
     const game = searchParams.get('game');
-    if (['dbfz', 'sf6', 'tk8'].includes(game || '')) {
+    if (['dbfz', 'sf6', 'tk8', 'ggst', 'mk1', 'ffcotw'].includes(game || '')) {
       setSelectedGame(game);
     }
   }, [searchParams]);
@@ -135,6 +135,60 @@ export default function Home() {
                 </button>
                 <span className="text-white text-sm">Tekken 8</span>
               </div>
+              
+              <div className="flex flex-col items-center">
+                <button 
+                  onClick={() => handleGameSelect('ggst')}
+                  className={`transition-all mb-2 ${selectedGame === 'ggst' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
+                >
+                  <div className="relative w-24 h-24">
+                    <Image 
+                      src="/images/gameIcons/ggst.webp" 
+                      alt="Guilty Gear Strive" 
+                      fill 
+                      className="object-contain"
+                      priority
+                    />
+                  </div>
+                </button>
+                <span className="text-white text-sm">Guilty Gear Strive</span>
+              </div>
+              
+              <div className="flex flex-col items-center">
+                <button 
+                  onClick={() => handleGameSelect('mk1')}
+                  className={`transition-all mb-2 ${selectedGame === 'mk1' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
+                >
+                  <div className="relative w-24 h-24">
+                    <Image 
+                      src="/images/gameIcons/mk1.webp" 
+                      alt="Mortal Kombat 1" 
+                      fill 
+                      className="object-contain"
+                      priority
+                    />
+                  </div>
+                </button>
+                <span className="text-white text-sm">Mortal Kombat 1</span>
+              </div>
+              
+              <div className="flex flex-col items-center">
+                <button 
+                  onClick={() => handleGameSelect('ffcotw')}
+                  className={`transition-all mb-2 ${selectedGame === 'ffcotw' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
+                >
+                  <div className="relative w-24 h-24">
+                    <Image 
+                      src="/images/gameIcons/ffcotw.webp" 
+                      alt="Fatal Fury: City of the Wolves" 
+                      fill 
+                      className="object-contain"
+                      priority
+                    />
+                  </div>
+                </button>
+                <span className="text-white text-sm">Fatal Fury: COTW</span>
+              </div>
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
@@ -144,7 +198,10 @@ export default function Home() {
                   href={
                     selectedGame === 'dbfz' ? '/prediction' : 
                     selectedGame === 'sf6' ? '/sf6/prediction' :
-                    selectedGame === 'tk8' ? '/tk8/prediction' : '#'
+                    selectedGame === 'tk8' ? '/tk8/prediction' :
+                    selectedGame === 'ggst' ? '/ggst/prediction' :
+                    selectedGame === 'mk1' ? '/mk1/prediction' :
+                    selectedGame === 'ffcotw' ? '/ffcotw/prediction' : '#'
                   } 
                   className={`w-full sm:w-auto ${!selectedGame ? 'pointer-events-none' : ''}`}
                 >
@@ -170,7 +227,10 @@ export default function Home() {
                   href={
                     selectedGame === 'dbfz' ? '/leaderboard' : 
                     selectedGame === 'sf6' ? '/sf6/leaderboard' :
-                    selectedGame === 'tk8' ? '/tk8/leaderboard' : '#'
+                    selectedGame === 'tk8' ? '/tk8/leaderboard' :
+                    selectedGame === 'ggst' ? '/ggst/leaderboard' :
+                    selectedGame === 'mk1' ? '/mk1/leaderboard' :
+                    selectedGame === 'ffcotw' ? '/ffcotw/leaderboard' : '#'
                   } 
                   className={`w-full sm:w-auto ${!selectedGame ? 'pointer-events-none' : ''}`}
                 >
