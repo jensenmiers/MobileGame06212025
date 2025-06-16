@@ -1,4 +1,4 @@
-import SocialLogin from "@/components/Auth/SocialLogin";
+import { SocialLogin } from "@/components/Auth/SocialLogin";
 
 export default function LoginPage() {
   return (
