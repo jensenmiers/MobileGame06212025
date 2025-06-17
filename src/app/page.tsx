@@ -7,31 +7,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link";
 import Image from "next/image";
 import { SocialLogin } from "@/components/Auth/SocialLogin";
-import { useAuth } from "@/lib/auth-context";
 
 export default function Home() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
-  const [isNavigating, setIsNavigating] = useState(false);
 
-  // Initialize selectedGame from URL on mount, but only after auth is loaded
+  // Initialize selectedGame from URL on mount
   useEffect(() => {
-    if (!authLoading) {
-      const game = searchParams.get('game');
-      if (['dbfz', 'sf6', 'tk8', 'ggst', 'mk1', 'ffcotw'].includes(game || '')) {
-        setSelectedGame(game);
-      }
+    const game = searchParams.get('game');
+    if (['dbfz', 'sf6', 'tk8', 'ggst', 'mk1', 'ffcotw'].includes(game || '')) {
+      setSelectedGame(game);
     }
-  }, [searchParams, authLoading]);
+  }, [searchParams]);
 
   const handleGameSelect = (game: string) => {
-    if (isNavigating) return; // Prevent multiple clicks while navigating
-    
     const newSelectedGame = selectedGame === game ? null : game;
     setSelectedGame(newSelectedGame);
-    
     // Update URL without page reload
     const params = new URLSearchParams(searchParams.toString());
     if (newSelectedGame) {
@@ -41,33 +33,40 @@ export default function Home() {
     }
     router.push(`/?${params.toString()}`, { scroll: false });
   };
-
-  const handleNavigation = (path: string) => {
-    if (isNavigating) return; // Prevent multiple clicks while navigating
-    setIsNavigating(true);
-    router.push(path);
-  };
-
-  // Reset navigation state when component unmounts or route changes
-  useEffect(() => {
-    return () => setIsNavigating(false);
-  }, []);
-
-  // ... rest of your component code ...
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
-      <div className="container mx-auto px-4 py-8">
-        <Card className="bg-black/50 backdrop-blur-sm border border-gray-800 shadow-2xl">
-          <CardHeader className="border-b border-gray-700/50 bg-gradient-to-r from-gray-900/50 to-black/30">
-            <CardTitle className="text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-green-600">
-              Bracket Master
-            </CardTitle>
-            <CardDescription className="text-center text-gray-400 text-lg">
-              Predict tournament outcomes and compete on the leaderboard
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white flex flex-col items-center justify-start p-4 pt-12 relative overflow-hidden">
+      {/* Background elements */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute -left-40 -top-40 w-96 h-96 bg-blue-500/10 filter blur-3xl animate-pulse"></div>
+        <div className="absolute -right-40 -bottom-40 w-96 h-96 bg-green-500/10 filter blur-3xl animate-pulse animation-delay-2000"></div>
+      </div>
+
+      <div className="w-full max-w-4xl mx-auto">
+        <Card className="bg-black/70 border-gray-800 backdrop-blur-sm rounded-none">
+          <CardHeader className="space-y-6">
+            <div className="flex flex-col items-center justify-center text-center">
+              <div className="flex items-center justify-center space-x-4 mb-4">
+                <div className="w-16 h-16 relative">
+                  <div className="animate-slow-rotate w-full h-full">
+                    <Image
+                      src="/images/fullComboLogo.png"
+                      alt="Full Combo Logo"
+                      width={64}
+                      height={64}
+                      className="object-contain w-full h-full"
+                      priority
+                    />
+                  </div>
+                </div>
+                <CardTitle className="text-5xl font-bold gradient-rotate gradient-text-fix text-center">
+                  Bracket Master Challenge
+                </CardTitle>
+              </div>
+            </div>
+            <CardDescription className="text-xl text-gray-300 max-w-2xl mx-auto">
+              Show your skills and become the ultimate Bracket Master!
             </CardDescription>
           </CardHeader>
-
           <CardContent className="space-y-8">
             {/* Social Login Section */}
             <div className="flex flex-col items-center space-y-6">
@@ -80,57 +79,171 @@ export default function Home() {
               <p className="text-gray-400">Select a game to view predictions and leaderboards</p>
             </div>
             <div className="grid grid-cols-2 gap-4 w-full max-w-md mx-auto">
-              {/* ... your game selection buttons ... */}
+              <div className="flex flex-col items-center">
+                <button 
+                  onClick={() => handleGameSelect('dbfz')}
+                  className={`transition-all mb-2 ${selectedGame === 'dbfz' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
+                >
+                  <div className="relative w-24 h-24">
+                    <Image 
+                      src="/images/gameIcons/dbfz.webp" 
+                      alt="Dragonball Fighter Z" 
+                      fill 
+                      className="object-contain"
+                      priority
+                    />
+                  </div>
+                </button>
+                <span className="text-white text-sm">Dragonball Fighter Z</span>
+              </div>
+              
+              <div className="flex flex-col items-center">
+                <button 
+                  onClick={() => handleGameSelect('sf6')}
+                  className={`transition-all mb-2 ${selectedGame === 'sf6' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
+                >
+                  <div className="relative w-24 h-24">
+                    <Image 
+                      src="/images/gameIcons/sf6.webp" 
+                      alt="Street Fighter 6" 
+                      fill 
+                      className="object-contain"
+                      priority
+                    />
+                  </div>
+                </button>
+                <span className="text-white text-sm">Street Fighter 6</span>
+              </div>
+              
+              <div className="flex flex-col items-center">
+                <button 
+                  onClick={() => handleGameSelect('tk8')}
+                  className={`transition-all mb-2 ${selectedGame === 'tk8' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
+                >
+                  <div className="relative w-24 h-24">
+                    <Image 
+                      src="/images/gameIcons/tk8.webp" 
+                      alt="Tekken 8" 
+                      fill 
+                      className="object-contain"
+                      priority
+                    />
+                  </div>
+                </button>
+                <span className="text-white text-sm">Tekken 8</span>
+              </div>
+              
+              <div className="flex flex-col items-center">
+                <button 
+                  onClick={() => handleGameSelect('ggst')}
+                  className={`transition-all mb-2 ${selectedGame === 'ggst' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
+                >
+                  <div className="relative w-24 h-24">
+                    <Image 
+                      src="/images/gameIcons/ggst.webp" 
+                      alt="Guilty Gear Strive" 
+                      fill 
+                      className="object-contain"
+                      priority
+                    />
+                  </div>
+                </button>
+                <span className="text-white text-sm">Guilty Gear Strive</span>
+              </div>
+              
+              <div className="flex flex-col items-center">
+                <button 
+                  onClick={() => handleGameSelect('mk1')}
+                  className={`transition-all mb-2 ${selectedGame === 'mk1' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
+                >
+                  <div className="relative w-24 h-24">
+                    <Image 
+                      src="/images/gameIcons/mk1.webp" 
+                      alt="Mortal Kombat 1" 
+                      fill 
+                      className="object-contain"
+                      priority
+                    />
+                  </div>
+                </button>
+                <span className="text-white text-sm">Mortal Kombat 1</span>
+              </div>
+              
+              <div className="flex flex-col items-center">
+                <button 
+                  onClick={() => handleGameSelect('ffcotw')}
+                  className={`transition-all mb-2 ${selectedGame === 'ffcotw' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
+                >
+                  <div className="relative w-24 h-24">
+                    <Image 
+                      src="/images/gameIcons/ffcotw.webp" 
+                      alt="Fatal Fury: City of the Wolves" 
+                      fill 
+                      className="object-contain"
+                      priority
+                    />
+                  </div>
+                </button>
+                <span className="text-white text-sm">Fatal Fury: COTW</span>
+              </div>
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <div className="w-full sm:w-auto relative">
                 {!selectedGame && <div className="absolute inset-0 bg-black/30 rounded-lg z-10 pointer-events-none"></div>}
-                <Button 
-                  onClick={() => selectedGame && handleNavigation(
+                <Link 
+                  href={
                     selectedGame === 'dbfz' ? '/prediction' : 
                     selectedGame === 'sf6' ? '/sf6/prediction' :
                     selectedGame === 'tk8' ? '/tk8/prediction' :
                     selectedGame === 'ggst' ? '/ggst/prediction' :
                     selectedGame === 'mk1' ? '/mk1/prediction' :
                     selectedGame === 'ffcotw' ? '/ffcotw/prediction' : '#'
-                  )}
-                  size="lg" 
-                  disabled={!selectedGame || isNavigating}
-                  className={`w-full font-semibold px-8 py-6 text-lg transition-all duration-300 transform ${
-                    selectedGame 
-                      ? 'text-white gradient-rotate' 
-                      : 'text-gray-400 opacity-50 gradient-rotate'
-                  }`}
-                  style={{
-                    boxShadow: selectedGame ? '0 4px 20px -5px rgba(0, 172, 78, 0.4)' : 'none'
-                  }}
+                  } 
+                  className={`w-full sm:w-auto ${!selectedGame ? 'pointer-events-none' : ''}`}
                 >
-                  Start Prediction
-                </Button>
+                  <Button 
+                    size="lg" 
+                    disabled={!selectedGame}
+                    className={`w-full font-semibold px-8 py-6 text-lg transition-all duration-300 transform ${
+                      selectedGame 
+                        ? 'text-white gradient-rotate' 
+                        : 'text-gray-400 opacity-50 gradient-rotate'
+                    }`}
+                    style={{
+                      boxShadow: selectedGame ? '0 4px 20px -5px rgba(0, 172, 78, 0.4)' : 'none'
+                    }}
+                  >
+                    Start Prediction
+                  </Button>
+                </Link>
               </div>
               <div className="w-full sm:w-auto relative">
                 {!selectedGame && <div className="absolute inset-0 bg-black/30 rounded-lg z-10 pointer-events-none"></div>}
-                <Button 
-                  onClick={() => selectedGame && handleNavigation(
+                <Link 
+                  href={
                     selectedGame === 'dbfz' ? '/leaderboard' : 
                     selectedGame === 'sf6' ? '/sf6/leaderboard' :
                     selectedGame === 'tk8' ? '/tk8/leaderboard' :
                     selectedGame === 'ggst' ? '/ggst/leaderboard' :
                     selectedGame === 'mk1' ? '/mk1/leaderboard' :
                     selectedGame === 'ffcotw' ? '/ffcotw/leaderboard' : '#'
-                  )}
-                  variant="ghost" 
-                  size="lg" 
-                  disabled={!selectedGame || isNavigating}
-                  className={`w-full px-8 py-6 text-lg transition-all duration-300 transform ${
-                    selectedGame 
-                      ? 'bg-gradient-to-r from-gray-900/80 to-gray-800/80 border border-gray-700 text-gray-200 hover:from-gray-800/80 hover:to-gray-700/80 hover:text-white' 
-                      : 'bg-gradient-to-r from-gray-900/80 to-gray-800/80 border border-gray-700 text-gray-400 opacity-50'
-                  } backdrop-blur-sm`}
+                  } 
+                  className={`w-full sm:w-auto ${!selectedGame ? 'pointer-events-none' : ''}`}
                 >
-                  View Leaderboard
-                </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="lg" 
+                    disabled={!selectedGame}
+                    className={`w-full px-8 py-6 text-lg transition-all duration-300 transform ${
+                      selectedGame 
+                        ? 'bg-gradient-to-r from-gray-900/80 to-gray-800/80 border border-gray-700 text-gray-200 hover:from-gray-800/80 hover:to-gray-700/80 hover:text-white' 
+                        : 'bg-gradient-to-r from-gray-900/80 to-gray-800/80 border border-gray-700 text-gray-400 opacity-50'
+                    } backdrop-blur-sm`}
+                  >
+                    View Leaderboard
+                  </Button>
+                </Link>
               </div>
             </div>
           </CardContent>
@@ -138,4 +251,4 @@ export default function Home() {
       </div>
     </div>
   );
-} 
+}
