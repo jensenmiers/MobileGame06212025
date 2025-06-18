@@ -5,20 +5,8 @@ import Link from "next/link";
 import { useParams, notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { gameUiDetailsMap } from "@/lib/game-utils";
-
-// Placeholder data for the leaderboard - will be replaced with Supabase data in a future step
-const leaderboardData = [
-  { username: "ProGamer2024", points: 85, rank: 1 },
-  { username: "BracketMaster", points: 78, rank: 2 },
-  { username: "PredictionKing", points: 72, rank: 3 },
-  { username: "GameChanger", points: 68, rank: 4 },
-  { username: "TourneyPro", points: 65, rank: 5 },
-  { username: "SkillzGamer", points: 61, rank: 6 },
-  { username: "ElitePlayer", points: 58, rank: 7 },
-  { username: "ChampionX", points: 55, rank: 8 },
-  { username: "VictorySeeker", points: 52, rank: 9 },
-  { username: "TopTierGamer", points: 49, rank: 10 }
-];
+import { tournamentService } from "@/lib/tournament-service";
+import { LeaderboardEntry } from "@/types/tournament";
 
 const getRankIcon = (rank: number) => {
   switch (rank) {
@@ -39,6 +27,8 @@ const getRankColor = (rank: number) => {
 
 export default function LeaderboardPage() {
   const [tournamentTitle, setTournamentTitle] = useState<string>("");
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const params = useParams();
   const gameSlug = params.game as string;
 
@@ -51,10 +41,26 @@ export default function LeaderboardPage() {
       return notFound();
     }
     setTournamentTitle(tournamentName);
+
+    const fetchLeaderboard = async () => {
+      setIsLoading(true);
+      const tournaments = await tournamentService.getTournaments();
+      const currentTournament = tournaments.find(t => t.name === tournamentName);
+
+      if (currentTournament) {
+        const data = await tournamentService.getLeaderboard(currentTournament.id);
+        setLeaderboard(data);
+      } else {
+        console.error(`${tournamentName} tournament not found.`);
+      }
+      setIsLoading(false);
+    };
+
+    fetchLeaderboard();
   }, [gameSlug, tournamentName]);
 
   if (!tournamentName) {
-    return null; // Or a loading indicator
+    return null; // Should be handled by notFound()
   }
 
   return (
@@ -86,46 +92,52 @@ export default function LeaderboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ol className="space-y-4">
-              {leaderboardData.map((player) => (
-                <li
-                  key={player.rank}
-                  className={`
-                    flex items-center justify-between p-4 transition-all duration-200
-                    ${getRankColor(player.rank)}
-                    hover:bg-gray-800/70
-                    border-l-4 ${
-                      player.rank === 1 ? 'border-l-amber-400' : 
-                      player.rank === 2 ? 'border-l-gray-300' :
-                      player.rank === 3 ? 'border-l-amber-600' :
-                      'border-l-gray-700'
-                    }
-                  `}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="min-w-[3rem] text-center flex items-center justify-center">
-                      {getRankIcon(player.rank)}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className={`font-bold text-2xl ${player.rank === 1 ? 'text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500' : 'text-white'}`}>
-                          {player.username}
-                        </h3>
+            {isLoading ? (
+              <div className="text-center py-10 text-lg text-gray-400">Loading Leaderboard...</div>
+            ) : leaderboard.length > 0 ? (
+              <ol className="space-y-4">
+                {leaderboard.map((player) => (
+                  <li
+                    key={player.userId}
+                    className={`
+                      flex items-center justify-between p-4 transition-all duration-200
+                      ${getRankColor(player.rank)}
+                      hover:bg-gray-800/70
+                      border-l-4 ${
+                        player.rank === 1 ? 'border-l-amber-400' : 
+                        player.rank === 2 ? 'border-l-gray-300' :
+                        player.rank === 3 ? 'border-l-amber-600' :
+                        'border-l-gray-700'
+                      }
+                    `}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="min-w-[3rem] text-center flex items-center justify-center">
+                        {getRankIcon(player.rank)}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className={`font-bold text-2xl ${player.rank === 1 ? 'text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500' : 'text-white'}`}>
+                            {player.username}
+                          </h3>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="text-right">
-                    <div className={`text-2xl font-bold ${player.rank === 1 ? 'text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500' : 'text-white'}`}>
-                      {player.points}
+                    
+                    <div className="text-right">
+                      <div className={`text-2xl font-bold ${player.rank === 1 ? 'text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500' : 'text-white'}`}>
+                        {player.points}
+                      </div>
+                      <div className={`text-sm ${player.rank === 1 ? 'text-green-200' : 'text-gray-300'}`}>
+                        points
+                      </div>
                     </div>
-                    <div className={`text-sm ${player.rank === 1 ? 'text-green-200' : 'text-gray-300'}`}>
-                      points
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ol>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <div className="text-center py-10 text-lg text-gray-400">No leaderboard data available yet. Check back after the tournament is complete!</div>
+            )}
             
             <div className="mt-8 p-4 bg-gradient-to-r from-green-900/20 to-emerald-900/10 border border-green-800/30 rounded-lg">
               <p className="text-sm text-green-100 text-center">

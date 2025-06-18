@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { Player, Tournament } from '@/types/tournament';
+import { Player, Tournament, Prediction, TournamentResult, LeaderboardEntry } from '@/types/tournament';
 
 /**
  * Fetches all participants for a specific tournament from Supabase
@@ -85,8 +85,82 @@ export async function getTournaments(): Promise<Tournament[]> {
   }
 }
 
+// Fetches all user predictions for a specific tournament
+async function getPredictionsForTournament(tournamentId: string): Promise<Prediction[]> {
+  const { data, error } = await supabase
+    .from('predictions')
+    .select('*, profiles(username)') // Join with profiles table to get username
+    .eq('tournament_id', tournamentId);
+
+  if (error) {
+    console.error('Error fetching predictions:', error);
+    return [];
+  }
+  return data || [];
+}
+
+// Fetches the final results for a specific tournament
+async function getResultsForTournament(tournamentId: string): Promise<TournamentResult | null> {
+  const { data, error } = await supabase
+    .from('tournament_results')
+    .select('*')
+    .eq('tournament_id', tournamentId)
+    .single(); // There should only be one result entry per tournament
+
+  if (error) {
+    console.error('Error fetching tournament results:', error);
+    return null;
+  }
+  return data;
+}
+
+// Calculates scores and generates a ranked leaderboard for a tournament
+export async function getLeaderboard(tournamentId: string): Promise<LeaderboardEntry[]> {
+  const [predictions, results] = await Promise.all([
+    getPredictionsForTournament(tournamentId),
+    getResultsForTournament(tournamentId),
+  ]);
+
+  if (!results) {
+    console.log('No results found for this tournament yet.');
+    return []; // Return an empty leaderboard if results are not in
+  }
+
+  const pointsSystem = {
+    first: 10,
+    second: 7,
+    third: 5,
+    fourth: 3,
+  };
+
+  const userScores: Map<string, { username: string; points: number }> = new Map();
+
+  for (const p of predictions) {
+    let score = 0;
+    if (p.prediction_1st_place_participant_id === results.first_place_participant_id) score += pointsSystem.first;
+    if (p.prediction_2nd_place_participant_id === results.second_place_participant_id) score += pointsSystem.second;
+    if (p.prediction_3rd_place_participant_id === results.third_place_participant_id) score += pointsSystem.third;
+    if (p.prediction_4th_place_participant_id === results.fourth_place_participant_id) score += pointsSystem.fourth;
+
+    const username = p.profiles?.username || 'Anonymous';
+    userScores.set(p.user_id, { username, points: score });
+  }
+
+  const sortedScores = Array.from(userScores.entries()).sort((a, b) => b[1].points - a[1].points);
+
+  const leaderboard: LeaderboardEntry[] = sortedScores.map((entry, index) => ({
+    rank: index + 1,
+    userId: entry[0],
+    username: entry[1].username,
+    points: entry[1].points,
+  }));
+
+  return leaderboard;
+}
+
 export const tournamentService = {
   getTournaments,
   getTournamentParticipants,
   getParticipantById,
+  getLeaderboard,
 };
