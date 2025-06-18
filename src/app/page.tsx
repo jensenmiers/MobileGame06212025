@@ -12,6 +12,8 @@ export default function Home() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
+  // Toggle to show/hide the text labels under each game icon
+  const SHOW_TITLES = false;
 
   // Initialize selectedGame from URL on mount
   useEffect(() => {
@@ -82,9 +84,9 @@ export default function Home() {
               <div className="flex flex-col items-center">
                 <button 
                   onClick={() => handleGameSelect('dbfz')}
-                  className={`transition-all mb-2 ${selectedGame === 'dbfz' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
+                  className={`transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${selectedGame === 'dbfz' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
                 >
-                  <div className="relative w-24 h-24">
+                  <div className="relative w-28 h-28">
                     <Image 
                       src="/images/gameIcons/dbfz.webp" 
                       alt="Dragonball Fighter Z" 
@@ -94,15 +96,15 @@ export default function Home() {
                     />
                   </div>
                 </button>
-                <span className="text-white text-sm">Dragonball Fighter Z</span>
+                {SHOW_TITLES && (<span className="text-white text-sm">Dragonball Fighter Z</span>)}
               </div>
               
               <div className="flex flex-col items-center">
                 <button 
                   onClick={() => handleGameSelect('sf6')}
-                  className={`transition-all mb-2 ${selectedGame === 'sf6' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
+                  className={`transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${selectedGame === 'sf6' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
                 >
-                  <div className="relative w-24 h-24">
+                  <div className="relative w-28 h-28">
                     <Image 
                       src="/images/gameIcons/sf6.webp" 
                       alt="Street Fighter 6" 
@@ -112,15 +114,15 @@ export default function Home() {
                     />
                   </div>
                 </button>
-                <span className="text-white text-sm">Street Fighter 6</span>
+                {SHOW_TITLES && (<span className="text-white text-sm">Street Fighter 6</span>)}
               </div>
               
               <div className="flex flex-col items-center">
                 <button 
                   onClick={() => handleGameSelect('tk8')}
-                  className={`transition-all mb-2 ${selectedGame === 'tk8' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
+                  className={`transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${selectedGame === 'tk8' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
                 >
-                  <div className="relative w-24 h-24">
+                  <div className="relative w-28 h-28">
                     <Image 
                       src="/images/gameIcons/tk8.webp" 
                       alt="Tekken 8" 
@@ -130,15 +132,15 @@ export default function Home() {
                     />
                   </div>
                 </button>
-                <span className="text-white text-sm">Tekken 8</span>
+                {SHOW_TITLES && (<span className="text-white text-sm">Tekken 8</span>)}
               </div>
               
               <div className="flex flex-col items-center">
                 <button 
                   onClick={() => handleGameSelect('ggst')}
-                  className={`transition-all mb-2 ${selectedGame === 'ggst' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
+                  className={`transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${selectedGame === 'ggst' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
                 >
-                  <div className="relative w-24 h-24">
+                  <div className="relative w-28 h-28">
                     <Image 
                       src="/images/gameIcons/ggst.webp" 
                       alt="Guilty Gear Strive" 
@@ -148,15 +150,15 @@ export default function Home() {
                     />
                   </div>
                 </button>
-                <span className="text-white text-sm">Guilty Gear Strive</span>
+                {SHOW_TITLES && (<span className="text-white text-sm">Guilty Gear Strive</span>)}
               </div>
               
               <div className="flex flex-col items-center">
                 <button 
                   onClick={() => handleGameSelect('mk1')}
-                  className={`transition-all mb-2 ${selectedGame === 'mk1' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
+                  className={`transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${selectedGame === 'mk1' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
                 >
-                  <div className="relative w-24 h-24">
+                  <div className="relative w-28 h-28">
                     <Image 
                       src="/images/gameIcons/mk1.webp" 
                       alt="Mortal Kombat 1" 
@@ -166,15 +168,15 @@ export default function Home() {
                     />
                   </div>
                 </button>
-                <span className="text-white text-sm">Mortal Kombat 1</span>
+                {SHOW_TITLES && (<span className="text-white text-sm">Mortal Kombat 1</span>)}
               </div>
               
               <div className="flex flex-col items-center">
                 <button 
                   onClick={() => handleGameSelect('ffcotw')}
-                  className={`transition-all mb-2 ${selectedGame === 'ffcotw' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
+                  className={`transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${selectedGame === 'ffcotw' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
                 >
-                  <div className="relative w-24 h-24">
+                  <div className="relative w-28 h-28">
                     <Image 
                       src="/images/gameIcons/ffcotw.webp" 
                       alt="Fatal Fury: City of the Wolves" 
@@ -184,7 +186,7 @@ export default function Home() {
                     />
                   </div>
                 </button>
-                <span className="text-white text-sm">Fatal Fury: COTW</span>
+                {SHOW_TITLES && (<span className="text-white text-sm">Fatal Fury: COTW</span>)}
               </div>
             </div>
             
