@@ -1,22 +1,54 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { useParams, notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Slots from "@/components/Prediction/Slots";
-
-// Player data for Guilty Gear Strive
-const ALL_PLAYERS = [
-  "Sol Badguy", "Ky Kiske", "May", "Axl Low", "Chipp Zanuff",
-  "Potemkin", "Faust", "Millia Rage", "Zato-1", "Ramlethal",
-  "Leo Whitefang", "Nagoriyuki", "Giovanna", "Anji Mito", "I-No",
-  "Goldlewis Dickinson", "Jack-O'", "Happy Chaos", "Baiken", "Testament"
-];
+import { tournamentService } from "@/lib/tournament-service";
+import { Player } from "@/types/tournament";
+import { gameUiDetailsMap } from "@/lib/game-utils";
 
 export default function PredictionPage() {
   const [predictions, setPredictions] = useState<string[]>(Array(4).fill(""));
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [tournamentTitle, setTournamentTitle] = useState<string>("");
   const isComplete = predictions.every(prediction => prediction !== "");
+  const params = useParams();
+  const gameSlug = params.game as string;
+
+  // Find the full tournament name from the slug in the URL
+  const tournamentName = Object.keys(gameUiDetailsMap).find(
+    key => gameUiDetailsMap[key].slug === gameSlug
+  );
+
+  useEffect(() => {
+    if (!tournamentName) {
+      // If the slug doesn't match any known game, show a 404 page
+      return notFound();
+    }
+
+    setTournamentTitle(tournamentName);
+
+    const fetchParticipants = async () => {
+      const tournaments = await tournamentService.getTournaments();
+      const currentTournament = tournaments.find(t => t.name === tournamentName);
+
+      if (currentTournament) {
+        const participantData = await tournamentService.getTournamentParticipants(currentTournament.id);
+        setPlayers(participantData);
+      } else {
+        console.error(`${tournamentName} tournament not found.`);
+      }
+    };
+
+    fetchParticipants();
+  }, [gameSlug, tournamentName]);
+
+  if (!tournamentName) {
+    // Render nothing or a loading state while we determine if the page is valid
+    return null;
+  }
 
   const handleSlotFill = (slotIndex: number, player: string) => {
     const newPredictions = [...predictions];
@@ -31,12 +63,12 @@ export default function PredictionPage() {
   };
 
   const handleSubmit = () => {
-    console.log("Submitting predictions:", predictions);
+    console.log(`Submitting predictions for ${tournamentTitle}:`, predictions);
     alert("Predictions submitted successfully!");
   };
 
-  const availablePlayers = ALL_PLAYERS.filter(
-    (player) => !predictions.includes(player)
+  const availablePlayers = players.filter(
+    (player) => !predictions.includes(player.name)
   );
 
   return (
@@ -51,7 +83,7 @@ export default function PredictionPage() {
       {/* Back Button */}
       <div className="w-full max-w-4xl mx-auto mb-6">
         <Link 
-          href={`/?game=ggst`}
+          href={`/?game=${gameSlug}`}
           className="inline-flex items-center text-gray-300 hover:text-white transition-colors"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -73,7 +105,7 @@ export default function PredictionPage() {
           </h1>
         </div>
         <h2 className="text-2xl md:text-3xl font-bold mb-4 w-full">
-          Guilty Gear Strive
+          {tournamentTitle}
         </h2>
         <p className="text-xl text-gray-300 mb-8 w-full">
           Predict the top 4 players!
@@ -86,7 +118,7 @@ export default function PredictionPage() {
           predictions={predictions}
           onSlotFill={handleSlotFill}
           onSlotClear={handleSlotClear}
-          availablePlayers={availablePlayers}
+          availablePlayers={availablePlayers.map(p => p.name)}
         />
       </div>
 
@@ -135,18 +167,18 @@ export default function PredictionPage() {
           </h2>
           <div className="flex flex-wrap gap-3 justify-center">
             {availablePlayers.length > 0 ? (
-              availablePlayers.map((player, index) => (
+              availablePlayers.map((player) => (
                 <button
-                  key={index}
+                  key={player.id}
                   onClick={() => {
                     const firstEmptyIndex = predictions.findIndex(p => p === "");
                     if (firstEmptyIndex !== -1) {
-                      handleSlotFill(firstEmptyIndex, player);
+                      handleSlotFill(firstEmptyIndex, player.name);
                     }
                   }}
                   className="px-4 py-2 bg-gray-900/80 hover:bg-gray-800/80 text-base text-white font-medium shadow-sm transition-colors border border-gray-800 rounded-none"
                 >
-                  {player}
+                  {player.name}
                 </button>
               ))
             ) : (

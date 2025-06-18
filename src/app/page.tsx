@@ -7,19 +7,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link";
 import Image from "next/image";
 import { SocialLogin } from "@/components/Auth/SocialLogin";
+import { tournamentService } from "@/lib/tournament-service";
+import { Tournament } from "@/types/tournament";
+import { gameUiDetailsMap } from "@/lib/game-utils";
 
 export default function Home() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
   // Toggle to show/hide the text labels under each game icon
   const SHOW_TITLES = false;
 
+  useEffect(() => {
+    async function fetchTournaments() {
+      const data = await tournamentService.getTournaments();
+      setTournaments(data);
+    }
+    fetchTournaments();
+  }, []);
+
   // Initialize selectedGame from URL on mount
   useEffect(() => {
-    const game = searchParams.get('game');
-    if (['dbfz', 'sf6', 'tk8', 'ggst', 'mk1', 'ffcotw'].includes(game || '')) {
-      setSelectedGame(game);
+    const gameSlug = searchParams.get('game');
+    const allSlugs = Object.values(gameUiDetailsMap).map(details => details.slug);
+    if (gameSlug && allSlugs.includes(gameSlug)) {
+      setSelectedGame(gameSlug);
     }
   }, [searchParams]);
 
@@ -79,128 +92,38 @@ export default function Home() {
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-white">Choose Your Tournament</h2>
             </div>
-            <div className="grid grid-cols-2 gap-4 w-full max-w-md mx-auto">
-              <div className="flex flex-col items-center">
-                <button 
-                  onClick={() => handleGameSelect('dbfz')}
-                  className={`transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${selectedGame === 'dbfz' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
-                >
-                  <div className="relative w-[8.4rem] h-[8.4rem]">
-                    <Image 
-                      src="/images/gameIcons/dbfz.webp" 
-                      alt="Dragonball Fighter Z" 
-                      fill 
-                      className="object-contain"
-                      priority
-                    />
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full max-w-md mx-auto">
+              {tournaments.map((tournament) => {
+                const uiDetails = gameUiDetailsMap[tournament.name];
+                if (!uiDetails) return null; // Don't render if no UI details are mapped
+
+                return (
+                  <div key={tournament.id} className="flex flex-col items-center">
+                    <button
+                      onClick={() => handleGameSelect(uiDetails.slug)}
+                      className={`transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${selectedGame === uiDetails.slug ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
+                    >
+                      <div className="relative w-[8.4rem] h-[8.4rem]">
+                        <Image
+                          src={uiDetails.imageUrl}
+                          alt={tournament.name}
+                          fill
+                          className="object-contain"
+                          priority
+                        />
+                      </div>
+                    </button>
+                    {SHOW_TITLES && (<span className="text-white text-sm">{uiDetails.title}</span>)}
                   </div>
-                </button>
-                {SHOW_TITLES && (<span className="text-white text-sm">Dragonball Fighter Z</span>)}
-              </div>
-              
-              <div className="flex flex-col items-center">
-                <button 
-                  onClick={() => handleGameSelect('sf6')}
-                  className={`transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${selectedGame === 'sf6' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
-                >
-                  <div className="relative w-[8.4rem] h-[8.4rem]">
-                    <Image 
-                      src="/images/gameIcons/sf6.webp" 
-                      alt="Street Fighter 6" 
-                      fill 
-                      className="object-contain"
-                      priority
-                    />
-                  </div>
-                </button>
-                {SHOW_TITLES && (<span className="text-white text-sm">Street Fighter 6</span>)}
-              </div>
-              
-              <div className="flex flex-col items-center">
-                <button 
-                  onClick={() => handleGameSelect('tk8')}
-                  className={`transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${selectedGame === 'tk8' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
-                >
-                  <div className="relative w-[8.4rem] h-[8.4rem]">
-                    <Image 
-                      src="/images/gameIcons/tk8.webp" 
-                      alt="Tekken 8" 
-                      fill 
-                      className="object-contain"
-                      priority
-                    />
-                  </div>
-                </button>
-                {SHOW_TITLES && (<span className="text-white text-sm">Tekken 8</span>)}
-              </div>
-              
-              <div className="flex flex-col items-center">
-                <button 
-                  onClick={() => handleGameSelect('ggst')}
-                  className={`transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${selectedGame === 'ggst' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
-                >
-                  <div className="relative w-[8.4rem] h-[8.4rem]">
-                    <Image 
-                      src="/images/gameIcons/ggst.webp" 
-                      alt="Guilty Gear Strive" 
-                      fill 
-                      className="object-contain"
-                      priority
-                    />
-                  </div>
-                </button>
-                {SHOW_TITLES && (<span className="text-white text-sm">Guilty Gear Strive</span>)}
-              </div>
-              
-              <div className="flex flex-col items-center">
-                <button 
-                  onClick={() => handleGameSelect('mk1')}
-                  className={`transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${selectedGame === 'mk1' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
-                >
-                  <div className="relative w-[8.4rem] h-[8.4rem]">
-                    <Image 
-                      src="/images/gameIcons/mk1.webp" 
-                      alt="Mortal Kombat 1" 
-                      fill 
-                      className="object-contain"
-                      priority
-                    />
-                  </div>
-                </button>
-                {SHOW_TITLES && (<span className="text-white text-sm">Mortal Kombat 1</span>)}
-              </div>
-              
-              <div className="flex flex-col items-center">
-                <button 
-                  onClick={() => handleGameSelect('ffcotw')}
-                  className={`transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${selectedGame === 'ffcotw' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
-                >
-                  <div className="relative w-[8.4rem] h-[8.4rem]">
-                    <Image 
-                      src="/images/gameIcons/ffcotw.webp" 
-                      alt="Fatal Fury: City of the Wolves" 
-                      fill 
-                      className="object-contain"
-                      priority
-                    />
-                  </div>
-                </button>
-                {SHOW_TITLES && (<span className="text-white text-sm">Fatal Fury: COTW</span>)}
-              </div>
+                );
+              })}
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <div className="w-full sm:w-auto relative">
                 {!selectedGame && <div className="absolute inset-0 bg-black/30 rounded-lg z-10 pointer-events-none"></div>}
                 <Link 
-                  href={
-                    selectedGame === 'dbfz' ? '/prediction' : 
-                    selectedGame === 'sf6' ? '/sf6/prediction' :
-                    selectedGame === 'tk8' ? '/tk8/prediction' :
-                    selectedGame === 'ggst' ? '/ggst/prediction' :
-                    selectedGame === 'mk1' ? '/mk1/prediction' :
-                    selectedGame === 'ffcotw' ? '/ffcotw/prediction' : '#'
-                  } 
+                  href={selectedGame ? `/${selectedGame}/prediction` : '#'}
                   className={`w-full sm:w-auto ${!selectedGame ? 'pointer-events-none' : ''}`}
                 >
                   <Button 
@@ -222,14 +145,7 @@ export default function Home() {
               <div className="w-full sm:w-auto relative">
                 {!selectedGame && <div className="absolute inset-0 bg-black/30 rounded-lg z-10 pointer-events-none"></div>}
                 <Link 
-                  href={
-                    selectedGame === 'dbfz' ? '/leaderboard' : 
-                    selectedGame === 'sf6' ? '/sf6/leaderboard' :
-                    selectedGame === 'tk8' ? '/tk8/leaderboard' :
-                    selectedGame === 'ggst' ? '/ggst/leaderboard' :
-                    selectedGame === 'mk1' ? '/mk1/leaderboard' :
-                    selectedGame === 'ffcotw' ? '/ffcotw/leaderboard' : '#'
-                  } 
+                  href={selectedGame ? `/${selectedGame}/leaderboard` : '#'}
                   className={`w-full sm:w-auto ${!selectedGame ? 'pointer-events-none' : ''}`}
                 >
                   <Button 

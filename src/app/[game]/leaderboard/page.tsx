@@ -1,20 +1,23 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useParams, notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { gameUiDetailsMap } from "@/lib/game-utils";
 
-// Placeholder data for the SF6 leaderboard
+// Placeholder data for the leaderboard - will be replaced with Supabase data in a future step
 const leaderboardData = [
-  { username: "ShoryuMaster", points: 92, rank: 1 },
-  { username: "HadoukenKing", points: 85, rank: 2 },
-  { username: "TatsumakiPro", points: 81, rank: 3 },
-  { username: "ShinAkuma", points: 78, rank: 4 },
-  { username: "RyuTheBest", points: 75, rank: 5 },
-  { username: "ChunLiFan", points: 72, rank: 6 },
-  { username: "GuileTactics", points: 68, rank: 7 },
-  { username: "JuriMain", points: 65, rank: 8 },
-  { username: "KenCombo", points: 62, rank: 9 },
-  { username: "CammyPlayer", points: 58, rank: 10 }
+  { username: "ProGamer2024", points: 85, rank: 1 },
+  { username: "BracketMaster", points: 78, rank: 2 },
+  { username: "PredictionKing", points: 72, rank: 3 },
+  { username: "GameChanger", points: 68, rank: 4 },
+  { username: "TourneyPro", points: 65, rank: 5 },
+  { username: "SkillzGamer", points: 61, rank: 6 },
+  { username: "ElitePlayer", points: 58, rank: 7 },
+  { username: "ChampionX", points: 55, rank: 8 },
+  { username: "VictorySeeker", points: 52, rank: 9 },
+  { username: "TopTierGamer", points: 49, rank: 10 }
 ];
 
 const getRankIcon = (rank: number) => {
@@ -35,13 +38,32 @@ const getRankColor = (rank: number) => {
 };
 
 export default function LeaderboardPage() {
+  const [tournamentTitle, setTournamentTitle] = useState<string>("");
+  const params = useParams();
+  const gameSlug = params.game as string;
+
+  const tournamentName = Object.keys(gameUiDetailsMap).find(
+    key => gameUiDetailsMap[key].slug === gameSlug
+  );
+
+  useEffect(() => {
+    if (!tournamentName) {
+      return notFound();
+    }
+    setTournamentTitle(tournamentName);
+  }, [gameSlug, tournamentName]);
+
+  if (!tournamentName) {
+    return null; // Or a loading indicator
+  }
+
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4">
       <div className="max-w-4xl mx-auto">
         {/* Back Button */}
         <div className="w-full mb-6">
           <Link 
-            href={`/?game=sf6`} 
+            href={`/?game=${gameSlug}`}
             className="inline-flex items-center text-gray-300 hover:text-white transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -52,7 +74,7 @@ export default function LeaderboardPage() {
         </div>
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold mb-1 bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-green-600">Leaderboard</h1>
-          <h2 className="text-2xl font-bold mb-2">Street Fighter 6</h2>
+          <h2 className="text-2xl font-bold mb-2">{tournamentTitle}</h2>
           <p className="text-gray-300">See how you rank against other bracket masters</p>
         </div>
 
@@ -89,45 +111,6 @@ export default function LeaderboardPage() {
                         <h3 className={`font-bold text-2xl ${player.rank === 1 ? 'text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500' : 'text-white'}`}>
                           {player.username}
                         </h3>
-                        {player.rank === 1 && (
-                          <div className="relative h-6 w-6">
-                            <img 
-                              src="/images/fullComboLogo.png" 
-                              alt="" 
-                              className="h-full w-full object-contain"
-                              style={{
-                                filter: 'brightness(0) saturate(100%) invert(83%) sepia(59%) saturate(1031%) hue-rotate(327deg) brightness(102%) contrast(97%)',
-                                transform: 'translateY(1px)'
-                              }}
-                            />
-                          </div>
-                        )}
-                        {player.rank === 2 && (
-                          <div className="relative h-6 w-6">
-                            <img 
-                              src="/images/fullComboLogo.png" 
-                              alt="" 
-                              className="h-full w-full object-contain"
-                              style={{
-                                filter: 'brightness(0) saturate(100%) invert(94%) sepia(0%) saturate(0%) hue-rotate(10deg) brightness(90%) contrast(90%)',
-                                transform: 'translateY(1px)'
-                              }}
-                            />
-                          </div>
-                        )}
-                        {player.rank === 3 && (
-                          <div className="relative h-6 w-6">
-                            <img 
-                              src="/images/fullComboLogo.png" 
-                              alt="" 
-                              className="h-full w-full object-contain"
-                              style={{
-                                filter: 'brightness(0) saturate(100%) invert(65%) sepia(60%) saturate(600%) hue-rotate(340deg) brightness(90%) contrast(90%)',
-                                transform: 'translateY(1px)'
-                              }}
-                            />
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
