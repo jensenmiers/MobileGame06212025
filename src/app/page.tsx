@@ -47,27 +47,27 @@ export default function Home() {
         <Card className="bg-black/70 border-gray-800 backdrop-blur-sm rounded-none">
           <CardHeader className="space-y-6">
             <div className="flex flex-col items-center justify-center text-center">
-              <div className="flex items-center justify-center space-x-4 mb-4">
-                <div className="w-16 h-16 relative">
-                  <div className="animate-slow-rotate w-full h-full">
-                    <Image
-                      src="/images/fullComboLogo.png"
-                      alt="Full Combo Logo"
-                      width={64}
-                      height={64}
-                      className="object-contain w-full h-full"
-                      priority
-                    />
+              <div className="flex justify-center mb-4 w-full px-4 md:px-0">
+                <div className="flex items-center space-x-3 sm:space-x-4 max-w-max -ml-2 sm:ml-0">
+                  <div className="flex-shrink-0 h-[4.5rem] w-auto aspect-square relative">
+                    <div className="animate-slow-rotate w-full h-full flex items-center">
+                      <div className="relative w-full h-16">
+                        <Image
+                          src="/images/fullComboLogo.png"
+                          alt="Full Combo Logo"
+                          fill
+                          className="object-contain"
+                          priority
+                        />
+                      </div>
+                    </div>
                   </div>
+                  <CardTitle className="text-5xl font-bold gradient-rotate gradient-text-fix text-center leading-tight">
+                    Bracket Challenge
+                  </CardTitle>
                 </div>
-                <CardTitle className="text-5xl font-bold gradient-rotate gradient-text-fix text-center">
-                  Bracket Master Challenge
-                </CardTitle>
               </div>
             </div>
-            <CardDescription className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Show your skills and become the ultimate Bracket Master!
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-8">
             {/* Social Login Section */}
@@ -77,8 +77,7 @@ export default function Home() {
             
             {/* Game Selection */}
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-white mb-2">Choose Your Tournament</h2>
-              <p className="text-gray-400">Select a game to view predictions and leaderboards</p>
+              <h2 className="text-2xl font-bold text-white">Choose Your Tournament</h2>
             </div>
             <div className="grid grid-cols-2 gap-4 w-full max-w-md mx-auto">
               <div className="flex flex-col items-center">
