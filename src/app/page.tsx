@@ -86,7 +86,7 @@ export default function Home() {
                   onClick={() => handleGameSelect('dbfz')}
                   className={`transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${selectedGame === 'dbfz' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
                 >
-                  <div className="relative w-28 h-28">
+                  <div className="relative w-[8.4rem] h-[8.4rem]">
                     <Image 
                       src="/images/gameIcons/dbfz.webp" 
                       alt="Dragonball Fighter Z" 
@@ -104,7 +104,7 @@ export default function Home() {
                   onClick={() => handleGameSelect('sf6')}
                   className={`transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${selectedGame === 'sf6' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
                 >
-                  <div className="relative w-28 h-28">
+                  <div className="relative w-[8.4rem] h-[8.4rem]">
                     <Image 
                       src="/images/gameIcons/sf6.webp" 
                       alt="Street Fighter 6" 
@@ -122,7 +122,7 @@ export default function Home() {
                   onClick={() => handleGameSelect('tk8')}
                   className={`transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${selectedGame === 'tk8' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
                 >
-                  <div className="relative w-28 h-28">
+                  <div className="relative w-[8.4rem] h-[8.4rem]">
                     <Image 
                       src="/images/gameIcons/tk8.webp" 
                       alt="Tekken 8" 
@@ -140,7 +140,7 @@ export default function Home() {
                   onClick={() => handleGameSelect('ggst')}
                   className={`transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${selectedGame === 'ggst' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
                 >
-                  <div className="relative w-28 h-28">
+                  <div className="relative w-[8.4rem] h-[8.4rem]">
                     <Image 
                       src="/images/gameIcons/ggst.webp" 
                       alt="Guilty Gear Strive" 
@@ -158,7 +158,7 @@ export default function Home() {
                   onClick={() => handleGameSelect('mk1')}
                   className={`transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${selectedGame === 'mk1' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
                 >
-                  <div className="relative w-28 h-28">
+                  <div className="relative w-[8.4rem] h-[8.4rem]">
                     <Image 
                       src="/images/gameIcons/mk1.webp" 
                       alt="Mortal Kombat 1" 
@@ -176,7 +176,7 @@ export default function Home() {
                   onClick={() => handleGameSelect('ffcotw')}
                   className={`transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${selectedGame === 'ffcotw' ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
                 >
-                  <div className="relative w-28 h-28">
+                  <div className="relative w-[8.4rem] h-[8.4rem]">
                     <Image 
                       src="/images/gameIcons/ffcotw.webp" 
                       alt="Fatal Fury: City of the Wolves" 
