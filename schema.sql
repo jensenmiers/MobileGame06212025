@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS tournaments (
   game_title TEXT,
   description TEXT,
   start_time TIMESTAMPTZ NOT NULL,
-  cutoff_time TIMESTAMPTZ NOT NULL,
+  first_cutoff_time TIMESTAMPTZ NOT NULL,
+  second_cutoff_time TIMESTAMPTZ NOT NULL,
   end_time TIMESTAMPTZ,
   status TEXT CHECK (status IN ('upcoming', 'active', 'completed', 'cancelled')) DEFAULT 'upcoming',
   max_participants INTEGER DEFAULT 16,
@@ -31,17 +32,21 @@ CREATE TABLE IF NOT EXISTS participants (
   UNIQUE(tournament_id, name)
 );
 
--- Predictions table (with re-submission support)
+-- Predictions table (with two-cutoff support and draft saving)
 CREATE TABLE IF NOT EXISTS predictions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   tournament_id UUID REFERENCES tournaments(id) ON DELETE CASCADE,
+  cutoff_period TEXT CHECK (cutoff_period IN ('first', 'second')) NOT NULL,
   
-  -- Using participant IDs for referential integrity (4 slots only)
+  -- Using participant IDs for referential integrity (4 slots - allow nulls for drafts)
   slot_1_participant_id UUID REFERENCES participants(id),
   slot_2_participant_id UUID REFERENCES participants(id),
   slot_3_participant_id UUID REFERENCES participants(id),
   slot_4_participant_id UUID REFERENCES participants(id),
+  
+  -- Track completion status
+  is_complete BOOLEAN DEFAULT FALSE,
   
   -- Timestamp tracking for re-submissions
   first_submitted_at TIMESTAMPTZ DEFAULT NOW(),
@@ -49,7 +54,7 @@ CREATE TABLE IF NOT EXISTS predictions (
   submission_count INTEGER DEFAULT 1,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   
-  UNIQUE(user_id, tournament_id)
+  UNIQUE(user_id, tournament_id, cutoff_period)
 );
 
 -- Results table (4 positions only)
@@ -105,6 +110,7 @@ CREATE TRIGGER update_predictions_timestamp_trigger
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_predictions_tournament ON predictions(tournament_id);
 CREATE INDEX IF NOT EXISTS idx_predictions_user ON predictions(user_id);
+CREATE INDEX IF NOT EXISTS idx_predictions_cutoff_period ON predictions(cutoff_period);
 CREATE INDEX IF NOT EXISTS idx_predictions_last_updated ON predictions(last_updated_at);
 CREATE INDEX IF NOT EXISTS idx_scores_tournament ON scores(tournament_id);
 CREATE INDEX IF NOT EXISTS idx_scores_user ON scores(user_id);
@@ -148,7 +154,13 @@ CREATE POLICY "Anyone can view participants" ON participants
 CREATE POLICY "Anyone can view results" ON results
   FOR SELECT USING (true);
 
--- Insert sample tournament (only if none exists)
-INSERT INTO tournaments (name, game_title, start_time, cutoff_time, status) 
-SELECT 'EVO 2024 Championship', 'Street Fighter 6', NOW() + INTERVAL '7 days', NOW() + INTERVAL '6 days', 'upcoming'
+-- Insert sample tournament with two cutoff times (only if none exists)
+INSERT INTO tournaments (name, game_title, start_time, first_cutoff_time, second_cutoff_time, status) 
+SELECT 
+  'EVO 2024 Championship', 
+  'Street Fighter 6', 
+  NOW() + INTERVAL '7 days', 
+  NOW() + INTERVAL '6 days', 
+  NOW() + INTERVAL '6 days 12 hours', 
+  'upcoming'
 WHERE NOT EXISTS (SELECT 1 FROM tournaments WHERE name = 'EVO 2024 Championship'); 

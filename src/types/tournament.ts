@@ -6,6 +6,7 @@ export interface Player {
 }
 
 export type TournamentStatus = 'upcoming' | 'active' | 'completed' | 'cancelled';
+export type CutoffPeriod = 'first' | 'second';
 
 export interface Tournament {
   id: string; // uuid from Supabase
@@ -13,7 +14,8 @@ export interface Tournament {
   game_title: string;
   description: string;
   start_time: string;
-  cutoff_time: string;
+  first_cutoff_time: string;
+  second_cutoff_time: string;
   end_time: string;
   status: TournamentStatus;
   max_participants: number;
@@ -22,15 +24,17 @@ export interface Tournament {
   players?: Player[];
 }
 
-// Represents a user's set of predictions for a tournament
+// Represents a user's set of predictions for a tournament and cutoff period
 export interface Prediction {
   id: string; // uuid
   user_id: string; // uuid
   tournament_id: string; // uuid
-  slot_1_participant_id: string; // uuid
-  slot_2_participant_id: string; // uuid
-  slot_3_participant_id: string; // uuid
-  slot_4_participant_id: string; // uuid
+  cutoff_period: CutoffPeriod;
+  slot_1_participant_id: string | null; // uuid - nullable for drafts
+  slot_2_participant_id: string | null; // uuid - nullable for drafts
+  slot_3_participant_id: string | null; // uuid - nullable for drafts
+  slot_4_participant_id: string | null; // uuid - nullable for drafts
+  is_complete: boolean; // whether all 4 slots are filled
   first_submitted_at?: string; // timestamp with time zone
   last_updated_at?: string; // timestamp with time zone
   submission_count?: number; // integer
@@ -57,4 +61,12 @@ export interface LeaderboardEntry {
   username: string;
   points: number;
   userId: string;
+}
+
+// Helper interface for determining current cutoff period
+export interface CutoffPeriodInfo {
+  current: CutoffPeriod | 'before' | 'after';
+  canSubmitFirst: boolean;
+  canSubmitSecond: boolean;
+  timeUntilNextCutoff?: number; // milliseconds
 }
