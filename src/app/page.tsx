@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link";
 import Image from "next/image";
 import { SocialLogin } from "@/components/Auth/SocialLogin";
+import { useAuth } from "@/lib/auth-context";
 import { tournamentService } from "@/lib/tournament-service";
 import { Tournament } from "@/types/tournament";
 import { gameUiDetailsMap } from "@/lib/game-utils";
@@ -14,6 +15,7 @@ import { gameUiDetailsMap } from "@/lib/game-utils";
 export default function Home() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { user, loading, signOut } = useAuth();
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   // Toggle to show/hide the text labels under each game icon
@@ -48,6 +50,31 @@ export default function Home() {
     }
     router.push(`/?${params.toString()}`, { scroll: false });
   };
+
+  const handleLogout = async () => {
+    await signOut();
+    // Clear any selected game and redirect to clean main page
+    setSelectedGame(null);
+    router.push('/');
+  };
+
+  // Get display name from user metadata
+  const getDisplayName = () => {
+    if (!user) return '';
+    return user.user_metadata?.full_name || 
+           user.user_metadata?.name || 
+           user.email?.split('@')[0] || 
+           'User';
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white flex items-center justify-center">
+        <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white flex flex-col items-center justify-start p-4 pt-12 relative overflow-hidden">
       {/* Background elements */}
@@ -80,13 +107,25 @@ export default function Home() {
                   </CardTitle>
                 </div>
               </div>
+              
+              {/* Welcome message for logged in users */}
+              {user && (
+                <div className="w-full text-center mb-6">
+                  <h2 className="text-2xl font-semibold text-green-400 mb-2">
+                    Welcome, {getDisplayName()}!
+                  </h2>
+                  <p className="text-gray-300">Ready to make your predictions?</p>
+                </div>
+              )}
             </div>
           </CardHeader>
           <CardContent className="space-y-8">
-            {/* Social Login Section */}
-            <div className="flex flex-col items-center space-y-6">
-              <SocialLogin />
-            </div>
+            {/* Social Login Section - only show if not logged in */}
+            {!user && (
+              <div className="flex flex-col items-center space-y-6">
+                <SocialLogin />
+              </div>
+            )}
             
             {/* Game Selection */}
             <div className="text-center mb-6">
@@ -163,6 +202,22 @@ export default function Home() {
                 </Link>
               </div>
             </div>
+
+            {/* Logout button for logged in users - positioned at bottom */}
+            {user && (
+              <div className="flex justify-center pt-8 border-t border-gray-800 mt-8">
+                <Button 
+                  onClick={handleLogout}
+                  variant="ghost"
+                  className="text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Log Out
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
