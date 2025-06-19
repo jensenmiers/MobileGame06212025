@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link";
 import Image from "next/image";
 import { SocialLogin } from "@/components/Auth/SocialLogin";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/context/AuthContext";
 import { tournamentService } from "@/lib/tournament-service";
 import { Tournament } from "@/types/tournament";
 import { gameUiDetailsMap } from "@/lib/game-utils";
