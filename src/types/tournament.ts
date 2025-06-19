@@ -24,14 +24,18 @@ export interface Tournament {
 
 // Represents a user's set of predictions for a tournament
 export interface Prediction {
-  id: string;
-  user_id: string;
-  tournament_id: string;
-  prediction_1st_place_participant_id: string;
-  prediction_2nd_place_participant_id: string;
-  prediction_3rd_place_participant_id: string;
-  prediction_4th_place_participant_id: string;
-  // This field will be populated by a join to the profiles table
+  id: string; // uuid
+  user_id: string; // uuid
+  tournament_id: string; // uuid
+  slot_1_participant_id: string; // uuid
+  slot_2_participant_id: string; // uuid
+  slot_3_participant_id: string; // uuid
+  slot_4_participant_id: string; // uuid
+  first_submitted_at?: string; // timestamp with time zone
+  last_updated_at?: string; // timestamp with time zone
+  submission_count?: number; // integer
+  created_at?: string; // timestamp with time zone
+  // This field can be populated by a join to the profiles table
   profiles?: {
     username: string;
   };

@@ -173,10 +173,7 @@ export const tournamentService = {
     slot_3_participant_id: string;
     slot_4_participant_id: string;
   }): Promise<Prediction | null> {
-    console.log('[submitPrediction] Received data:', JSON.stringify(predictionData, null, 2));
-
     // Check if a prediction already exists for this user and tournament
-    console.log('[submitPrediction] Checking for existing prediction...');
     const { data: existingPrediction, error: selectError } = await supabase
       .from('predictions')
       .select('id, submission_count')
@@ -184,20 +181,14 @@ export const tournamentService = {
       .eq('tournament_id', predictionData.tournament_id)
       .single();
 
-    console.log('[submitPrediction] Existing prediction check complete.');
-    console.log('[submitPrediction] Existing prediction data:', existingPrediction);
-    console.log('[submitPrediction] Select error:', selectError);
-
-
     if (selectError && selectError.code !== 'PGRST116') {
       // PGRST116 means no rows were found, which is fine.
       // Any other error should be thrown.
-      console.error('[submitPrediction] CRITICAL: Error checking for existing prediction:', selectError);
+      console.error('Error checking for existing prediction:', selectError);
       throw selectError;
     }
 
     if (existingPrediction) {
-      console.log(`[submitPrediction] Found existing prediction with ID: ${existingPrediction.id}. Proceeding with UPDATE.`);
       // --- UPDATE existing prediction ---
       const { data, error } = await supabase
         .from('predictions')
@@ -211,13 +202,11 @@ export const tournamentService = {
         .single();
 
       if (error) {
-        console.error('[submitPrediction] CRITICAL: Error updating prediction:', error);
+        console.error('Error updating prediction:', error);
         throw error;
       }
-      console.log('[submitPrediction] UPDATE successful. Returning data:', data);
       return data;
     } else {
-      console.log('[submitPrediction] No existing prediction found. Proceeding with INSERT.');
       // --- INSERT new prediction ---
       const { data, error } = await supabase
         .from('predictions')
@@ -231,10 +220,9 @@ export const tournamentService = {
         .single();
 
       if (error) {
-        console.error('[submitPrediction] CRITICAL: Error inserting prediction:', error);
+        console.error('Error inserting prediction:', error);
         throw error;
       }
-      console.log('[submitPrediction] INSERT successful. Returning data:', data);
       return data;
     }
   },

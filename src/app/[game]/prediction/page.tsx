@@ -8,33 +8,38 @@ import Slots from "@/components/Prediction/Slots";
 import { tournamentService } from "@/lib/tournament-service";
 import { Player } from "@/types/tournament";
 import { gameUiDetailsMap } from "@/lib/game-utils";
+import { useAuth } from "@/context/AuthContext";
 
 export default function PredictionPage() {
-  const [predictions, setPredictions] = useState<string[]>(Array(4).fill(""));
+  const { session } = useAuth();
+  const [predictions, setPredictions] = useState<(Player | null)[]>(Array(4).fill(null));
   const [players, setPlayers] = useState<Player[]>([]);
+  const [tournamentId, setTournamentId] = useState<string | null>(null);
   const [tournamentTitle, setTournamentTitle] = useState<string>("");
-  const isComplete = predictions.every(prediction => prediction !== "");
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionMessage, setSubmissionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const isComplete = predictions.every(prediction => prediction !== null);
   const params = useParams();
   const gameSlug = params.game as string;
 
-  // Find the full tournament name from the slug in the URL
   const tournamentName = Object.keys(gameUiDetailsMap).find(
     key => gameUiDetailsMap[key].slug === gameSlug
   );
 
   useEffect(() => {
     if (!tournamentName) {
-      // If the slug doesn't match any known game, show a 404 page
       return notFound();
     }
-
     setTournamentTitle(tournamentName);
 
-    const fetchParticipants = async () => {
+    const fetchTournamentData = async () => {
       const tournaments = await tournamentService.getTournaments();
       const currentTournament = tournaments.find(t => t.name === tournamentName);
 
       if (currentTournament) {
+        setTournamentId(currentTournament.id);
         const participantData = await tournamentService.getTournamentParticipants(currentTournament.id);
         setPlayers(participantData);
       } else {
@@ -42,34 +47,61 @@ export default function PredictionPage() {
       }
     };
 
-    fetchParticipants();
+    fetchTournamentData();
   }, [gameSlug, tournamentName]);
 
   if (!tournamentName) {
-    // Render nothing or a loading state while we determine if the page is valid
     return null;
   }
 
-  const handleSlotFill = (slotIndex: number, player: string) => {
+  const handleSlotFill = (slotIndex: number, player: Player) => {
     const newPredictions = [...predictions];
+    if (newPredictions.some(p => p?.id === player.id)) return;
     newPredictions[slotIndex] = player;
     setPredictions(newPredictions);
+    setSubmissionMessage(null);
   };
 
   const handleSlotClear = (slotIndex: number) => {
     const newPredictions = [...predictions];
-    newPredictions[slotIndex] = "";
+    newPredictions[slotIndex] = null;
     setPredictions(newPredictions);
+    setSubmissionMessage(null);
   };
 
-  const handleSubmit = () => {
-    console.log(`Submitting predictions for ${tournamentTitle}:`, predictions);
-    alert("Predictions submitted successfully!");
+  const handleSubmit = async () => {
+    if (!isComplete || !tournamentId || isSubmitting) return;
+
+    if (!session?.user) {
+      setSubmissionMessage({ type: 'error', text: 'You must be logged in to submit a prediction.' });
+      return;
+    }
+
+    const predictionData = {
+      user_id: session.user.id,
+      tournament_id: tournamentId,
+      slot_1_participant_id: predictions[0]!.id,
+      slot_2_participant_id: predictions[1]!.id,
+      slot_3_participant_id: predictions[2]!.id,
+      slot_4_participant_id: predictions[3]!.id,
+    };
+
+    setIsSubmitting(true);
+    setSubmissionMessage(null);
+
+    try {
+      await tournamentService.submitPrediction(predictionData);
+      setSubmissionMessage({ type: 'success', text: 'Prediction submitted successfully! You can update it until the tournament starts.' });
+    } catch (error) {
+      console.error('Failed to submit prediction:', error);
+      setSubmissionMessage({ type: 'error', text: 'Failed to submit prediction. Please try again.' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const availablePlayers = players.filter(
-    (player) => !predictions.includes(player.name)
-  );
+  const predictedPlayerIds = new Set(predictions.filter(p => p).map(p => p!.id));
+  const availablePlayers = players.filter(player => !predictedPlayerIds.has(player.id));
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 relative overflow-hidden bg-black">
@@ -115,31 +147,38 @@ export default function PredictionPage() {
       {/* Prediction Slots */}
       <div className="w-full max-w-2xl mb-8">
         <Slots 
-          predictions={predictions}
-          onSlotFill={handleSlotFill}
+          predictions={predictions.map(p => p?.name || "")}
+          onSlotFill={(slotIndex, playerName) => {
+            const player = players.find(p => p.name === playerName);
+            if (player) handleSlotFill(slotIndex, player);
+          }}
           onSlotClear={handleSlotClear}
           availablePlayers={availablePlayers.map(p => p.name)}
         />
       </div>
 
-      {/* Submit Button */}
+      {/* Submit Button & Feedback */}
       <div className="w-full max-w-2xl mb-12">
         <Button
           onClick={handleSubmit}
-          disabled={!isComplete}
-          className={`relative w-full py-6 text-2xl font-bold overflow-hidden transition-all duration-300 transform gradient-rotate ${
-            isComplete 
+          disabled={!isComplete || isSubmitting || !session?.user}
+          className={`relative w-full py-6 text-2xl font-bold overflow-hidden transition-all duration-300 transform gradient-rotate ${ 
+            isComplete && !isSubmitting && session?.user
               ? 'hover:scale-[1.02] hover:shadow-2xl' 
               : 'opacity-50 cursor-not-allowed'
           }`}
           style={{
-            boxShadow: isComplete 
+            boxShadow: isComplete && !isSubmitting && session?.user
               ? '0 10px 25px -5px rgba(0, 172, 78, 0.4)'
               : '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
           }}
         >
           <span className="relative z-10 flex items-center justify-center gap-3">
-            {isComplete ? (
+            {isSubmitting 
+              ? 'Submitting...' 
+              : !session?.user 
+              ? 'Log In to Submit' 
+              : isComplete ? (
               <>
                 <span>Submit Predictions</span>
                 <span className="text-yellow-300">🏆</span>
@@ -148,10 +187,17 @@ export default function PredictionPage() {
               'Select All Players to Continue'
             )}
           </span>
-          {isComplete && (
+          {isComplete && !isSubmitting && session?.user && (
             <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
           )}
         </Button>
+        {submissionMessage && (
+          <div className={`mt-4 text-center p-3 rounded-md ${ 
+            submissionMessage.type === 'success' ? 'bg-green-900/50 text-green-200' : 'bg-red-900/50 text-red-200'
+          }`}>
+            {submissionMessage.text}
+          </div>
+        )}
       </div>
 
       {/* Available Players */}
@@ -171,9 +217,9 @@ export default function PredictionPage() {
                 <button
                   key={player.id}
                   onClick={() => {
-                    const firstEmptyIndex = predictions.findIndex(p => p === "");
+                    const firstEmptyIndex = predictions.findIndex(p => p === null);
                     if (firstEmptyIndex !== -1) {
-                      handleSlotFill(firstEmptyIndex, player.name);
+                      handleSlotFill(firstEmptyIndex, player);
                     }
                   }}
                   className="px-4 py-2 bg-gray-900/80 hover:bg-gray-800/80 text-base text-white font-medium shadow-sm transition-colors border border-gray-800 rounded-none"

@@ -1,16 +1,13 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { AuthProvider } from "@/context/AuthContext";
 import "./globals.css";
-import { AuthProvider } from "@/lib/auth-context";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Full Combo Tournament",
-  description: "Compete on the leaderboard and become the ultimate Bracket Master!",
+  title: "Bracket Master",
+  description: "Predict tournament outcomes and climb the leaderboard!",
 };
 
 export default function RootLayout({
@@ -20,10 +17,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-inter antialiased min-h-screen bg-black text-white`}>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+      <body className={inter.className}>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
