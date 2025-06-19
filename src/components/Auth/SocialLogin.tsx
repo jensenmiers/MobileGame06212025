@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/context/AuthContext";
 
 export function SocialLogin() {
   const { signInWithGoogle, signInWithDiscord } = useAuth();

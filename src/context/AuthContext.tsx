@@ -8,6 +8,8 @@ import { supabase } from '@/lib/supabase';
 interface AuthContextType {
   supabase: SupabaseClient;
   session: Session | null;
+  signInWithGoogle: () => Promise<void>;
+  signInWithDiscord: () => Promise<void>;
 }
 
 // Create the context with a default value
@@ -36,9 +38,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
+  const signInWithGoogle = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/`,
+      },
+    });
+  };
+
+  const signInWithDiscord = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'discord',
+      options: {
+        redirectTo: `${window.location.origin}/`,
+      },
+    });
+  };
+
   const value = {
     supabase,
     session,
+    signInWithGoogle,
+    signInWithDiscord,
   };
 
   // Render children only after the initial session has been loaded
