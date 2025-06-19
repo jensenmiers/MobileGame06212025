@@ -137,10 +137,10 @@ export async function getLeaderboard(tournamentId: string): Promise<LeaderboardE
 
   for (const p of predictions) {
     let score = 0;
-    if (p.prediction_1st_place_participant_id === results.first_place_participant_id) score += pointsSystem.first;
-    if (p.prediction_2nd_place_participant_id === results.second_place_participant_id) score += pointsSystem.second;
-    if (p.prediction_3rd_place_participant_id === results.third_place_participant_id) score += pointsSystem.third;
-    if (p.prediction_4th_place_participant_id === results.fourth_place_participant_id) score += pointsSystem.fourth;
+    if (p.slot_1_participant_id === results.first_place_participant_id) score += pointsSystem.first;
+    if (p.slot_2_participant_id === results.second_place_participant_id) score += pointsSystem.second;
+    if (p.slot_3_participant_id === results.third_place_participant_id) score += pointsSystem.third;
+    if (p.slot_4_participant_id === results.fourth_place_participant_id) score += pointsSystem.fourth;
 
     const username = p.profiles?.username || 'Anonymous';
     userScores.set(p.user_id, { username, points: score });
@@ -159,6 +159,86 @@ export async function getLeaderboard(tournamentId: string): Promise<LeaderboardE
 }
 
 export const tournamentService = {
+  /**
+   * Submits a user's prediction for a tournament.
+   * If a prediction already exists for the user and tournament, it will be updated.
+   * Otherwise, a new prediction will be created.
+   * @param predictionData - The prediction data to submit.
+   */
+  async submitPrediction(predictionData: {
+    user_id: string;
+    tournament_id: string;
+    slot_1_participant_id: string;
+    slot_2_participant_id: string;
+    slot_3_participant_id: string;
+    slot_4_participant_id: string;
+  }): Promise<Prediction | null> {
+    console.log('[submitPrediction] Received data:', JSON.stringify(predictionData, null, 2));
+
+    // Check if a prediction already exists for this user and tournament
+    console.log('[submitPrediction] Checking for existing prediction...');
+    const { data: existingPrediction, error: selectError } = await supabase
+      .from('predictions')
+      .select('id, submission_count')
+      .eq('user_id', predictionData.user_id)
+      .eq('tournament_id', predictionData.tournament_id)
+      .single();
+
+    console.log('[submitPrediction] Existing prediction check complete.');
+    console.log('[submitPrediction] Existing prediction data:', existingPrediction);
+    console.log('[submitPrediction] Select error:', selectError);
+
+
+    if (selectError && selectError.code !== 'PGRST116') {
+      // PGRST116 means no rows were found, which is fine.
+      // Any other error should be thrown.
+      console.error('[submitPrediction] CRITICAL: Error checking for existing prediction:', selectError);
+      throw selectError;
+    }
+
+    if (existingPrediction) {
+      console.log(`[submitPrediction] Found existing prediction with ID: ${existingPrediction.id}. Proceeding with UPDATE.`);
+      // --- UPDATE existing prediction ---
+      const { data, error } = await supabase
+        .from('predictions')
+        .update({
+          ...predictionData,
+          last_updated_at: new Date().toISOString(),
+          submission_count: (existingPrediction.submission_count || 0) + 1,
+        })
+        .eq('id', existingPrediction.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('[submitPrediction] CRITICAL: Error updating prediction:', error);
+        throw error;
+      }
+      console.log('[submitPrediction] UPDATE successful. Returning data:', data);
+      return data;
+    } else {
+      console.log('[submitPrediction] No existing prediction found. Proceeding with INSERT.');
+      // --- INSERT new prediction ---
+      const { data, error } = await supabase
+        .from('predictions')
+        .insert({
+          ...predictionData,
+          first_submitted_at: new Date().toISOString(),
+          last_updated_at: new Date().toISOString(),
+          submission_count: 1,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('[submitPrediction] CRITICAL: Error inserting prediction:', error);
+        throw error;
+      }
+      console.log('[submitPrediction] INSERT successful. Returning data:', data);
+      return data;
+    }
+  },
+
   getTournaments,
   getTournamentParticipants,
   getParticipantById,
