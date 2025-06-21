@@ -51,6 +51,16 @@ export default function PredictionPage() {
     fetchTournamentData();
   }, [gameSlug, tournamentName]);
 
+  // Sync user profile when component loads and user is authenticated
+  useEffect(() => {
+    if (session?.user) {
+      syncUserProfile(session.user.id).catch(error => {
+        console.error('Profile sync failed on prediction page load:', error);
+        // Don't show error to user, as this is background sync
+      });
+    }
+  }, [session?.user]);
+
   if (!tournamentName) {
     return null;
   }

@@ -8,7 +8,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { SocialLogin } from "@/components/Auth/SocialLogin";
 import { useAuth } from "@/context/AuthContext";
-import { tournamentService } from "@/lib/tournament-service";
+import { tournamentService, syncUserProfile } from "@/lib/tournament-service";
 import { Tournament } from "@/types/tournament";
 import { gameUiDetailsMap } from "@/lib/game-utils";
 
@@ -37,6 +37,16 @@ export default function Home() {
       setSelectedGame(gameSlug);
     }
   }, [searchParams]);
+
+  // Sync user profile when user is authenticated on homepage
+  useEffect(() => {
+    if (user) {
+      syncUserProfile(user.id).catch(error => {
+        console.error('Profile sync failed on homepage:', error);
+        // Don't show error to user, as this is background sync
+      });
+    }
+  }, [user]);
 
   const handleGameSelect = (game: string) => {
     const newSelectedGame = selectedGame === game ? null : game;

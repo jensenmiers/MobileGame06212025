@@ -26,36 +26,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     // Fetch the initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
-      
-      // Sync profile for any existing session
-      if (session?.user) {
-        try {
-          console.log('🔄 Initial session found, syncing profile...');
-          await syncUserProfile(session.user.id);
-        } catch (error) {
-          console.error('Profile sync failed for initial session:', error);
-        }
-      }
     });
 
     // Listen for changes in authentication state
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setLoading(false);
-      
-      // Sync user profile whenever we have a valid session
-      // This covers SIGNED_IN, TOKEN_REFRESHED, and any other auth events
-      if (session?.user) {
-        try {
-          console.log(`🔄 Auth event: ${_event}, syncing profile for user:`, session.user.id);
-          await syncUserProfile(session.user.id);
-        } catch (error) {
-          console.error(`Profile sync failed on ${_event}:`, error);
-        }
-      }
     });
 
     // Cleanup the subscription on component unmount
@@ -65,21 +44,47 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []); // Run only once on mount
 
   const signInWithGoogle = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/`,
-      },
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      });
+      
+      if (error) {
+        console.error('Google sign-in error:', error);
+        throw error;
+      }
+      
+      // Note: Profile sync will happen after redirect when user accesses features requiring it
+      
+    } catch (error) {
+      console.error('Failed to sign in with Google:', error);
+      throw error;
+    }
   };
 
   const signInWithDiscord = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'discord',
-      options: {
-        redirectTo: `${window.location.origin}/`,
-      },
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'discord',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      });
+      
+      if (error) {
+        console.error('Discord sign-in error:', error);
+        throw error;
+      }
+      
+      // Note: Profile sync will happen after redirect when user accesses features requiring it
+      
+    } catch (error) {
+      console.error('Failed to sign in with Discord:', error);
+      throw error;
+    }
   };
 
   // Add signOut function
