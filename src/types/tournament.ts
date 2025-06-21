@@ -22,33 +22,50 @@ export interface Tournament {
   players?: Player[];
 }
 
-// Represents a user's set of predictions for a tournament
+// Represents a player/competitor in a tournament
+export interface Participant {
+  id: string;
+  tournament_id: string;
+  name: string;
+  seed?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// User profile information
+export interface Profile {
+  id: string;
+  display_name: string;
+  email?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Prediction with profile information
 export interface Prediction {
-  id: string; // uuid
-  user_id: string; // uuid
-  tournament_id: string; // uuid
-  slot_1_participant_id: string; // uuid
-  slot_2_participant_id: string; // uuid
-  slot_3_participant_id: string; // uuid
-  slot_4_participant_id: string; // uuid
-  first_submitted_at?: string; // timestamp with time zone
-  last_updated_at?: string; // timestamp with time zone
-  submission_count?: number; // integer
-  created_at?: string; // timestamp with time zone
-  // This field can be populated by a join to the profiles table
-  profiles?: {
-    username: string;
-  };
+  id: string;
+  tournament_id: string;
+  user_id: string;
+  slot_1_participant_id: string;
+  slot_2_participant_id: string;
+  slot_3_participant_id: string;
+  slot_4_participant_id: string;
+  cutoff_submission_1?: string;
+  cutoff_submission_2?: string;
+  is_complete: boolean;
+  created_at: string;
+  updated_at: string;
+  profiles?: Profile;
 }
 
 // Represents the final results of a completed tournament
 export interface TournamentResult {
   id: string;
   tournament_id: string;
-  first_place_participant_id: string;
-  second_place_participant_id: string;
-  third_place_participant_id: string;
-  fourth_place_participant_id: string;
+  position_1_participant_id: string;
+  position_2_participant_id: string;
+  position_3_participant_id: string;
+  position_4_participant_id: string;
 }
 
 // Represents a single entry in the leaderboard UI
@@ -56,5 +73,5 @@ export interface LeaderboardEntry {
   rank: number;
   username: string;
   points: number;
-  userId: string;
+  userId?: string; // Optional since we may not always need to expose user IDs
 }

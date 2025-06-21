@@ -47,13 +47,13 @@
 17. **Validation**: Run `npm run dev`, click each login button, and verify Supabase redirects correctly (Key Features: Sign-Up/Landing Page).
 18. **Prediction Page (`/pages/prediction.tsx`)**: Create two-column layout using Tailwind grid (`grid-cols-2 gap-4`) (Key Features: Prediction Interface).
 19. **All Players List Component**: In `/components/Prediction/AllPlayers.tsx`, render a scrollable list of 16 placeholder players styled with glassmorphism (rounded `bg-white/10 backdrop-blur`) (Key Features: Prediction Interface).
-20. **Your Predictions Component**: In `/components/Prediction/Slots.tsx`, render 8 slots labeled `1st`–`8th` with click handlers to assign selected player (Key Features: Prediction Interface).
+20. **Your Predictions Component**: In `/components/Prediction/Slots.tsx`, render 4 slots labeled `1st`–`4th` with click handlers to assign selected player (Key Features: Prediction Interface).
 21. **Interactivity**: Use React state in `/pages/prediction.tsx` to track `selectedPlayer` and `predictions: string[]`. On player click highlight `selectedPlayer`, then click slot to fill (Key Features: Prediction Interface).
-22. **Clear & Submit Logic**: Add a **Remove** icon in each filled slot to clear. Enable **Submit Prediction** button only when `predictions.length === 8` (Key Features: Prediction Interface).
-23. **Validation**: In browser, select 8 players, verify button enables, then click to open confirmation modal (`Dialog` from Shadcn UI) (Key Features: Complete Prediction Confirmation).
+22. **Clear & Submit Logic**: Add a **Remove** icon in each filled slot to clear. Enable **Submit Prediction** button only when `predictions.length === 4` (Key Features: Prediction Interface).
+23. **Validation**: In browser, select 4 players, verify button enables, then click to open confirmation modal (`Dialog` from Shadcn UI) (Key Features: Complete Prediction Confirmation).
 24. **Leaderboard Page (`/pages/leaderboard.tsx`)**: Fetch top scores via Supabase query and display in a ranked list (`<ol>`), showing username and points (Key Features: Leaderboard).
 25. **Validation**: Use sample data in Supabase dashboard, reload page, and verify correct ordering (Key Features: Leaderboard).
-26. **Admin Page (`/pages/admin.tsx`)**: Build a form with 8 dropdowns (select player for each position) and a **Submit Results** button. Disable if `Date.now() > cutoffTimestamp` (Admin Features).
+26. **Admin Page (`/pages/admin.tsx`)**: Build a form with 4 dropdowns (select player for each position) and a **Submit Results** button. Disable if `Date.now() > cutoffTimestamp` (Admin Features).
 27. **Validation**: Submit form, verify data appears in the `results` table (Admin Features).
 
 ## Phase 3: Backend Development (Supabase)
@@ -75,7 +75,7 @@
      id uuid PRIMARY KEY,
      user_id uuid REFERENCES users(id),
      tournament_id uuid REFERENCES tournaments(id),
-     slot integer CHECK (slot BETWEEN 1 AND 8),
+     slot integer CHECK (slot BETWEEN 1 AND 4),
      player text,
      created_at timestamp
    );
@@ -83,7 +83,7 @@
    CREATE TABLE results (
      id uuid PRIMARY KEY,
      tournament_id uuid REFERENCES tournaments(id),
-     slot integer CHECK (slot BETWEEN 1 AND 8),
+     slot integer CHECK (slot BETWEEN 1 AND 4),
      player text,
      created_at timestamp
    );
@@ -110,7 +110,7 @@
    ```
    (Tech Stack: Backend)
 35. **Protect Routes**: Wrap pages in a session check using `supabase.auth.getSession()` and redirect to `/` if not logged in (Key Features: Security).
-36. **Submit Prediction**: In `/pages/prediction.tsx`, call `supabase.from('predictions').upsert(...)` with user’s 8 slots (App Flow: Step 3).
+36. **Submit Prediction**: In `/pages/prediction.tsx`, call `supabase.from('predictions').upsert(...)` with user’s 4 slots (App Flow: Step 3).
 37. **Fetch Leaderboard**: In `/pages/leaderboard.tsx`, call `supabase.rpc('calculate_score', { tournament_id })` and order by score desc (App Flow: Step 5).
 38. **Submit Results (Admin)**: In `/pages/admin.tsx`, call `supabase.from('results').upsert(...)` then re-run scoring RPC for all users (Admin Features).
 39. **One Submission Enforcement**: In `/lib/supabase.ts`, add DB constraint on `(user_id, tournament_id)` and catch conflicts, showing a toast error if duplicate (Important Considerations).

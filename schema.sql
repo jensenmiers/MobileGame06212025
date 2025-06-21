@@ -19,37 +19,42 @@ CREATE TABLE IF NOT EXISTS tournaments (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Participants table
+-- Participants table: stores the competing players for each tournament
 CREATE TABLE IF NOT EXISTS participants (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   tournament_id UUID REFERENCES tournaments(id) ON DELETE CASCADE,
-  name TEXT NOT NULL,
+  name VARCHAR(255) NOT NULL,
   seed INTEGER,
-  avatar_url TEXT,
-  bio TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(tournament_id, name)
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Predictions table (with re-submission support)
+-- Profiles table: stores user display names and info for leaderboard
+CREATE TABLE IF NOT EXISTS profiles (
+  id UUID PRIMARY KEY, -- Same as auth.users.id
+  display_name VARCHAR(255) NOT NULL,
+  email VARCHAR(255),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Predictions table: stores user bracket predictions
 CREATE TABLE IF NOT EXISTS predictions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   tournament_id UUID REFERENCES tournaments(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   
-  -- Using participant IDs for referential integrity (4 slots only)
   slot_1_participant_id UUID REFERENCES participants(id),
   slot_2_participant_id UUID REFERENCES participants(id),
   slot_3_participant_id UUID REFERENCES participants(id),
   slot_4_participant_id UUID REFERENCES participants(id),
   
-  -- Timestamp tracking for re-submissions
-  first_submitted_at TIMESTAMPTZ DEFAULT NOW(),
-  last_updated_at TIMESTAMPTZ DEFAULT NOW(),
-  submission_count INTEGER DEFAULT 1,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
+  cutoff_submission_1 TIMESTAMPTZ,
+  cutoff_submission_2 TIMESTAMPTZ,
+  is_complete BOOLEAN DEFAULT FALSE,
   
-  UNIQUE(user_id, tournament_id)
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Results table (4 positions only)
@@ -112,6 +117,7 @@ CREATE INDEX IF NOT EXISTS idx_participants_tournament ON participants(tournamen
 
 -- Row Level Security (enable on tables we created)
 ALTER TABLE predictions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE scores ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tournaments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE participants ENABLE ROW LEVEL SECURITY;
@@ -127,14 +133,20 @@ DROP POLICY IF EXISTS "Anyone can view participants" ON participants;
 DROP POLICY IF EXISTS "Anyone can view results" ON results;
 
 -- RLS Policies
-CREATE POLICY "Users can view their own predictions" ON predictions
-  FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Anyone can view all predictions" ON predictions
+  FOR SELECT USING (true);
 
 CREATE POLICY "Users can insert their own predictions" ON predictions
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "Users can update their own predictions" ON predictions
   FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Anyone can view profiles" ON profiles
+  FOR SELECT USING (true);
+
+CREATE POLICY "System can manage profiles" ON profiles
+  FOR ALL USING (true);
 
 CREATE POLICY "Anyone can view scores" ON scores
   FOR SELECT USING (true);

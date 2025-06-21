@@ -1,12 +1,28 @@
 import { supabase } from './supabase';
-import { Player, Tournament, Prediction, TournamentResult, LeaderboardEntry } from '@/types/tournament';
+import { Tournament, Participant, Prediction, TournamentResult, LeaderboardEntry } from '../types/tournament';
+
+// Sync user profile from auth system to profiles table
+// Call this when user logs in or when you need to ensure profile exists
+export async function syncUserProfile(userId: string): Promise<void> {
+  console.log('🔄 Syncing profile for user:', userId);
+  
+  // This query needs to run server-side or with elevated permissions
+  // For now, we'll handle this through the migration script and manual updates
+  const { data, error } = await supabase.rpc('sync_user_profile', { user_id: userId });
+  
+  if (error) {
+    console.error('Error syncing user profile:', error);
+  } else {
+    console.log('✅ Profile synced successfully');
+  }
+}
 
 /**
  * Fetches all participants for a specific tournament from Supabase
  * @param tournamentId The ID of the tournament to fetch participants for
  * @returns Promise<Player[]> Array of players in the tournament
  */
-export async function getTournamentParticipants(tournamentId: string): Promise<Player[]> {
+export async function getTournamentParticipants(tournamentId: string): Promise<Participant[]> {
   try {
     const { data, error } = await supabase
       .from('participants')
@@ -16,18 +32,12 @@ export async function getTournamentParticipants(tournamentId: string): Promise<P
 
     if (error) {
       console.error('Error fetching tournament participants:', error);
-      throw error;
+      return [];
     }
 
-    // Map the database fields to our Player interface
-    return data.map(participant => ({
-      id: participant.id,
-      name: participant.name,
-      seed: participant.seed,
-      avatarUrl: participant.avatar_url || undefined,
-    }));
+    return data || [];
   } catch (error) {
-    console.error('Error in getTournamentParticipants:', error);
+    console.error('Unexpected error fetching tournament participants:', error);
     return [];
   }
 }
@@ -37,7 +47,7 @@ export async function getTournamentParticipants(tournamentId: string): Promise<P
  * @param participantId The ID of the participant to fetch
  * @returns Promise<Player | null> The participant or null if not found
  */
-export async function getParticipantById(participantId: string): Promise<Player | null> {
+export async function getParticipantById(participantId: string): Promise<Participant | null> {
   try {
     const { data, error } = await supabase
       .from('participants')
@@ -50,14 +60,9 @@ export async function getParticipantById(participantId: string): Promise<Player 
       return null;
     }
 
-    return {
-      id: data.id,
-      name: data.name,
-      seed: data.seed,
-      avatarUrl: data.avatar_url || undefined,
-    };
+    return data;
   } catch (error) {
-    console.error('Error in getParticipantById:', error);
+    console.error('Unexpected error fetching participant:', error);
     return null;
   }
 }
@@ -89,20 +94,21 @@ export async function getTournaments(): Promise<Tournament[]> {
 async function getPredictionsForTournament(tournamentId: string): Promise<Prediction[]> {
   const { data, error } = await supabase
     .from('predictions')
-    .select('*, profiles(username)') // Join with profiles table to get username
+    .select('*, profiles(display_name)') // Join with profiles to get display name
     .eq('tournament_id', tournamentId);
 
   if (error) {
     console.error('Error fetching predictions:', error);
     return [];
   }
+  
   return data || [];
 }
 
 // Fetches the final results for a specific tournament
 async function getResultsForTournament(tournamentId: string): Promise<TournamentResult | null> {
   const { data, error } = await supabase
-    .from('tournament_results')
+    .from('results')
     .select('*')
     .eq('tournament_id', tournamentId)
     .single(); // There should only be one result entry per tournament
@@ -122,40 +128,30 @@ export async function getLeaderboard(tournamentId: string): Promise<LeaderboardE
   ]);
 
   if (!results) {
-    console.log('No results found for this tournament yet.');
     return []; // Return an empty leaderboard if results are not in
   }
 
-  const pointsSystem = {
-    first: 10,
-    second: 7,
-    third: 5,
-    fourth: 3,
-  };
-
-  const userScores: Map<string, { username: string; points: number }> = new Map();
+  const pointsSystem = { first: 10, second: 6, third: 4, fourth: 2 };
+  const userScores = new Map<string, { username: string; points: number }>();
 
   for (const p of predictions) {
     let score = 0;
-    if (p.slot_1_participant_id === results.first_place_participant_id) score += pointsSystem.first;
-    if (p.slot_2_participant_id === results.second_place_participant_id) score += pointsSystem.second;
-    if (p.slot_3_participant_id === results.third_place_participant_id) score += pointsSystem.third;
-    if (p.slot_4_participant_id === results.fourth_place_participant_id) score += pointsSystem.fourth;
+    if (p.slot_1_participant_id === results.position_1_participant_id) score += pointsSystem.first;
+    if (p.slot_2_participant_id === results.position_2_participant_id) score += pointsSystem.second;
+    if (p.slot_3_participant_id === results.position_3_participant_id) score += pointsSystem.third;
+    if (p.slot_4_participant_id === results.position_4_participant_id) score += pointsSystem.fourth;
 
-    const username = p.profiles?.username || 'Anonymous';
+    const username = p.profiles?.display_name || 'Anonymous';
     userScores.set(p.user_id, { username, points: score });
   }
 
-  const sortedScores = Array.from(userScores.entries()).sort((a, b) => b[1].points - a[1].points);
-
-  const leaderboard: LeaderboardEntry[] = sortedScores.map((entry, index) => ({
-    rank: index + 1,
-    userId: entry[0],
-    username: entry[1].username,
-    points: entry[1].points,
-  }));
-
-  return leaderboard;
+  return Array.from(userScores.values())
+    .sort((a, b) => b.points - a.points)
+    .map((entry, index) => ({
+      rank: index + 1,
+      username: entry.username,
+      points: entry.points,
+    }));
 }
 
 export const tournamentService = {
