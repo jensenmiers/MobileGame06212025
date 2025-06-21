@@ -9,6 +9,7 @@ import { tournamentService } from "@/lib/tournament-service";
 import { Player } from "@/types/tournament";
 import { gameUiDetailsMap } from "@/lib/game-utils";
 import { useAuth } from "@/context/AuthContext";
+import { syncUserProfile } from "@/lib/tournament-service";
 
 export default function PredictionPage() {
   const { session } = useAuth();
@@ -18,7 +19,7 @@ export default function PredictionPage() {
   const [tournamentTitle, setTournamentTitle] = useState<string>("");
   
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionMessage, setSubmissionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [submissionMessage, setSubmissionMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
 
   const isComplete = predictions.every(prediction => prediction !== null);
   const params = useParams();
@@ -86,6 +87,14 @@ export default function PredictionPage() {
       slot_4_participant_id: predictions[3]!.id,
     };
 
+    // Debug logging for production issues
+    console.log('🔍 Debug: Submitting prediction with data:', {
+      ...predictionData,
+      user_email: session.user.email,
+      session_valid: !!session,
+      predictions_selected: predictions.map(p => ({ id: p?.id, name: p?.name }))
+    });
+
     setIsSubmitting(true);
     setSubmissionMessage(null);
 
@@ -93,10 +102,46 @@ export default function PredictionPage() {
       await tournamentService.submitPrediction(predictionData);
       setSubmissionMessage({ type: 'success', text: 'Prediction submitted successfully! You can update it until the tournament starts.' });
     } catch (error) {
-      console.error('Failed to submit prediction:', error);
-      setSubmissionMessage({ type: 'error', text: 'Failed to submit prediction. Please try again.' });
+      console.error('❌ Failed to submit prediction:', error);
+      console.error('❌ Error details:', {
+        error_message: error.message,
+        error_code: error.code,
+        error_details: error.details,
+        user_id: session.user.id,
+        tournament_id: tournamentId
+      });
+      
+      // Check if this is a profile-related error
+      if (error.message?.includes('profile') || error.code === 'PGRST301' || error.code === '23503') {
+        setSubmissionMessage({ 
+          type: 'error', 
+          text: 'Your account profile is not set up yet. Please refresh the page and try again, or sign out and back in.' 
+        });
+      } else {
+        setSubmissionMessage({ 
+          type: 'error', 
+          text: `Failed to submit prediction. Please try again. Error: ${error.message || 'Unknown error'}` 
+        });
+      }
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Add function to manually retry profile sync
+  const retryProfileSync = async () => {
+    if (!session?.user) return;
+    
+    try {
+      setSubmissionMessage({ type: 'info', text: 'Setting up your profile...' });
+      await syncUserProfile(session.user.id);
+      setSubmissionMessage({ type: 'success', text: 'Profile setup complete! You can now submit your prediction.' });
+    } catch (error) {
+      console.error('Profile sync retry failed:', error);
+      setSubmissionMessage({ 
+        type: 'error', 
+        text: 'Profile setup failed. Please sign out and back in, or contact support.' 
+      });
     }
   };
 
@@ -193,9 +238,19 @@ export default function PredictionPage() {
         </Button>
         {submissionMessage && (
           <div className={`mt-4 text-center p-3 rounded-md ${ 
-            submissionMessage.type === 'success' ? 'bg-green-900/50 text-green-200' : 'bg-red-900/50 text-red-200'
+            submissionMessage.type === 'success' ? 'bg-green-900/50 text-green-200' : 
+            submissionMessage.type === 'info' ? 'bg-blue-900/50 text-blue-200' :
+            'bg-red-900/50 text-red-200'
           }`}>
             {submissionMessage.text}
+            {submissionMessage.type === 'error' && submissionMessage.text.includes('profile') && (
+              <button
+                onClick={retryProfileSync}
+                className="ml-4 px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+              >
+                Setup Profile
+              </button>
+            )}
           </div>
         )}
       </div>

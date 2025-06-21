@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { SupabaseClient, Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import { syncUserProfile } from '@/lib/tournament-service';
 
 // Define the shape of the context value
 interface AuthContextType {
@@ -25,15 +26,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     // Fetch the initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setLoading(false);
+      
+      // Sync profile for any existing session
+      if (session?.user) {
+        try {
+          console.log('🔄 Initial session found, syncing profile...');
+          await syncUserProfile(session.user.id);
+        } catch (error) {
+          console.error('Profile sync failed for initial session:', error);
+        }
+      }
     });
 
     // Listen for changes in authentication state
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
-      setLoading(false); // Also stop loading when auth state is determined
+      setLoading(false);
+      
+      // Sync user profile whenever we have a valid session
+      // This covers SIGNED_IN, TOKEN_REFRESHED, and any other auth events
+      if (session?.user) {
+        try {
+          console.log(`🔄 Auth event: ${_event}, syncing profile for user:`, session.user.id);
+          await syncUserProfile(session.user.id);
+        } catch (error) {
+          console.error(`Profile sync failed on ${_event}:`, error);
+        }
+      }
     });
 
     // Cleanup the subscription on component unmount

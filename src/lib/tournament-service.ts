@@ -6,14 +6,69 @@ import { Tournament, Participant, Prediction, TournamentResult, LeaderboardEntry
 export async function syncUserProfile(userId: string): Promise<void> {
   console.log('🔄 Syncing profile for user:', userId);
   
-  // This query needs to run server-side or with elevated permissions
-  // For now, we'll handle this through the migration script and manual updates
-  const { data, error } = await supabase.rpc('sync_user_profile', { user_id: userId });
-  
-  if (error) {
-    console.error('Error syncing user profile:', error);
-  } else {
-    console.log('✅ Profile synced successfully');
+  try {
+    // First try the RPC function
+    const { data, error } = await supabase.rpc('sync_user_profile', { user_id: userId });
+    
+    if (error) {
+      console.error('Error syncing user profile via RPC:', error);
+      
+      // Fallback: manually ensure profile exists
+      console.log('🔧 Attempting manual profile sync...');
+      
+      // Get user data from auth
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        console.error('Cannot get user for manual sync:', authError);
+        throw new Error(`Failed to get user data: ${authError?.message || 'Unknown error'}`);
+      }
+      
+      // Upsert profile manually
+      const { error: upsertError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          display_name: user.user_metadata?.full_name || 
+                       user.user_metadata?.name || 
+                       user.user_metadata?.username ||
+                       user.email?.split('@')[0] || 
+                       'Anonymous User',
+          email: user.email,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }, { 
+          onConflict: 'id',
+          ignoreDuplicates: false 
+        });
+      
+      if (upsertError) {
+        console.error('Manual profile upsert failed:', upsertError);
+        throw new Error(`Profile sync failed: ${upsertError.message}`);
+      } else {
+        console.log('✅ Manual profile sync successful');
+      }
+    } else {
+      console.log('✅ Profile synced successfully via RPC');
+    }
+    
+    // Verify the profile was created/updated
+    const { data: profile, error: verifyError } = await supabase
+      .from('profiles')
+      .select('id, display_name, email')
+      .eq('id', userId)
+      .single();
+    
+    if (verifyError || !profile) {
+      console.error('Profile verification failed:', verifyError);
+      throw new Error('Profile sync appeared to succeed but profile not found');
+    } else {
+      console.log('✅ Profile verified:', profile);
+    }
+    
+  } catch (error) {
+    console.error('❌ Critical error in syncUserProfile:', error);
+    throw error; // Re-throw so calling code can handle appropriately
   }
 }
 
