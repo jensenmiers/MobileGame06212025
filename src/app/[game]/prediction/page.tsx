@@ -202,12 +202,11 @@ export default function PredictionPage() {
 
       {/* Available Players */}
       <div className="w-full max-w-2xl">
-        <div className="bg-black/70 backdrop-blur-sm p-6 border border-gray-800 rounded-none">
-          <h2 className="text-2xl font-bold mb-4 text-transparent bg-clip-text gradient-rotate" 
+        <div className="bg-black/70 backdrop-blur-sm p-6 border border-gray-800 rounded-none text-center">
+          <h2 className="text-2xl font-bold mb-4 text-transparent bg-clip-text gradient-rotate inline-block" 
             style={{
               WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              display: 'inline-block'
+              WebkitTextFillColor: 'transparent'
             }}>
             Available Players
           </h2>
