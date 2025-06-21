@@ -136,10 +136,10 @@ export default function PredictionPage() {
             Bracket Challenge
           </h1>
         </div>
-        <h2 className="text-2xl md:text-3xl font-bold mb-4 w-full">
+        <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-4 w-full text-white">
           {tournamentTitle}
         </h2>
-        <p className="text-xl text-gray-300 mb-8 w-full">
+        <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-8 w-full">
           Predict the top 4 players!
         </p>
       </div>
@@ -162,7 +162,7 @@ export default function PredictionPage() {
         <Button
           onClick={handleSubmit}
           disabled={!isComplete || isSubmitting || !session?.user}
-          className={`relative w-full py-6 text-2xl font-bold overflow-hidden transition-all duration-300 transform gradient-rotate ${ 
+          className={`relative w-full py-6 text-lg sm:text-xl md:text-2xl font-bold overflow-hidden transition-all duration-300 transform gradient-rotate ${ 
             isComplete && !isSubmitting && session?.user
               ? 'hover:scale-[1.02] hover:shadow-2xl' 
               : 'opacity-50 cursor-not-allowed'
