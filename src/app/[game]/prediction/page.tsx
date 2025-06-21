@@ -133,7 +133,7 @@ export default function PredictionPage() {
               WebkitTextFillColor: 'transparent',
               display: 'inline-block'
             }}>
-            Bracket Master
+                                Bracket Challenge
           </h1>
         </div>
         <h2 className="text-2xl md:text-3xl font-bold mb-4 w-full">

@@ -6,7 +6,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Bracket Master",
+  title: "Bracket Challenge",
   description: "Predict tournament outcomes and climb the leaderboard!",
 };
 
