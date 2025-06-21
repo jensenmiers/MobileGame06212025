@@ -12,7 +12,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
-  signInWithDiscord: () => Promise<void>;
+  // signInWithDiscord: () => Promise<void>; // COMMENTED OUT - Discord login removed
   signOut: () => Promise<void>;
 }
 
@@ -65,6 +65,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // DISCORD LOGIN FUNCTION - COMMENTED OUT
+  /*
   const signInWithDiscord = async () => {
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
@@ -86,6 +88,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       throw error;
     }
   };
+  */
 
   // Add signOut function
   const signOut = async () => {
@@ -98,7 +101,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     user: session?.user ?? null, // Derive user from session
     loading,
     signInWithGoogle,
-    signInWithDiscord,
+    // signInWithDiscord, // COMMENTED OUT - Discord login removed
     signOut,
   };
 

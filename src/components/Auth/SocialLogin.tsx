@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
 export function SocialLogin() {
-  const { signInWithGoogle, signInWithDiscord } = useAuth();
+  const { signInWithGoogle } = useAuth(); // Removed signInWithDiscord
+  // const { signInWithGoogle, signInWithDiscord } = useAuth();
 
   return (
     <div className="space-y-4 w-full max-w-sm">
@@ -34,6 +35,8 @@ export function SocialLogin() {
         Continue with Google
       </Button>
 
+      {/* DISCORD LOGIN BUTTON - COMMENTED OUT */}
+      {/*
       <Button
         onClick={signInWithDiscord}
         variant="outline"
@@ -47,6 +50,7 @@ export function SocialLogin() {
         </svg>
         Continue with Discord
       </Button>
+      */}
     </div>
   );
 } 
