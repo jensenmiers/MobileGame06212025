@@ -127,13 +127,13 @@ export default function PredictionPage() {
 
       <div className="w-full max-w-2xl mb-8 text-center">
         <div className="w-full">
-          <h1 className="text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text gradient-rotate mb-2 mx-auto" 
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-transparent bg-clip-text gradient-rotate mb-2 mx-auto" 
             style={{
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               display: 'inline-block'
             }}>
-                                Bracket Challenge
+            Bracket Challenge
           </h1>
         </div>
         <h2 className="text-2xl md:text-3xl font-bold mb-4 w-full">

@@ -88,10 +88,10 @@ export default function Home() {
           <CardHeader className="space-y-6">
             <div className="flex flex-col items-center justify-center text-center">
               <div className="flex justify-center mb-4 w-full px-4 md:px-0">
-                <div className="flex items-center space-x-3 sm:space-x-4 max-w-max -ml-2 sm:ml-0">
-                  <div className="flex-shrink-0 h-[4.5rem] w-auto aspect-square relative">
+                <div className="flex flex-col sm:flex-row items-center gap-2 sm:space-x-4 sm:gap-0 max-w-max">
+                  <div className="flex-shrink-0 h-12 sm:h-[4.5rem] w-auto aspect-square relative">
                     <div className="animate-slow-rotate w-full h-full flex items-center">
-                      <div className="relative w-full h-16">
+                      <div className="relative w-full h-12 sm:h-16">
                         <Image
                           src="/images/fullComboLogo.png"
                           alt="Full Combo Logo"
@@ -102,7 +102,7 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
-                  <CardTitle className="text-5xl font-bold gradient-rotate gradient-text-fix text-center leading-tight">
+                  <CardTitle className="text-3xl sm:text-4xl md:text-5xl font-bold gradient-rotate gradient-text-fix text-center leading-tight">
                     Bracket Challenge
                   </CardTitle>
                 </div>
