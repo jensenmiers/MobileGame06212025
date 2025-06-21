@@ -21,6 +21,11 @@ export default function Home() {
   // Toggle to show/hide the text labels under each game icon
   const SHOW_TITLES = false;
 
+  // Temporary hardcoded solution to disable specific games
+  const isGameDisabled = (gameSlug: string) => {
+    return gameSlug === 'mk1' || gameSlug === 'tk8';
+  };
+
   useEffect(() => {
     async function fetchTournaments() {
       const data = await tournamentService.getTournaments();
@@ -39,6 +44,11 @@ export default function Home() {
   }, [searchParams]);
 
   const handleGameSelect = (game: string) => {
+    // Prevent selection of disabled games
+    if (isGameDisabled(game)) {
+      return;
+    }
+    
     const newSelectedGame = selectedGame === game ? null : game;
     setSelectedGame(newSelectedGame);
     // Update URL without page reload
@@ -141,20 +151,32 @@ export default function Home() {
                 const uiDetails = gameUiDetailsMap[tournament.name];
                 if (!uiDetails) return null; // Don't render if no UI details are mapped
 
+                const isDisabled = isGameDisabled(uiDetails.slug);
+
                 return (
                   <div key={tournament.id} className="flex flex-col items-center">
                     <button
                       onClick={() => handleGameSelect(uiDetails.slug)}
-                      className={`transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${selectedGame === uiDetails.slug ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
+                      disabled={isDisabled}
+                      className={`relative transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${
+                        selectedGame === uiDetails.slug ? 'outline outline-1 outline-offset-2 outline-green-500' : ''
+                      } ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                     >
                       <div className="relative w-[8.4rem] h-[8.4rem]">
                         <Image
                           src={uiDetails.imageUrl}
                           alt={tournament.name}
                           fill
-                          className="object-contain"
+                          className={`object-contain ${isDisabled ? 'grayscale opacity-50' : ''}`}
                           priority
                         />
+                        {isDisabled && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                            <span className="text-white text-xs font-bold text-center px-2 py-1 bg-red-600/80 rounded">
+                              PREDICTIONS<br />CLOSED
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </button>
                     {SHOW_TITLES && (<span className="text-white text-sm">{uiDetails.title}</span>)}
@@ -165,21 +187,21 @@ export default function Home() {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <div className="w-full sm:w-auto relative">
-                {!selectedGame && <div className="absolute inset-0 bg-black/30 rounded-lg z-10 pointer-events-none"></div>}
+                {(!selectedGame || isGameDisabled(selectedGame)) && <div className="absolute inset-0 bg-black/30 rounded-lg z-10 pointer-events-none"></div>}
                 <Link 
-                  href={selectedGame ? `/${selectedGame}/prediction` : '#'}
-                  className={`w-full sm:w-auto ${!selectedGame ? 'pointer-events-none' : ''}`}
+                  href={selectedGame && !isGameDisabled(selectedGame) ? `/${selectedGame}/prediction` : '#'}
+                  className={`w-full sm:w-auto ${(!selectedGame || isGameDisabled(selectedGame)) ? 'pointer-events-none' : ''}`}
                 >
                   <Button 
                     size="lg" 
-                    disabled={!selectedGame}
+                    disabled={!selectedGame || isGameDisabled(selectedGame)}
                     className={`w-full font-semibold px-8 py-6 text-lg transition-all duration-300 transform ${
-                      selectedGame 
+                      selectedGame && !isGameDisabled(selectedGame)
                         ? 'text-white gradient-rotate' 
                         : 'text-gray-400 opacity-50 gradient-rotate'
                     }`}
                     style={{
-                      boxShadow: selectedGame ? '0 4px 20px -5px rgba(0, 172, 78, 0.4)' : 'none'
+                      boxShadow: selectedGame && !isGameDisabled(selectedGame) ? '0 4px 20px -5px rgba(0, 172, 78, 0.4)' : 'none'
                     }}
                   >
                     Start Prediction
@@ -187,17 +209,17 @@ export default function Home() {
                 </Link>
               </div>
               <div className="w-full sm:w-auto relative">
-                {!selectedGame && <div className="absolute inset-0 bg-black/30 rounded-lg z-10 pointer-events-none"></div>}
+                {(!selectedGame || isGameDisabled(selectedGame)) && <div className="absolute inset-0 bg-black/30 rounded-lg z-10 pointer-events-none"></div>}
                 <Link 
-                  href={selectedGame ? `/${selectedGame}/leaderboard` : '#'}
-                  className={`w-full sm:w-auto ${!selectedGame ? 'pointer-events-none' : ''}`}
+                  href={selectedGame && !isGameDisabled(selectedGame) ? `/${selectedGame}/leaderboard` : '#'}
+                  className={`w-full sm:w-auto ${(!selectedGame || isGameDisabled(selectedGame)) ? 'pointer-events-none' : ''}`}
                 >
                   <Button 
                     variant="ghost" 
                     size="lg" 
-                    disabled={!selectedGame}
+                    disabled={!selectedGame || isGameDisabled(selectedGame)}
                     className={`w-full px-8 py-6 text-lg transition-all duration-300 transform ${
-                      selectedGame 
+                      selectedGame && !isGameDisabled(selectedGame)
                         ? 'bg-gradient-to-r from-gray-900/80 to-gray-800/80 border border-gray-700 text-gray-200 hover:from-gray-800/80 hover:to-gray-700/80 hover:text-white' 
                         : 'bg-gradient-to-r from-gray-900/80 to-gray-800/80 border border-gray-700 text-gray-400 opacity-50'
                     } backdrop-blur-sm`}
