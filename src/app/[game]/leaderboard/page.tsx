@@ -10,11 +10,11 @@ import { LeaderboardEntry } from "@/types/tournament";
 
 const getRankIcon = (rank: number) => {
   switch (rank) {
-    case 1: return <span className="text-3xl">🥇</span>;
-    case 2: return <span className="text-3xl">🥈</span>;
-    case 3: return <span className="text-3xl">🥉</span>;
+    case 1: return <span className="text-2xl sm:text-3xl">🥇</span>;
+    case 2: return <span className="text-2xl sm:text-3xl">🥈</span>;
+    case 3: return <span className="text-2xl sm:text-3xl">🥉</span>;
     default: return (
-      <span className="text-gray-200 text-2xl">
+      <span className="text-gray-200 text-lg sm:text-xl md:text-2xl">
         {rank}
       </span>
     );
@@ -91,7 +91,7 @@ export default function LeaderboardPage() {
               <span className="text-sm text-green-200/80 font-normal">(Live Rankings)</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             {isLoading ? (
               <div className="text-center py-10 text-lg text-gray-400">Loading Leaderboard...</div>
             ) : leaderboard.length > 0 ? (
@@ -100,7 +100,7 @@ export default function LeaderboardPage() {
                   <li
                     key={player.userId}
                     className={`
-                      flex items-center justify-between p-4 transition-all duration-200
+                      flex items-center justify-between pl-4 pr-6 py-4 transition-all duration-200
                       ${getRankColor(player.rank)}
                       hover:bg-gray-800/70
                       border-l-4 ${
@@ -112,12 +112,12 @@ export default function LeaderboardPage() {
                     `}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="min-w-[3rem] text-center flex items-center justify-center">
+                      <div className="w-12 text-center flex items-center justify-center flex-shrink-0">
                         {getRankIcon(player.rank)}
                       </div>
-                      <div>
+                      <div className="w-[120px] sm:w-[150px] md:w-[200px] flex-shrink-0">
                         <div className="flex items-center gap-2">
-                          <h3 className={`font-bold text-2xl ${player.rank === 1 ? 'text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500' : 'text-white'}`}>
+                          <h3 className={`font-bold text-lg sm:text-xl md:text-2xl truncate ${player.rank === 1 ? 'text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500' : 'text-white'}`}>
                             {player.username}
                           </h3>
                         </div>
@@ -125,10 +125,10 @@ export default function LeaderboardPage() {
                     </div>
                     
                     <div className="text-right">
-                      <div className={`text-2xl font-bold ${player.rank === 1 ? 'text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500' : 'text-white'}`}>
+                      <div className={`text-lg sm:text-xl md:text-2xl font-bold ${player.rank === 1 ? 'text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500' : 'text-white'}`}>
                         {player.points}
                       </div>
-                      <div className={`text-sm ${player.rank === 1 ? 'text-green-200' : 'text-gray-300'}`}>
+                      <div className={`text-xs sm:text-sm ${player.rank === 1 ? 'text-green-200' : 'text-gray-300'}`}>
                         points
                       </div>
                     </div>
