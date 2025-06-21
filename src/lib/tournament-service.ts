@@ -95,7 +95,8 @@ async function getPredictionsForTournament(tournamentId: string): Promise<Predic
   const { data, error } = await supabase
     .from('predictions')
     .select('*, profiles(display_name)') // Join with profiles to get display name
-    .eq('tournament_id', tournamentId);
+    .eq('tournament_id', tournamentId)
+    .order('created_at', { ascending: false }); // Order by timestamp, newest first
 
   if (error) {
     console.error('Error fetching predictions:', error);
@@ -122,36 +123,44 @@ async function getResultsForTournament(tournamentId: string): Promise<Tournament
 
 // Calculates scores and generates a ranked leaderboard for a tournament
 export async function getLeaderboard(tournamentId: string): Promise<LeaderboardEntry[]> {
-  const [predictions, results] = await Promise.all([
-    getPredictionsForTournament(tournamentId),
-    getResultsForTournament(tournamentId),
-  ]);
+  const predictions = await getPredictionsForTournament(tournamentId);
 
-  if (!results) {
-    return []; // Return an empty leaderboard if results are not in
+  if (!predictions || predictions.length === 0) {
+    return []; // Return empty leaderboard if no predictions
   }
 
-  const pointsSystem = { first: 10, second: 6, third: 4, fourth: 2 };
-  const userScores = new Map<string, { username: string; points: number }>();
-
-  for (const p of predictions) {
-    let score = 0;
-    if (p.slot_1_participant_id === results.position_1_participant_id) score += pointsSystem.first;
-    if (p.slot_2_participant_id === results.position_2_participant_id) score += pointsSystem.second;
-    if (p.slot_3_participant_id === results.position_3_participant_id) score += pointsSystem.third;
-    if (p.slot_4_participant_id === results.position_4_participant_id) score += pointsSystem.fourth;
-
-    const username = p.profiles?.display_name || 'Anonymous';
-    userScores.set(p.user_id, { username, points: score });
+  // Get only the latest prediction per user (by timestamp)
+  const latestPredictionsByUser = new Map<string, Prediction>();
+  
+  for (const prediction of predictions) {
+    const userId = prediction.user_id;
+    if (!latestPredictionsByUser.has(userId)) {
+      latestPredictionsByUser.set(userId, prediction);
+    }
   }
 
-  return Array.from(userScores.values())
-    .sort((a, b) => b.points - a.points)
-    .map((entry, index) => ({
-      rank: index + 1,
-      username: entry.username,
-      points: entry.points,
-    }));
+  // Build leaderboard from latest predictions with valid scores
+  const leaderboard: LeaderboardEntry[] = [];
+  
+  Array.from(latestPredictionsByUser.entries()).forEach(([userId, prediction]) => {
+    // Only include predictions with calculated scores (not -1)
+    if (prediction.score !== undefined && prediction.score !== -1) {
+      const username = prediction.profiles?.display_name || 'Anonymous';
+      leaderboard.push({
+        rank: 0, // Will be set after sorting
+        username,
+        points: prediction.score,
+      });
+    }
+  });
+
+  // Sort by score (highest first) and assign ranks
+  leaderboard.sort((a, b) => b.points - a.points);
+  leaderboard.forEach((entry, index) => {
+    entry.rank = index + 1;
+  });
+
+  return leaderboard;
 }
 
 export const tournamentService = {

@@ -53,6 +53,7 @@ export interface Prediction {
   cutoff_submission_1?: string;
   cutoff_submission_2?: string;
   is_complete: boolean;
+  score?: number; // Calculated score field (-1 for unprocessed, actual score when calculated)
   created_at: string;
   updated_at: string;
   profiles?: Profile;
