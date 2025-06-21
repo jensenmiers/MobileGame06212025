@@ -123,6 +123,11 @@ export default function Home() {
             {/* Social Login Section - only show if not logged in */}
             {!user && (
               <div className="flex flex-col items-center space-y-6">
+                <div className="text-center">
+                  <h3 className="text-xl font-bold text-white mb-4">
+                    Sign in to create your prediction
+                  </h3>
+                </div>
                 <SocialLogin />
               </div>
             )}
