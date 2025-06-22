@@ -23,7 +23,7 @@ export default function Home() {
 
   // Temporary hardcoded solution to disable specific games
   const isGameDisabled = (gameSlug: string) => {
-    return gameSlug === 'mk1' || gameSlug === 'tk8';
+    return gameSlug === 'mk1' || gameSlug === 'tk8' || gameSlug === 'sf6' || gameSlug === 'dbfz';
   };
 
   useEffect(() => {
