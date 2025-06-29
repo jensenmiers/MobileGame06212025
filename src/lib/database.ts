@@ -68,4 +68,34 @@ export interface DbProfile {
   email?: string
   created_at: string
   updated_at: string
+}
+
+interface TestConnectionResult {
+  connected: boolean;
+  error?: any;
+  data?: any;
+}
+
+export async function testConnection(): Promise<TestConnectionResult> {
+  try {
+    console.log('Testing Supabase connection...');
+    const { data, error } = await database
+      .from('tournaments')
+      .select('*')
+      .limit(1);
+    
+    if (error) {
+      console.error('Supabase query error:', error);
+      return { connected: false, error };
+    }
+    
+    console.log('Supabase connected successfully');
+    return { connected: true, data };
+  } catch (error) {
+    console.error('Supabase connection test failed:', error);
+    return { 
+      connected: false, 
+      error: error instanceof Error ? error : new Error(String(error))
+    };
+  }
 } 

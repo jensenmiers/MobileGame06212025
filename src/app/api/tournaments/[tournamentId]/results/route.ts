@@ -63,6 +63,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     }
 
+    // Disable the trigger temporarily
+    await database.rpc('disable_trigger', { 
+      trigger_name: 'trigger_auto_update_prediction_scores',
+      table_name: 'results' 
+    }).single()
+
     // Check if results already exist for this tournament
     const { data: existingResults, error: selectError } = await database
       .from('results')
@@ -96,8 +102,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         )
       }
 
-      // TODO: Trigger score recalculation for all predictions in this tournament
-      // This will be implemented in the next session
+      // Re-enable the trigger
+      await database.rpc('enable_trigger', { 
+        trigger_name: 'trigger_auto_update_prediction_scores',
+        table_name: 'results' 
+      }).single()
+
+      // Manually update prediction scores
+      await database.rpc('ensure_accurate_prediction_scores')
 
       return NextResponse.json({ results })
     } else {
@@ -116,8 +128,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         )
       }
 
-      // TODO: Trigger score recalculation for all predictions in this tournament
-      // This will be implemented in the next session
+      // Re-enable the trigger
+      await database.rpc('enable_trigger', { 
+        trigger_name: 'trigger_auto_update_prediction_scores',
+        table_name: 'results' 
+      }).single()
+
+      // Manually update prediction scores
+      await database.rpc('ensure_accurate_prediction_scores')
 
       return NextResponse.json({ results }, { status: 201 })
     }
