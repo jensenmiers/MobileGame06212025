@@ -28,8 +28,9 @@ export interface Participant {
   tournament_id: string;
   name: string;
   seed?: number;
+  avatar_url?: string;
+  bio?: string;
   created_at: string;
-  updated_at: string;
 }
 
 // User profile information
@@ -50,12 +51,16 @@ export interface Prediction {
   slot_2_participant_id: string;
   slot_3_participant_id: string;
   slot_4_participant_id: string;
+  first_submitted_at: string;
+  last_updated_at: string;
+  submission_count: number;
+  score: number; // Calculated score field (-1 for unprocessed, actual score when calculated)
+  created_at: string;
+  // Legacy fields for backward compatibility
   cutoff_submission_1?: string;
   cutoff_submission_2?: string;
-  is_complete: boolean;
-  score?: number; // Calculated score field (-1 for unprocessed, actual score when calculated)
-  created_at: string;
-  updated_at: string;
+  is_complete?: boolean;
+  updated_at?: string;
   profiles?: Profile;
 }
 
@@ -67,6 +72,8 @@ export interface TournamentResult {
   position_2_participant_id: string;
   position_3_participant_id: string;
   position_4_participant_id: string;
+  entered_by?: string;
+  entered_at: string;
 }
 
 // Represents a single entry in the leaderboard UI

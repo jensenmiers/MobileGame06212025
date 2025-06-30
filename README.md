@@ -1,4 +1,6 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bracket Challenge
+
+This is a [Next.js](https://nextjs.org) tournament prediction app that allows users to predict top-4 finishers in fighting game tournaments.
 
 ## Getting Started
 
@@ -16,9 +18,46 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create a `.env.local` file with the following variables:
+
+```env
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
+
+# Backend Migration Flag
+# Set to 'true' to use new Next.js backend APIs instead of direct Supabase calls
+# Set to 'false' to use existing Supabase functions (default)
+NEXT_PUBLIC_USE_BACKEND_API=false
+```
+
+## Backend Architecture Migration
+
+We are currently migrating from Supabase database functions to Next.js API routes for better maintainability and control.
+
+### Current Status:
+- ✅ **Phase 1**: Next.js API routes created (`/api/tournaments/*`)
+- ✅ **Phase 1**: Backend service layer implemented
+- ✅ **Phase 1**: Feature flag system for gradual migration
+- 🚧 **Phase 2**: Scoring algorithm migration (in progress)
+- 🚧 **Phase 3**: Real-time leaderboard implementation (planned)
+- 🚧 **Phase 4**: Supabase function cleanup (planned)
+
+### Testing the Migration:
+1. Set `NEXT_PUBLIC_USE_BACKEND_API=true` in your `.env.local`
+2. Check browser console for "🚀 Using Backend API" messages
+3. If APIs fail, the app automatically falls back to Supabase functions
+
+### API Routes Available:
+- `GET/POST /api/tournaments` - Tournament CRUD operations
+- `GET/PUT/DELETE /api/tournaments/[id]` - Individual tournament operations
+- `GET/POST /api/tournaments/[id]/participants` - Tournament participants
+- `GET/POST /api/tournaments/[id]/predictions` - User predictions
+- `GET/POST/DELETE /api/tournaments/[id]/results` - Tournament results
+- `GET /api/tournaments/[id]/leaderboard` - Live leaderboard
 
 ## Learn More
 

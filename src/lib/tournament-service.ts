@@ -1,5 +1,9 @@
 import { supabase } from './supabase';
+import { backendService } from './backend-service';
 import { Tournament, Participant, Prediction, TournamentResult, LeaderboardEntry } from '../types/tournament';
+
+// Feature flag to control migration
+const USE_BACKEND_API = process.env.NEXT_PUBLIC_USE_BACKEND_API === 'true';
 
 // Sync user profile from auth system to profiles table
 // Call this when user logs in or when you need to ensure profile exists
@@ -73,11 +77,20 @@ export async function syncUserProfile(userId: string): Promise<void> {
 }
 
 /**
- * Fetches all participants for a specific tournament from Supabase
- * @param tournamentId The ID of the tournament to fetch participants for
- * @returns Promise<Player[]> Array of players in the tournament
+ * Fetches all participants for a specific tournament
+ * Uses backend API if enabled, falls back to Supabase
  */
 export async function getTournamentParticipants(tournamentId: string): Promise<Participant[]> {
+  if (USE_BACKEND_API) {
+    try {
+      console.log('🚀 Using Backend API for participants');
+      return await backendService.getTournamentParticipants(tournamentId);
+    } catch (error) {
+      console.error('Backend API failed, falling back to Supabase:', error);
+    }
+  }
+
+  // Fallback to Supabase
   try {
     const { data, error } = await supabase
       .from('participants')
@@ -99,8 +112,6 @@ export async function getTournamentParticipants(tournamentId: string): Promise<P
 
 /**
  * Fetches a single participant by ID
- * @param participantId The ID of the participant to fetch
- * @returns Promise<Player | null> The participant or null if not found
  */
 export async function getParticipantById(participantId: string): Promise<Participant | null> {
   try {
@@ -123,10 +134,20 @@ export async function getParticipantById(participantId: string): Promise<Partici
 }
 
 /**
- * Fetches all tournaments from Supabase
- * @returns Promise<Tournament[]> Array of tournaments
+ * Fetches all tournaments
+ * Uses backend API if enabled, falls back to Supabase
  */
 export async function getTournaments(): Promise<Tournament[]> {
+  if (USE_BACKEND_API) {
+    try {
+      console.log('🚀 Using Backend API for tournaments');
+      return await backendService.getTournaments();
+    } catch (error) {
+      console.error('Backend API failed, falling back to Supabase:', error);
+    }
+  }
+
+  // Fallback to Supabase
   try {
     const { data, error } = await supabase
       .from('tournaments')
@@ -147,6 +168,16 @@ export async function getTournaments(): Promise<Tournament[]> {
 
 // Fetches all user predictions for a specific tournament
 async function getPredictionsForTournament(tournamentId: string): Promise<Prediction[]> {
+  if (USE_BACKEND_API) {
+    try {
+      console.log('🚀 Using Backend API for predictions');
+      return await backendService.getPredictions(tournamentId);
+    } catch (error) {
+      console.error('Backend API failed, falling back to Supabase:', error);
+    }
+  }
+
+  // Fallback to Supabase
   const { data, error } = await supabase
     .from('predictions')
     .select('*, profiles(display_name)') // Join with profiles to get display name
@@ -163,6 +194,16 @@ async function getPredictionsForTournament(tournamentId: string): Promise<Predic
 
 // Fetches the final results for a specific tournament
 async function getResultsForTournament(tournamentId: string): Promise<TournamentResult | null> {
+  if (USE_BACKEND_API) {
+    try {
+      console.log('🚀 Using Backend API for results');
+      return await backendService.getResults(tournamentId);
+    } catch (error) {
+      console.error('Backend API failed, falling back to Supabase:', error);
+    }
+  }
+
+  // Fallback to Supabase
   const { data, error } = await supabase
     .from('results')
     .select('*')
@@ -178,6 +219,16 @@ async function getResultsForTournament(tournamentId: string): Promise<Tournament
 
 // Calculates scores and generates a ranked leaderboard for a tournament
 export async function getLeaderboard(tournamentId: string): Promise<LeaderboardEntry[]> {
+  if (USE_BACKEND_API) {
+    try {
+      console.log('🚀 Using Backend API for leaderboard');
+      return await backendService.getLeaderboard(tournamentId);
+    } catch (error) {
+      console.error('Backend API failed, falling back to Supabase:', error);
+    }
+  }
+
+  // Fallback to existing Supabase logic
   const predictions = await getPredictionsForTournament(tournamentId);
 
   if (!predictions || predictions.length === 0) {
@@ -221,9 +272,7 @@ export async function getLeaderboard(tournamentId: string): Promise<LeaderboardE
 export const tournamentService = {
   /**
    * Submits a user's prediction for a tournament.
-   * If a prediction already exists for the user and tournament, it will be updated.
-   * Otherwise, a new prediction will be created.
-   * @param predictionData - The prediction data to submit.
+   * Uses backend API if enabled, falls back to Supabase
    */
   async submitPrediction(predictionData: {
     user_id: string;
@@ -233,6 +282,16 @@ export const tournamentService = {
     slot_3_participant_id: string;
     slot_4_participant_id: string;
   }): Promise<Prediction | null> {
+    if (USE_BACKEND_API) {
+      try {
+        console.log('🚀 Using Backend API for prediction submission');
+        return await backendService.submitPrediction(predictionData.tournament_id, predictionData);
+      } catch (error) {
+        console.error('Backend API failed, falling back to Supabase:', error);
+      }
+    }
+
+    // Fallback to existing Supabase logic
     // Check if a prediction already exists for this user and tournament
     const { data: existingPrediction, error: selectError } = await supabase
       .from('predictions')

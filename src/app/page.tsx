@@ -21,6 +21,21 @@ export default function Home() {
   // Toggle to show/hide the text labels under each game icon
   const SHOW_TITLES = false;
 
+  // Helper function to check if predictions are still open for a tournament
+  const arePredictionsOpen = (tournament: Tournament): boolean => {
+    const cutoffTime = new Date(tournament.cutoff_time);
+    const now = new Date();
+    return cutoffTime > now;
+  };
+
+  // Helper function to get tournament by game slug
+  const getTournamentBySlug = (gameSlug: string): Tournament | undefined => {
+    const tournamentName = Object.keys(gameUiDetailsMap).find(
+      key => gameUiDetailsMap[key].slug === gameSlug
+    );
+    return tournaments.find(t => t.name === tournamentName);
+  };
+
   useEffect(() => {
     async function fetchTournaments() {
       const data = await tournamentService.getTournaments();
@@ -38,27 +53,18 @@ export default function Home() {
     }
   }, [searchParams]);
 
-  // Sync user profile when user is authenticated on homepage
-  useEffect(() => {
-    if (user) {
-      syncUserProfile(user.id).catch(error => {
-        console.error('Profile sync failed on homepage:', error);
-        // Don't show error to user, as this is background sync
-      });
-    }
-  }, [user]);
-
-  const handleGameSelect = (game: string) => {
-    const newSelectedGame = selectedGame === game ? null : game;
-    setSelectedGame(newSelectedGame);
-    // Update URL without page reload
-    const params = new URLSearchParams(searchParams.toString());
-    if (newSelectedGame) {
-      params.set('game', newSelectedGame);
+  const handleGameSelect = (gameSlug: string) => {
+    const tournament = getTournamentBySlug(gameSlug);
+    if (!tournament) return;
+    
+    // Route directly based on prediction status
+    if (arePredictionsOpen(tournament)) {
+      // Predictions are open - go to prediction page
+      router.push(`/${gameSlug}/prediction`);
     } else {
-      params.delete('game');
+      // Predictions are closed - go to leaderboard page  
+      router.push(`/${gameSlug}/leaderboard`);
     }
-    router.push(`/?${params.toString()}`, { scroll: false });
   };
 
   const handleLogout = async () => {
@@ -151,11 +157,15 @@ export default function Home() {
                 const uiDetails = gameUiDetailsMap[tournament.name];
                 if (!uiDetails) return null; // Don't render if no UI details are mapped
 
+                const predictionsOpen = arePredictionsOpen(tournament);
+
                 return (
                   <div key={tournament.id} className="flex flex-col items-center">
                     <button
                       onClick={() => handleGameSelect(uiDetails.slug)}
-                      className={`transition-all ${SHOW_TITLES ? 'mb-2' : ''} ${selectedGame === uiDetails.slug ? 'outline outline-1 outline-offset-2 outline-green-500' : ''}`}
+                      className={`relative transition-all cursor-pointer hover:scale-105 ${SHOW_TITLES ? 'mb-2' : ''} ${
+                        selectedGame === uiDetails.slug ? 'outline outline-1 outline-offset-2 outline-green-500' : ''
+                      }`}
                     >
                       <div className="relative w-[8.4rem] h-[8.4rem]">
                         <Image
@@ -165,6 +175,20 @@ export default function Home() {
                           className="object-contain"
                           priority
                         />
+                        {/* Dynamic overlay based on prediction status */}
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                          <span className={`text-white text-xs font-bold text-center px-2 py-1 rounded ${
+                            predictionsOpen 
+                              ? 'bg-green-600/80 hover:bg-green-500/80' 
+                              : 'bg-blue-600/80 hover:bg-blue-500/80'
+                          }`}>
+                            {predictionsOpen ? (
+                              <>MAKE<br />PREDICTIONS</>
+                            ) : (
+                              <>VIEW<br />LEADERBOARD</>
+                            )}
+                          </span>
+                        </div>
                       </div>
                     </button>
                     {SHOW_TITLES && (<span className="text-white text-sm">{uiDetails.title}</span>)}
@@ -177,14 +201,19 @@ export default function Home() {
               <div className="w-full sm:w-auto relative">
                 {!selectedGame && <div className="absolute inset-0 bg-black/30 rounded-lg z-10 pointer-events-none"></div>}
                 <Link 
-                  href={selectedGame ? `/${selectedGame}/prediction` : '#'}
+                  href={selectedGame ? (() => {
+                    const tournament = getTournamentBySlug(selectedGame);
+                    return tournament && arePredictionsOpen(tournament) 
+                      ? `/${selectedGame}/prediction` 
+                      : `/${selectedGame}/leaderboard`;
+                  })() : '#'}
                   className={`w-full sm:w-auto ${!selectedGame ? 'pointer-events-none' : ''}`}
                 >
                   <Button 
                     size="lg" 
                     disabled={!selectedGame}
                     className={`w-full font-semibold px-8 py-6 text-lg transition-all duration-300 transform ${
-                      selectedGame 
+                      selectedGame
                         ? 'text-white gradient-rotate' 
                         : 'text-gray-400 opacity-50 gradient-rotate'
                     }`}
@@ -192,27 +221,12 @@ export default function Home() {
                       boxShadow: selectedGame ? '0 4px 20px -5px rgba(0, 172, 78, 0.4)' : 'none'
                     }}
                   >
-                    Start Prediction
-                  </Button>
-                </Link>
-              </div>
-              <div className="w-full sm:w-auto relative">
-                {!selectedGame && <div className="absolute inset-0 bg-black/30 rounded-lg z-10 pointer-events-none"></div>}
-                <Link 
-                  href={selectedGame ? `/${selectedGame}/leaderboard` : '#'}
-                  className={`w-full sm:w-auto ${!selectedGame ? 'pointer-events-none' : ''}`}
-                >
-                  <Button 
-                    variant="ghost" 
-                    size="lg" 
-                    disabled={!selectedGame}
-                    className={`w-full px-8 py-6 text-lg transition-all duration-300 transform ${
-                      selectedGame 
-                        ? 'bg-gradient-to-r from-gray-900/80 to-gray-800/80 border border-gray-700 text-gray-200 hover:from-gray-800/80 hover:to-gray-700/80 hover:text-white' 
-                        : 'bg-gradient-to-r from-gray-900/80 to-gray-800/80 border border-gray-700 text-gray-400 opacity-50'
-                    } backdrop-blur-sm`}
-                  >
-                    View Leaderboard
+                    {selectedGame ? (() => {
+                      const tournament = getTournamentBySlug(selectedGame);
+                      return tournament && arePredictionsOpen(tournament) 
+                        ? 'Make Predictions' 
+                        : 'View Leaderboard';
+                    })() : 'Select Tournament'}
                   </Button>
                 </Link>
               </div>
