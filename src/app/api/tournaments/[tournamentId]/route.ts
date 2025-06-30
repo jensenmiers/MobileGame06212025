@@ -7,6 +7,37 @@ interface RouteParams {
   }
 }
 
+// Helper function to dynamically calculate tournament status
+async function calculateTournamentStatus(tournamentId?: string, cutoffTime?: string): Promise<'upcoming' | 'active' | 'completed'> {
+  // Check if tournament has results (only if we have a tournament ID)
+  if (tournamentId) {
+    const { data: results, error: resultsError } = await database
+      .from('results')
+      .select('id')
+      .eq('tournament_id', tournamentId)
+      .limit(1)
+
+    if (!resultsError && results && results.length > 0) {
+      return 'completed'
+    }
+  }
+
+  // Calculate based on cutoff time
+  if (cutoffTime) {
+    const now = new Date()
+    const cutoff = new Date(cutoffTime)
+    
+    if (cutoff > now) {
+      return 'upcoming'  // Predictions still open
+    } else {
+      return 'active'    // Predictions closed, waiting for results
+    }
+  }
+
+  // Default fallback
+  return 'upcoming'
+}
+
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { tournamentId } = params
@@ -40,10 +71,29 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const { tournamentId } = params
     const body = await request.json()
 
+    // Calculate status dynamically if cutoff_time is being updated
+    let updateData = { ...body }
+    if (body.cutoff_time) {
+      const calculatedStatus = await calculateTournamentStatus(tournamentId, body.cutoff_time)
+      updateData.status = calculatedStatus
+    } else {
+      // If cutoff_time isn't being updated, get current cutoff_time to calculate status
+      const { data: currentTournament } = await database
+        .from('tournaments')
+        .select('cutoff_time')
+        .eq('id', tournamentId)
+        .single()
+      
+      if (currentTournament?.cutoff_time) {
+        const calculatedStatus = await calculateTournamentStatus(tournamentId, currentTournament.cutoff_time)
+        updateData.status = calculatedStatus
+      }
+    }
+
     const { data: tournament, error } = await database
       .from('tournaments')
       .update({
-        ...body,
+        ...updateData,
         updated_at: new Date().toISOString(),
       })
       .eq('id', tournamentId)

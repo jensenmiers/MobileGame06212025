@@ -1,6 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { database, DbTournament } from '@/lib/database'
 
+// Helper function to dynamically calculate tournament status
+async function calculateTournamentStatus(tournamentId?: string, cutoffTime?: string): Promise<'upcoming' | 'active' | 'completed'> {
+  // Check if tournament has results (only if we have a tournament ID)
+  if (tournamentId) {
+    const { data: results, error: resultsError } = await database
+      .from('results')
+      .select('id')
+      .eq('tournament_id', tournamentId)
+      .limit(1)
+
+    if (!resultsError && results && results.length > 0) {
+      return 'completed'
+    }
+  }
+
+  // Calculate based on cutoff time
+  if (cutoffTime) {
+    const now = new Date()
+    const cutoff = new Date(cutoffTime)
+    
+    if (cutoff > now) {
+      return 'upcoming'  // Predictions still open
+    } else {
+      return 'active'    // Predictions closed, waiting for results
+    }
+  }
+
+  // Default fallback
+  return 'upcoming'
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { data: tournaments, error } = await database
@@ -41,6 +72,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Calculate status dynamically based on cutoff_time
+    const calculatedStatus = await calculateTournamentStatus(undefined, body.cutoff_time)
+
     const tournamentData: Partial<DbTournament> = {
       name: body.name,
       game_title: body.game_title,
@@ -48,7 +82,7 @@ export async function POST(request: NextRequest) {
       start_time: body.start_time,
       cutoff_time: body.cutoff_time,
       end_time: body.end_time,
-      status: body.status || 'upcoming',
+      status: calculatedStatus,  // Use calculated status instead of body.status
       max_participants: body.max_participants || 16,
     }
 
