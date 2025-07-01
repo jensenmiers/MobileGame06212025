@@ -11,6 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import { tournamentService, syncUserProfile } from "@/lib/tournament-service";
 import { Tournament } from "@/types/tournament";
 import { gameUiDetailsMap } from "@/lib/game-utils";
+import { supabase } from "@/lib/supabase";
 
 export default function Home() {
   const searchParams = useSearchParams();
@@ -18,14 +19,35 @@ export default function Home() {
   const { user, loading, signOut } = useAuth();
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [tournamentsWithResults, setTournamentsWithResults] = useState<Set<string>>(new Set());
   // Toggle to show/hide the text labels under each game icon
   const SHOW_TITLES = false;
 
-  // Helper function to check if predictions are still open for a tournament
+  // Helper function to dynamically calculate if predictions are open
   const arePredictionsOpen = (tournament: Tournament): boolean => {
+    // **EXACT REPLICATION of calculateTournamentStatus logic from API routes**
+    
+    // Step 1: Check if tournament has results
+    const hasResults = tournamentsWithResults.has(tournament.id);
+    
+    // Step 2: If has results, tournament is "completed" - predictions closed
+    if (hasResults) {
+      console.log(`🔍 ${tournament.name}: HAS RESULTS → predictions CLOSED (completed)`);
+      return false;
+    }
+    
+    // Step 3: Check cutoff time
     const cutoffTime = new Date(tournament.cutoff_time);
     const now = new Date();
-    return cutoffTime > now;
+    const timeBasedOpen = cutoffTime > now;
+    
+    if (timeBasedOpen) {
+      console.log(`🔍 ${tournament.name}: No results, cutoff future → predictions OPEN (upcoming)`);
+      return true;
+    } else {
+      console.log(`🔍 ${tournament.name}: No results, cutoff passed → predictions CLOSED (active)`);
+      return false;
+    }
   };
 
   // Helper function to get tournament by game slug
@@ -40,6 +62,40 @@ export default function Home() {
     async function fetchTournaments() {
       const data = await tournamentService.getTournaments();
       setTournaments(data);
+      
+      // Check which tournaments have results (implement calculateTournamentStatus logic)
+      const tournamentsWithResultsSet = new Set<string>();
+      
+      for (const tournament of data) {
+        try {
+          if (process.env.NEXT_PUBLIC_USE_BACKEND_API === 'true') {
+            // Use backend API
+            const response = await fetch(`/api/tournaments/${tournament.id}/results`);
+            if (response.ok) {
+              const resultsData = await response.json();
+              if (resultsData.results && Object.keys(resultsData.results).length > 0) {
+                tournamentsWithResultsSet.add(tournament.id);
+              }
+            }
+          } else {
+            // Use Supabase directly
+            const { data: results, error } = await supabase
+              .from('results')
+              .select('id')
+              .eq('tournament_id', tournament.id)
+              .limit(1);
+            
+            if (!error && results && results.length > 0) {
+              tournamentsWithResultsSet.add(tournament.id);
+            }
+          }
+        } catch (error) {
+          console.error(`Error checking results for ${tournament.name}:`, error);
+        }
+      }
+      
+      setTournamentsWithResults(tournamentsWithResultsSet);
+      console.log('🏁 Tournaments with results:', Array.from(tournamentsWithResultsSet));
     }
     fetchTournaments();
   }, []);
