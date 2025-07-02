@@ -17,7 +17,7 @@ export default function Home() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user, loading, signOut } = useAuth();
-  const [selectedGame, setSelectedGame] = useState<string | null>(null);
+
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [tournamentsWithResults, setTournamentsWithResults] = useState<Set<string>>(new Set());
   // Toggle to show/hide the text labels under each game icon
@@ -104,14 +104,7 @@ export default function Home() {
     fetchTournaments();
   }, []);
 
-  // Initialize selectedGame from URL on mount
-  useEffect(() => {
-    const gameSlug = searchParams.get('game');
-    const allSlugs = Object.values(gameUiDetailsMap).map(details => details.slug);
-    if (gameSlug && allSlugs.includes(gameSlug)) {
-      setSelectedGame(gameSlug);
-    }
-  }, [searchParams]);
+
 
   const handleGameSelect = (gameSlug: string) => {
     const tournament = getTournamentBySlug(gameSlug);
@@ -129,8 +122,7 @@ export default function Home() {
 
   const handleLogout = async () => {
     await signOut();
-    // Clear any selected game and redirect to clean main page
-    setSelectedGame(null);
+    // Redirect to clean main page
     router.push('/');
   };
 
@@ -212,20 +204,40 @@ export default function Home() {
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-white">Choose Your Tournament</h2>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full max-w-md mx-auto">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 gap-y-8 w-full max-w-md mx-auto">
               {tournaments.map((tournament) => {
                 const uiDetails = gameUiDetailsMap[tournament.name];
                 if (!uiDetails) return null; // Don't render if no UI details are mapped
 
                 const predictionsOpen = arePredictionsOpen(tournament);
+                const hasResults = tournamentsWithResults.has(tournament.id);
+                const cutoffTime = new Date(tournament.cutoff_time);
+                const now = new Date();
+                const cutoffPassed = cutoffTime <= now;
+
+                // Determine tournament status for banner
+                let bannerText = '';
+                let bannerColor = '';
+                
+                if (hasResults) {
+                  // Tournament completed - has results
+                  bannerText = 'VIEW\nLEADERBOARD';
+                  bannerColor = 'bg-blue-600/80 hover:bg-blue-500/80';
+                } else if (predictionsOpen) {
+                  // Predictions still open
+                  bannerText = 'MAKE\nPREDICTIONS';
+                  bannerColor = 'bg-green-600/80 hover:bg-green-500/80';
+                } else {
+                  // Active tournament - no results, cutoff passed
+                  bannerText = 'RESULTS\nPENDING';
+                  bannerColor = 'bg-yellow-600/80 hover:bg-yellow-500/80';
+                }
 
                 return (
                   <div key={tournament.id} className="flex flex-col items-center">
                     <button
                       onClick={() => handleGameSelect(uiDetails.slug)}
-                      className={`relative transition-all cursor-pointer hover:scale-105 ${SHOW_TITLES ? 'mb-2' : ''} ${
-                        selectedGame === uiDetails.slug ? 'outline outline-1 outline-offset-2 outline-green-500' : ''
-                      }`}
+                      className={`relative transition-all cursor-pointer hover:scale-105 ${SHOW_TITLES ? 'mb-2' : ''}`}
                     >
                       <div className="relative w-[8.4rem] h-[8.4rem]">
                         <Image
@@ -235,18 +247,10 @@ export default function Home() {
                           className="object-contain"
                           priority
                         />
-                        {/* Dynamic overlay based on prediction status */}
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                          <span className={`text-white text-xs font-bold text-center px-2 py-1 rounded ${
-                            predictionsOpen 
-                              ? 'bg-green-600/80 hover:bg-green-500/80' 
-                              : 'bg-blue-600/80 hover:bg-blue-500/80'
-                          }`}>
-                            {predictionsOpen ? (
-                              <>MAKE<br />PREDICTIONS</>
-                            ) : (
-                              <>VIEW<br />LEADERBOARD</>
-                            )}
+                        {/* Dynamic overlay based on tournament status */}
+                        <div className="absolute inset-0 flex items-end justify-center pb-0">
+                          <span className={`text-white text-xs font-bold text-center px-2 py-1 rounded ${bannerColor} transform translate-y-1/2`}>
+                            {bannerText}
                           </span>
                         </div>
                       </div>
@@ -255,41 +259,6 @@ export default function Home() {
                   </div>
                 );
               })}
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <div className="w-full sm:w-auto relative">
-                {!selectedGame && <div className="absolute inset-0 bg-black/30 rounded-lg z-10 pointer-events-none"></div>}
-                <Link 
-                  href={selectedGame ? (() => {
-                    const tournament = getTournamentBySlug(selectedGame);
-                    return tournament && arePredictionsOpen(tournament) 
-                      ? `/${selectedGame}/prediction` 
-                      : `/${selectedGame}/leaderboard`;
-                  })() : '#'}
-                  className={`w-full sm:w-auto ${!selectedGame ? 'pointer-events-none' : ''}`}
-                >
-                  <Button 
-                    size="lg" 
-                    disabled={!selectedGame}
-                    className={`w-full font-semibold px-8 py-6 text-lg transition-all duration-300 transform ${
-                      selectedGame
-                        ? 'text-white gradient-rotate' 
-                        : 'text-gray-400 opacity-50 gradient-rotate'
-                    }`}
-                    style={{
-                      boxShadow: selectedGame ? '0 4px 20px -5px rgba(0, 172, 78, 0.4)' : 'none'
-                    }}
-                  >
-                    {selectedGame ? (() => {
-                      const tournament = getTournamentBySlug(selectedGame);
-                      return tournament && arePredictionsOpen(tournament) 
-                        ? 'Make Predictions' 
-                        : 'View Leaderboard';
-                    })() : 'Select Tournament'}
-                  </Button>
-                </Link>
-              </div>
             </div>
 
             {/* Logout button for logged in users - positioned at bottom */}
