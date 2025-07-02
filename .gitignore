@@ -38,3 +38,6 @@ next-env.d.ts
 # Cascade
 .windsurf/
 .cursor/mcp.json
+
+# Documentation
+cursor_removing_supabase_and_tournament.md

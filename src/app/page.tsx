@@ -24,28 +24,25 @@ export default function Home() {
   const SHOW_TITLES = false;
 
   // Helper function to dynamically calculate if predictions are open
+  // PRIORITY: Results posted overrides cutoff time
   const arePredictionsOpen = (tournament: Tournament): boolean => {
-    // **EXACT REPLICATION of calculateTournamentStatus logic from API routes**
-    
-    // Step 1: Check if tournament has results
+    // PRIORITY 1: Check if tournament has results (overrides everything)
     const hasResults = tournamentsWithResults.has(tournament.id);
-    
-    // Step 2: If has results, tournament is "completed" - predictions closed
     if (hasResults) {
-      console.log(`🔍 ${tournament.name}: HAS RESULTS → predictions CLOSED (completed)`);
-      return false;
+      console.log(`🔒 ${tournament.name}: HAS RESULTS → predictions CLOSED (completed)`);
+      return false; // Results posted = no more predictions allowed
     }
     
-    // Step 3: Check cutoff time
+    // PRIORITY 2: If no results, check cutoff time
     const cutoffTime = new Date(tournament.cutoff_time);
     const now = new Date();
     const timeBasedOpen = cutoffTime > now;
     
     if (timeBasedOpen) {
-      console.log(`🔍 ${tournament.name}: No results, cutoff future → predictions OPEN (upcoming)`);
+      console.log(`🟢 ${tournament.name}: No results, cutoff future → predictions OPEN (upcoming)`);
       return true;
     } else {
-      console.log(`🔍 ${tournament.name}: No results, cutoff passed → predictions CLOSED (active)`);
+      console.log(`🔵 ${tournament.name}: No results, cutoff passed → predictions CLOSED (active)`);
       return false;
     }
   };
@@ -60,10 +57,11 @@ export default function Home() {
 
   useEffect(() => {
     async function fetchTournaments() {
+      console.log('🔄 Fetching tournaments and checking results...');
       const data = await tournamentService.getTournaments();
       setTournaments(data);
       
-      // Check which tournaments have results (implement calculateTournamentStatus logic)
+      // Check which tournaments have results (PRIORITY: Results override cutoff time)
       const tournamentsWithResultsSet = new Set<string>();
       
       for (const tournament of data) {
@@ -75,6 +73,9 @@ export default function Home() {
               const resultsData = await response.json();
               if (resultsData.results && Object.keys(resultsData.results).length > 0) {
                 tournamentsWithResultsSet.add(tournament.id);
+                console.log(`✅ ${tournament.name}: Has results (via API)`);
+              } else {
+                console.log(`❌ ${tournament.name}: No results (via API)`);
               }
             }
           } else {
@@ -87,15 +88,18 @@ export default function Home() {
             
             if (!error && results && results.length > 0) {
               tournamentsWithResultsSet.add(tournament.id);
+              console.log(`✅ ${tournament.name}: Has results (via Supabase)`);
+            } else {
+              console.log(`❌ ${tournament.name}: No results (via Supabase)`);
             }
           }
         } catch (error) {
-          console.error(`Error checking results for ${tournament.name}:`, error);
+          console.error(`❌ Error checking results for ${tournament.name}:`, error);
         }
       }
       
       setTournamentsWithResults(tournamentsWithResultsSet);
-      console.log('🏁 Tournaments with results:', Array.from(tournamentsWithResultsSet));
+      console.log('🏁 Final tournaments with results:', Array.from(tournamentsWithResultsSet));
     }
     fetchTournaments();
   }, []);
