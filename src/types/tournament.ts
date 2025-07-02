@@ -5,8 +5,6 @@ export interface Player {
   avatarUrl?: string;
 }
 
-export type TournamentStatus = 'upcoming' | 'active' | 'completed' | 'cancelled';
-
 export interface Tournament {
   id: string; // uuid from Supabase
   name: string;
@@ -15,7 +13,6 @@ export interface Tournament {
   start_time: string;
   cutoff_time: string;
   end_time: string;
-  status: TournamentStatus;
   max_participants: number;
   created_at: string;
   updated_at: string;

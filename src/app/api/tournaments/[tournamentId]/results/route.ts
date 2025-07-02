@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { database, DbResult } from '@/lib/database'
+import { updateAllPredictionScores } from '@/lib/scoring-service'
 
 interface RouteParams {
   params: {
@@ -63,11 +64,20 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     }
 
-    // Disable the trigger temporarily
-    await database.rpc('disable_trigger', { 
-      trigger_name: 'trigger_auto_update_prediction_scores',
-      table_name: 'results' 
-    }).single()
+    // Validate tournament exists
+    const { data: tournament, error: tournamentError } = await database
+      .from('tournaments')
+      .select('id')
+      .eq('id', tournamentId)
+      .single()
+
+    if (tournamentError || !tournament) {
+      console.error('Tournament not found:', tournamentId)
+      return NextResponse.json(
+        { error: 'Tournament not found' },
+        { status: 404 }
+      )
+    }
 
     // Check if results already exist for this tournament
     const { data: existingResults, error: selectError } = await database
@@ -83,6 +93,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       position_3_participant_id: body.position_3_participant_id,
       position_4_participant_id: body.position_4_participant_id,
       entered_by: body.entered_by,
+      entered_at: new Date().toISOString(),
     }
 
     if (existingResults) {
@@ -102,14 +113,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         )
       }
 
-      // Re-enable the trigger
-      await database.rpc('enable_trigger', { 
-        trigger_name: 'trigger_auto_update_prediction_scores',
-        table_name: 'results' 
-      }).single()
-
-      // Manually update prediction scores
-      await database.rpc('ensure_accurate_prediction_scores')
+      console.log(`🏆 Results updated for tournament ${tournamentId}, calculating scores...`)
+      
+      // Calculate prediction scores using backend logic
+      const updatedCount = await updateAllPredictionScores(tournamentId)
+      
+      if (updatedCount !== null) {
+        console.log(`✅ Successfully updated ${updatedCount} prediction scores for tournament ${tournamentId}`)
+      } else {
+        console.error(`❌ Failed to update prediction scores for tournament ${tournamentId}`)
+      }
 
       return NextResponse.json({ results })
     } else {
@@ -128,14 +141,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         )
       }
 
-      // Re-enable the trigger
-      await database.rpc('enable_trigger', { 
-        trigger_name: 'trigger_auto_update_prediction_scores',
-        table_name: 'results' 
-      }).single()
-
-      // Manually update prediction scores
-      await database.rpc('ensure_accurate_prediction_scores')
+      console.log(`🏆 New results created for tournament ${tournamentId}, calculating scores...`)
+      
+      // Calculate prediction scores using backend logic
+      const updatedCount = await updateAllPredictionScores(tournamentId)
+      
+      if (updatedCount !== null) {
+        console.log(`✅ Successfully updated ${updatedCount} prediction scores for tournament ${tournamentId}`)
+      } else {
+        console.error(`❌ Failed to update prediction scores for tournament ${tournamentId}`)
+      }
 
       return NextResponse.json({ results }, { status: 201 })
     }
@@ -152,6 +167,22 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { tournamentId } = params
 
+    // Validate tournament exists
+    const { data: tournament, error: tournamentError } = await database
+      .from('tournaments')
+      .select('id')
+      .eq('id', tournamentId)
+      .single()
+
+    if (tournamentError || !tournament) {
+      console.error('Tournament not found:', tournamentId)
+      return NextResponse.json(
+        { error: 'Tournament not found' },
+        { status: 404 }
+      )
+    }
+
+    // Delete the results
     const { error } = await database
       .from('results')
       .delete()
@@ -165,10 +196,30 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // TODO: Reset all prediction scores to -1 for this tournament
-    // This will be implemented in the next session
+    console.log(`🗑️ Results deleted for tournament ${tournamentId}, resetting prediction scores...`)
 
-    return NextResponse.json({ success: true })
+    // Reset all prediction scores to -1 for this tournament
+    const { data: resetResults, error: resetError } = await database
+      .from('predictions')
+      .update({ score: -1 })
+      .eq('tournament_id', tournamentId)
+      .select('id')
+
+    if (resetError) {
+      console.error('Error resetting prediction scores:', resetError)
+      return NextResponse.json(
+        { error: 'Results deleted but failed to reset prediction scores' },
+        { status: 500 }
+      )
+    }
+
+    const resetCount = resetResults?.length || 0
+    console.log(`✅ Successfully reset ${resetCount} prediction scores to -1 for tournament ${tournamentId}`)
+
+    return NextResponse.json({ 
+      success: true, 
+      message: `Results deleted and ${resetCount} prediction scores reset` 
+    })
   } catch (error) {
     console.error('Unexpected error in DELETE /api/tournaments/[id]/results:', error)
     return NextResponse.json(

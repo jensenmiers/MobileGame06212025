@@ -1,5 +1,5 @@
 import { Prediction, TournamentResult } from '@/types/tournament';
-import { createClient } from '@/lib/supabase/server';
+import { database } from '@/lib/database';
 
 // Base points for each position (1st to 4th)
 const POSITION_POINTS = [100, 50, 30, 10] as const;
@@ -76,7 +76,7 @@ export function calculatePredictionScore(
  * @returns The new score, or null if there was an error
  */
 export async function updatePredictionScore(predictionId: string): Promise<number | null> {
-  const supabase = createClient();
+  const supabase = database;
   
   try {
     // Get the prediction with all necessary data
@@ -125,14 +125,34 @@ export async function updatePredictionScore(predictionId: string): Promise<numbe
 }
 
 /**
- * Updates scores for all predictions in a tournament
+ * Updates scores for all predictions in a tournament with detailed error reporting
+ * Continues processing even if individual predictions fail
  * @param tournamentId The ID of the tournament
- * @returns The number of predictions updated, or null if there was an error
+ * @returns Detailed results including success count and errors
  */
-export async function updateAllPredictionScores(tournamentId: string): Promise<number | null> {
-  const supabase = createClient();
+export async function updateAllPredictionScoresWithDetails(tournamentId: string): Promise<{
+  success: boolean;
+  predictionsUpdated: number;
+  errors: string[];
+}> {
+  const supabase = database;
   
   try {
+    // Validate tournament exists
+    const { data: tournament, error: tournamentError } = await supabase
+      .from('tournaments')
+      .select('id')
+      .eq('id', tournamentId)
+      .single();
+
+    if (tournamentError || !tournament) {
+      return {
+        success: false,
+        predictionsUpdated: 0,
+        errors: [`Tournament not found: ${tournamentId}`]
+      };
+    }
+
     // Get all predictions for the tournament
     const { data: predictions, error: predError } = await supabase
       .from('predictions')
@@ -140,24 +160,70 @@ export async function updateAllPredictionScores(tournamentId: string): Promise<n
       .eq('tournament_id', tournamentId);
 
     if (predError) {
-      console.error('Error fetching predictions:', predError);
-      return null;
+      return {
+        success: false,
+        predictionsUpdated: 0,
+        errors: [`Error fetching predictions: ${predError.message}`]
+      };
     }
 
-    // Update each prediction
+    if (!predictions || predictions.length === 0) {
+      return {
+        success: true,
+        predictionsUpdated: 0,
+        errors: []
+      };
+    }
+
+    console.log(`🎯 Starting score calculation for ${predictions.length} predictions in tournament ${tournamentId}`);
+
+    // Update each prediction, collecting errors but continuing processing
     let updatedCount = 0;
+    const errors: string[] = [];
+
     for (const prediction of predictions) {
-      const score = await updatePredictionScore(prediction.id);
-      if (score !== null) {
-        updatedCount++;
+      try {
+        const score = await updatePredictionScore(prediction.id);
+        if (score !== null) {
+          updatedCount++;
+        } else {
+          errors.push(`Failed to update prediction ${prediction.id}: updatePredictionScore returned null`);
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        errors.push(`Failed to update prediction ${prediction.id}: ${errorMessage}`);
+        console.error(`❌ Error updating prediction ${prediction.id}:`, error);
       }
     }
 
-    return updatedCount;
+    const success = errors.length === 0;
+    
+    console.log(`🎯 Score calculation completed: ${updatedCount}/${predictions.length} updated, ${errors.length} errors`);
+
+    return {
+      success,
+      predictionsUpdated: updatedCount,
+      errors
+    };
   } catch (error) {
-    console.error('Unexpected error in updateAllPredictionScores:', error);
-    return null;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Unexpected error in updateAllPredictionScoresWithDetails:', error);
+    return {
+      success: false,
+      predictionsUpdated: 0,
+      errors: [`Unexpected error: ${errorMessage}`]
+    };
   }
+}
+
+/**
+ * Updates scores for all predictions in a tournament
+ * @param tournamentId The ID of the tournament
+ * @returns The number of predictions updated, or null if there was an error
+ */
+export async function updateAllPredictionScores(tournamentId: string): Promise<number | null> {
+  const result = await updateAllPredictionScoresWithDetails(tournamentId);
+  return result.success ? result.predictionsUpdated : null;
 }
 
 /**

@@ -20,7 +20,6 @@ export interface DbTournament {
   start_time: string
   cutoff_time: string
   end_time: string
-  status: 'upcoming' | 'active' | 'completed' | 'cancelled'
   max_participants: number
   created_at: string
   updated_at: string
