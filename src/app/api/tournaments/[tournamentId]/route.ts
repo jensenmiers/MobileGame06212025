@@ -35,6 +35,39 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   }
 }
 
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  try {
+    const { tournamentId } = params
+    const body = await request.json()
+
+    const { data: tournament, error } = await database
+      .from('tournaments')
+      .update({
+        ...body,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', tournamentId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating tournament:', error)
+      return NextResponse.json(
+        { error: 'Failed to update tournament' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ tournament })
+  } catch (error) {
+    console.error('Unexpected error in PATCH /api/tournaments/[id]:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { tournamentId } = params
