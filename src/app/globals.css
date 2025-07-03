@@ -105,6 +105,36 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+  
+  /* Typography scale for consistent text sizing */
+  .text-hero {
+    @apply text-3xl sm:text-4xl md:text-5xl font-bold;
+  }
+  
+  .text-title {
+    @apply text-2xl sm:text-3xl font-semibold;
+  }
+  
+  .text-subtitle {
+    @apply text-lg sm:text-xl font-medium;
+  }
+  
+  .text-body {
+    @apply text-base sm:text-lg;
+  }
+  
+  .text-caption {
+    @apply text-sm text-gray-400;
+  }
+  
+  /* Consistent spacing utilities */
+  .space-y-section {
+    @apply space-y-8;
+  }
+  
+  .space-y-content {
+    @apply space-y-4;
+  }
 }
 
 

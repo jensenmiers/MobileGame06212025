@@ -64,13 +64,13 @@ export default function LeaderboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white p-4">
       <div className="max-w-4xl mx-auto">
         {/* Back Button */}
         <div className="w-full mb-6">
           <Link 
             href={`/?game=${gameSlug}`}
-            className="inline-flex items-center text-gray-300 hover:text-white transition-colors"
+            className="inline-flex items-center text-gray-300 hover:text-white transition-colors bg-gray-800/50 hover:bg-gray-700/50 px-4 py-2 rounded-lg"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -79,16 +79,16 @@ export default function LeaderboardPage() {
           </Link>
         </div>
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold mb-1 bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-green-600">Leaderboard</h1>
-          <h2 className="text-2xl font-bold mb-2">{tournamentTitle}</h2>
-                          <p className="text-gray-300">See how you rank against other bracket wizards</p>
+          <h1 className="text-4xl font-bold mb-2 text-green-400">Leaderboard</h1>
+          <h2 className="text-2xl font-bold mb-2 text-white">{tournamentTitle}</h2>
+          <p className="text-gray-300">See how you rank against other bracket wizards</p>
         </div>
 
-        <Card className="bg-black border border-gray-800 shadow-xl overflow-hidden">
+        <Card className="bg-black/70 border-gray-800 rounded-lg shadow-xl overflow-hidden">
           <CardHeader className="border-b border-gray-700/50">
             <CardTitle className="text-white flex items-center gap-2">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500">🏆 Top Players</span>
-              <span className="text-sm text-green-200/80 font-normal">(Live Rankings)</span>
+              <span className="text-green-400">🏆 Top Players</span>
+              <span className="text-sm text-gray-400 font-normal">(Live Rankings)</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
@@ -100,11 +100,11 @@ export default function LeaderboardPage() {
                   <li
                     key={player.userId}
                     className={`
-                      flex items-center justify-between pl-4 pr-6 py-4 transition-all duration-200
+                      flex items-center justify-between pl-4 pr-6 py-4 transition-all duration-200 rounded-lg
                       ${getRankColor(player.rank)}
                       hover:bg-gray-800/70
                       border-l-4 ${
-                        player.rank === 1 ? 'border-l-amber-400' : 
+                        player.rank === 1 ? 'border-l-yellow-400' : 
                         player.rank === 2 ? 'border-l-gray-300' :
                         player.rank === 3 ? 'border-l-amber-600' :
                         'border-l-gray-700'
@@ -117,7 +117,7 @@ export default function LeaderboardPage() {
                       </div>
                       <div className="w-[120px] sm:w-[150px] md:w-[200px] flex-shrink-0">
                         <div className="flex items-center gap-2">
-                          <h3 className={`font-bold text-lg sm:text-xl md:text-2xl truncate ${player.rank === 1 ? 'text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500' : 'text-white'}`}>
+                          <h3 className={`font-bold text-lg sm:text-xl md:text-2xl truncate ${player.rank === 1 ? 'text-yellow-400' : 'text-white'}`}>
                             {player.username}
                           </h3>
                         </div>
@@ -125,10 +125,10 @@ export default function LeaderboardPage() {
                     </div>
                     
                     <div className="text-right">
-                      <div className={`text-lg sm:text-xl md:text-2xl font-bold ${player.rank === 1 ? 'text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500' : 'text-white'}`}>
+                      <div className={`text-lg sm:text-xl md:text-2xl font-bold ${player.rank === 1 ? 'text-yellow-400' : 'text-white'}`}>
                         {player.points}
                       </div>
-                      <div className={`text-xs sm:text-sm ${player.rank === 1 ? 'text-green-200' : 'text-gray-300'}`}>
+                      <div className={`text-xs sm:text-sm ${player.rank === 1 ? 'text-yellow-200' : 'text-gray-300'}`}>
                         points
                       </div>
                     </div>
@@ -139,7 +139,7 @@ export default function LeaderboardPage() {
               <div className="text-center py-10 text-lg text-gray-400">No leaderboard data available yet. Check back after the tournament is complete!</div>
             )}
             
-            <div className="mt-8 p-4 bg-gradient-to-r from-green-900/20 to-emerald-900/10 border border-green-800/30 rounded-lg">
+            <div className="mt-8 p-4 bg-green-900/20 border border-green-800/30 rounded-lg">
               <p className="text-sm text-green-100 text-center">
                 🔄 Leaderboard updates automatically after each tournament round
               </p>
