@@ -37,23 +37,67 @@ const playerOptions = [
   "Player E"
 ];
 
+// Function to format ordinal numbers properly
+function getOrdinal(num: number): string {
+  const suffixes = ["th", "st", "nd", "rd"];
+  const value = num % 100;
+  return num + (suffixes[(value - 20) % 10] || suffixes[value] || suffixes[0]);
+}
+
 function LockToggle({ locked, onToggle }: { locked: boolean; onToggle: () => void }) {
   return (
-    <button
-      onClick={e => { e.stopPropagation(); onToggle(); }}
-      style={{
-        background: locked ? "#003300" : "#222",
-        color: locked ? "#fff" : "#fff",
-        border: "1px solid #228B22",
-        borderRadius: 16,
-        padding: "4px 12px",
-        marginRight: 8,
-        cursor: "pointer"
-      }}
-      aria-pressed={locked}
-    >
-      {locked ? "Locked" : "Unlocked"}
-    </button>
+    <div style={{ 
+      display: "flex", 
+      alignItems: "center", 
+      width: "100%", 
+      height: 50,
+      justifyContent: "flex-start"
+    }}>
+      <button
+        onClick={e => { e.stopPropagation(); onToggle(); }}
+        style={{
+          position: "relative",
+          width: 80,
+          height: 40,
+          backgroundColor: locked ? "#228B22" : "#666",
+          borderRadius: 20,
+          border: "none",
+          cursor: "pointer",
+          transition: "background-color 0.3s ease",
+          marginRight: 16,
+          outline: "none",
+          flexShrink: 0
+        }}
+        aria-pressed={locked}
+        aria-label={locked ? "Locked" : "Unlocked"}
+      >
+        <div
+          style={{
+            position: "absolute",
+            top: 4,
+            left: locked ? 44 : 4,
+            width: 32,
+            height: 32,
+            backgroundColor: "#fff",
+            borderRadius: "50%",
+            transition: "left 0.3s ease",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.3)"
+          }}
+        />
+      </button>
+      <span style={{ 
+        color: "#fff", 
+        fontSize: 16, 
+        fontWeight: 600,
+        lineHeight: 1.2,
+        display: "flex",
+        alignItems: "center",
+        height: 50,
+        flex: 1
+      }}>
+        {locked ? "Predictions Locked" : "Predictions Unlocked"}
+      </span>
+    </div>
   );
 }
 
@@ -65,9 +109,18 @@ function EditViewButton({ onClick }: { onClick: (e: React.MouseEvent) => void })
         background: "#003300",
         color: "#fff",
         border: "1px solid #228B22",
-        borderRadius: 8,
-        padding: "4px 12px",
-        cursor: "pointer"
+        borderRadius: 10,
+        padding: "0 20px",
+        cursor: "pointer",
+        fontSize: 16,
+        fontWeight: 600,
+        lineHeight: 1.2,
+        height: 50,
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        whiteSpace: "nowrap"
       }}
     >
       Edit/View Results
@@ -145,17 +198,24 @@ function TournamentCard({
     >
       <div
         style={{
-          display: "flex",
+          display: "grid",
+          gridTemplateColumns: "minmax(0, 1fr) 220px 180px",
           alignItems: "center",
-          justifyContent: "space-between",
-          padding: "18px 24px",
+          gap: "20px",
+          padding: "20px 28px",
           cursor: "pointer",
           fontSize: 20,
-          fontWeight: 600
+          fontWeight: 600,
+          minHeight: 90
         }}
         onClick={onExpand}
       >
-        <span style={{ color: "#fff", flex: 1 }}>{tournament.name}</span>
+        <span style={{ 
+          color: "#fff", 
+          lineHeight: 1.2
+        }}>
+          {tournament.name}
+        </span>
         <LockToggle locked={tournament.locked} onToggle={onLockToggle} />
         <EditViewButton onClick={onExpand} />
       </div>
@@ -193,7 +253,7 @@ function TournamentCard({
           </div>
           {[0, 1, 2, 3].map(i => (
             <div key={i} style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
-              <label style={{ color: "#fff", fontWeight: 600, marginRight: 16, minWidth: 120 }}>{i + 1}st Place:</label>
+              <label style={{ color: "#fff", fontWeight: 600, marginRight: 16, minWidth: 120 }}>{getOrdinal(i + 1)} Place:</label>
               <select
                 value={results[i]}
                 onChange={e => {
