@@ -37,22 +37,14 @@ const playerOptions = [
   "Player E"
 ];
 
-function ChevronIcon({ direction }: { direction: "up" | "down" }) {
-  return (
-    <span style={{ margin: "0 8px", fontSize: 18 }}>
-      {direction === "up" ? "▲" : "▼"}
-    </span>
-  );
-}
-
 function LockToggle({ locked, onToggle }: { locked: boolean; onToggle: () => void }) {
   return (
     <button
       onClick={e => { e.stopPropagation(); onToggle(); }}
       style={{
         background: locked ? "#003300" : "#222",
-        color: locked ? "#0f0" : "#fff",
-        border: "1px solid #0f0",
+        color: locked ? "#fff" : "#fff",
+        border: "1px solid #228B22",
         borderRadius: 16,
         padding: "4px 12px",
         marginRight: 8,
@@ -72,7 +64,7 @@ function EditViewButton({ onClick }: { onClick: (e: React.MouseEvent) => void })
       style={{
         background: "#003300",
         color: "#fff",
-        border: "1px solid #0f0",
+        border: "1px solid #228B22",
         borderRadius: 8,
         padding: "4px 12px",
         cursor: "pointer"
@@ -91,7 +83,7 @@ function InlineMessage({ message, type }: { message: string; type: "success" | "
         padding: "6px 12px",
         borderRadius: 6,
         background: type === "success" ? "#003300" : "#330000",
-        color: type === "success" ? "#0f0" : "#f55",
+        color: type === "success" ? "#fff" : "#f55",
         fontWeight: 600,
         opacity: 0.95,
         transition: "opacity 0.5s"
@@ -143,11 +135,11 @@ function TournamentCard({
     <div
       style={{
         background: isExpanded ? "#222" : "#111",
-        color: "#0f0",
-        border: "2px solid #0f0",
+        color: "#fff",
+        border: "2px solid #228B22",
         borderRadius: 12,
         marginBottom: 18,
-        boxShadow: isExpanded ? "0 0 12px #0f04" : undefined,
+        boxShadow: isExpanded ? "0 0 12px #00330044" : undefined,
         transition: "background 0.2s, box-shadow 0.2s"
       }}
     >
@@ -164,7 +156,6 @@ function TournamentCard({
         onClick={onExpand}
       >
         <span style={{ color: "#fff", flex: 1 }}>{tournament.name}</span>
-        <ChevronIcon direction={isExpanded ? "up" : "down"} />
         <LockToggle locked={tournament.locked} onToggle={onLockToggle} />
         <EditViewButton onClick={onExpand} />
       </div>
@@ -173,9 +164,9 @@ function TournamentCard({
           onSubmit={handleSave}
           style={{
             padding: "18px 24px 12px 24px",
-            background: "#181",
-            borderTop: "1px solid #0f0",
-            color: "#111"
+            background: "#003300",
+            borderTop: "1px solid #228B22",
+            color: "#fff"
           }}
         >
           <div style={{ marginBottom: 16 }}>
@@ -188,8 +179,8 @@ function TournamentCard({
               onChange={e => setCutoff(e.target.value)}
               style={{
                 background: "#111",
-                color: "#0f0",
-                border: "1px solid #0f0",
+                color: "#fff",
+                border: "1px solid #228B22",
                 borderRadius: 6,
                 padding: "4px 8px"
               }}
@@ -207,8 +198,8 @@ function TournamentCard({
                 }}
                 style={{
                   background: "#111",
-                  color: "#0f0",
-                  border: "1px solid #0f0",
+                  color: "#fff",
+                  border: "1px solid #228B22",
                   borderRadius: 6,
                   padding: "4px 8px"
                 }}
@@ -225,7 +216,7 @@ function TournamentCard({
             style={{
               background: "#003300",
               color: "#fff",
-              border: "1px solid #0f0",
+              border: "1px solid #228B22",
               borderRadius: 8,
               padding: "6px 18px",
               fontWeight: 600,
@@ -286,13 +277,13 @@ export default function AdminDashboardPage() {
       style={{
         minHeight: "100vh",
         background: "#111",
-        color: "#0f0",
+        color: "#fff",
         padding: "32px 0 80px 0",
         fontFamily: "monospace",
         position: "relative"
       }}
     >
-      <h1 style={{ color: "#0f0", textAlign: "center", marginBottom: 32, fontSize: 32, letterSpacing: 2 }}>
+      <h1 style={{ color: "#fff", textAlign: "center", marginBottom: 32, fontSize: 32, letterSpacing: 2, fontWeight: 900 }}>
         Tournament Admin Dashboard
       </h1>
       <div style={{ maxWidth: 600, margin: "0 auto" }}>
