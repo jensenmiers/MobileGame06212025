@@ -164,13 +164,15 @@ function TournamentCard({
           onSubmit={handleSave}
           style={{
             padding: "18px 24px 12px 24px",
-            background: "#003300",
+            background: "#181818",
             borderTop: "1px solid #228B22",
-            color: "#fff"
+            color: "#fff",
+            borderBottomLeftRadius: 12,
+            borderBottomRightRadius: 12
           }}
         >
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ color: "#003300", fontWeight: 600, marginRight: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
+            <label style={{ color: "#fff", fontWeight: 600, marginRight: 16, minWidth: 120 }}>
               Cutoff Time:
             </label>
             <input
@@ -182,13 +184,16 @@ function TournamentCard({
                 color: "#fff",
                 border: "1px solid #228B22",
                 borderRadius: 6,
-                padding: "4px 8px"
+                padding: "12px 16px",
+                fontSize: 18,
+                width: "100%",
+                boxSizing: "border-box"
               }}
             />
           </div>
           {[0, 1, 2, 3].map(i => (
-            <div key={i} style={{ marginBottom: 12 }}>
-              <label style={{ color: "#003300", fontWeight: 600, marginRight: 12 }}>{i + 1}st Place:</label>
+            <div key={i} style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
+              <label style={{ color: "#fff", fontWeight: 600, marginRight: 16, minWidth: 120 }}>{i + 1}st Place:</label>
               <select
                 value={results[i]}
                 onChange={e => {
@@ -201,7 +206,10 @@ function TournamentCard({
                   color: "#fff",
                   border: "1px solid #228B22",
                   borderRadius: 6,
-                  padding: "4px 8px"
+                  padding: "12px 16px",
+                  fontSize: 18,
+                  width: "100%",
+                  boxSizing: "border-box"
                 }}
               >
                 <option value="">Select Player</option>
@@ -218,10 +226,12 @@ function TournamentCard({
               color: "#fff",
               border: "1px solid #228B22",
               borderRadius: 8,
-              padding: "6px 18px",
-              fontWeight: 600,
-              marginTop: 8,
-              cursor: "pointer"
+              padding: "16px 0",
+              fontWeight: 700,
+              marginTop: 16,
+              cursor: "pointer",
+              fontSize: 20,
+              width: "100%"
             }}
           >
             Save Results
