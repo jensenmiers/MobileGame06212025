@@ -1,4 +1,5 @@
-import { supabase } from './supabase';
+import { createClient } from './supabase';
+const supabase = createClient();
 import { backendService } from './backend-service';
 import { Tournament, Participant, Prediction, TournamentResult, LeaderboardEntry } from '../types/tournament';
 

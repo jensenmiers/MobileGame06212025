@@ -81,7 +81,7 @@ export default function LeaderboardPage() {
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold mb-2 text-green-400">Leaderboard</h1>
           <h2 className="text-2xl font-bold mb-2 text-white">{tournamentTitle}</h2>
-          <p className="text-gray-300">See how you rank against other bracket wizards</p>
+                          <p className="text-gray-300">See how you rank against other bracket wizards</p>
         </div>
 
         <Card className="bg-black/70 border-gray-800 rounded-lg shadow-xl overflow-hidden">

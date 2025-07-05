@@ -3,45 +3,26 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { tournamentService } from "@/lib/tournament-service";
+import { Tournament, Participant } from "@/types/tournament";
 
-// Mock tournament data
-const mockTournaments = [
-  {
-    id: 1,
-    name: "EVO 2025",
-    locked: false,
-    cutoff: "2025-06-21T12:00",
-    results: ["", "", "", ""]
-  },
-  {
-    id: 2,
-    name: "Combo Breaker 2025",
-    locked: true,
-    cutoff: "2025-05-15T10:00",
-    results: ["", "", "", ""]
-  },
-  {
-    id: 3,
-    name: "Frosty Faustings 2025",
-    locked: false,
-    cutoff: "2025-02-10T09:00",
-    results: ["", "", "", ""]
-  }
-];
+// Remove mock data and replace with real state
+// const mockTournaments = [...] // REMOVED
 
-const playerOptions = [
-  "Player A",
-  "Player B",
-  "Player C",
-  "Player D",
-  "Player E"
-];
+// Remove unused mock player options - now using real participants from database
 
 // Function to format ordinal numbers properly
 function getOrdinal(num: number): string {
   const suffixes = ["th", "st", "nd", "rd"];
   const value = num % 100;
   return num + (suffixes[(value - 20) % 10] || suffixes[value] || suffixes[0]);
+}
+
+// Helper function to check if predictions are locked based on cutoff time
+function arePredictionsLocked(tournament: Tournament): boolean {
+  const now = new Date();
+  const cutoffTime = new Date(tournament.cutoff_time);
+  return now >= cutoffTime;
 }
 
 function LockToggle({ locked, onToggle }: { locked: boolean; onToggle: () => void }) {
@@ -149,25 +130,115 @@ function InlineMessage({ message, type }: { message: string; type: "success" | "
 
 function TournamentCard({
   tournament,
+  participants,
   isExpanded,
   onExpand,
   onLockToggle,
-  onSaveResults
+  onSaveResults,
+  loading = false,
+  currentUserId
 }: {
-  tournament: any;
+  tournament: Tournament;
+  participants: Participant[];
   isExpanded: boolean;
   onExpand: () => void;
   onLockToggle: () => void;
   onSaveResults: (cutoff: string, results: string[]) => void;
+  loading?: boolean;
+  currentUserId?: string;
 }) {
-  const [cutoff, setCutoff] = useState(tournament.cutoff);
-  const [results, setResults] = useState([...tournament.results]);
+  // Helper function to convert ISO datetime to datetime-local format
+  const formatDateTimeLocal = (isoDateTime: string): string => {
+    const date = new Date(isoDateTime);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  const [cutoff, setCutoff] = useState(formatDateTimeLocal(tournament.cutoff_time));
+  const [results, setResults] = useState<string[]>(["", "", "", ""]);
   const [inlineMessage, setInlineMessage] = useState<null | { message: string; type: "success" | "error" }>(null);
+  const [loadingResults, setLoadingResults] = useState(false);
+  const [lastTournamentId, setLastTournamentId] = useState<string>(tournament.id);
 
   useEffect(() => {
-    setCutoff(tournament.cutoff);
-    setResults([...tournament.results]);
-  }, [tournament]);
+    setCutoff(formatDateTimeLocal(tournament.cutoff_time));
+    
+    // If this is a different tournament, reset results
+    if (lastTournamentId !== tournament.id) {
+      setResults(["", "", "", ""]);
+      setLastTournamentId(tournament.id);
+    }
+    
+    // Load existing results if they exist - but only if participants are loaded
+    if (participants.length > 0) {
+      console.log(`Loading results for tournament ${tournament.id} with ${participants.length} participants`);
+      loadExistingResults();
+    }
+  }, [tournament, participants, lastTournamentId]);
+
+  // Load existing results from database
+  const loadExistingResults = async () => {
+    if (participants.length === 0) {
+      console.log('Participants not loaded yet, skipping results load');
+      return;
+    }
+    
+    setLoadingResults(true);
+    try {
+      const response = await fetch(`/api/tournaments/${tournament.id}/results`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Results API response:', data);
+        
+        if (data.results && data.results.position_1_participant_id) {
+          // Map participant IDs to names for display
+          const resultNames = [
+            findParticipantNameById(data.results.position_1_participant_id),
+            findParticipantNameById(data.results.position_2_participant_id),
+            findParticipantNameById(data.results.position_3_participant_id),
+            findParticipantNameById(data.results.position_4_participant_id)
+          ];
+          console.log('Mapped result names:', resultNames);
+          setResults(resultNames);
+        } else {
+          console.log('No results found for tournament');
+          setResults(["", "", "", ""]);
+        }
+      } else {
+        console.log('Results API returned non-ok response:', response.status);
+        setResults(["", "", "", ""]);
+      }
+    } catch (error) {
+      console.error('Error loading existing results:', error);
+      setResults(["", "", "", ""]);
+    } finally {
+      setLoadingResults(false);
+    }
+  };
+
+  const findParticipantNameById = (participantId: string): string => {
+    if (!participantId) return "";
+    const participant = participants.find(p => p.id === participantId);
+    const name = participant ? participant.name : "";
+    console.log(`🔍 Finding participant name for ID ${participantId}:`, name);
+    if (!participant) {
+      console.error(`❌ Participant ID ${participantId} not found in participants list!`);
+      console.log(`📋 Available participants:`, participants.map(p => `${p.name} (${p.id})`));
+    }
+    return name;
+  };
+
+  const findParticipantIdByName = (participantName: string): string => {
+    if (!participantName) return "";
+    const participant = participants.find(p => p.name === participantName);
+    const id = participant ? participant.id : "";
+    console.log(`Finding participant ID for name ${participantName}:`, id);
+    return id;
+  };
 
   // Fade out message after 3 seconds
   useEffect(() => {
@@ -177,12 +248,59 @@ function TournamentCard({
     }
   }, [inlineMessage]);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate save
-    onSaveResults(cutoff, results);
-    setInlineMessage({ message: "Results saved!", type: "success" });
+    
+    // Validate that all positions are filled
+    if (results.some(result => !result)) {
+      setInlineMessage({ message: "Please fill all positions before saving", type: "error" });
+      return;
+    }
+
+         try {
+       // Save cutoff time first if it changed
+       const currentCutoffFormatted = formatDateTimeLocal(tournament.cutoff_time);
+       if (cutoff !== currentCutoffFormatted) {
+         // Convert datetime-local format back to ISO format for database
+         const cutoffIsoFormat = new Date(cutoff).toISOString();
+         await fetch(`/api/tournaments/${tournament.id}`, {
+           method: 'PATCH',
+           headers: { 'Content-Type': 'application/json' },
+           body: JSON.stringify({ cutoff_time: cutoffIsoFormat })
+         });
+       }
+
+      // Save results
+      const resultData = {
+        position_1_participant_id: findParticipantIdByName(results[0]),
+        position_2_participant_id: findParticipantIdByName(results[1]),
+        position_3_participant_id: findParticipantIdByName(results[2]),
+        position_4_participant_id: findParticipantIdByName(results[3]),
+        entered_by: currentUserId || null // Use the current admin user's ID
+      };
+
+      const response = await fetch(`/api/tournaments/${tournament.id}/results`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(resultData)
+      });
+
+             if (response.ok) {
+         setInlineMessage({ message: "Results saved successfully!", type: "success" });
+         // Pass ISO format back to parent component
+         const cutoffIsoFormat = new Date(cutoff).toISOString();
+         onSaveResults(cutoffIsoFormat, results);
+       } else {
+        const errorData = await response.json();
+        setInlineMessage({ message: `Error: ${errorData.error}`, type: "error" });
+      }
+    } catch (error) {
+      console.error('Error saving results:', error);
+      setInlineMessage({ message: "Failed to save results", type: "error" });
+    }
   };
+
+  const isLocked = arePredictionsLocked(tournament);
 
   return (
     <div
@@ -193,7 +311,8 @@ function TournamentCard({
         borderRadius: 12,
         marginBottom: 18,
         boxShadow: isExpanded ? "0 0 12px #00330044" : undefined,
-        transition: "background 0.2s, box-shadow 0.2s"
+        transition: "background 0.2s, box-shadow 0.2s",
+        opacity: loading ? 0.7 : 1
       }}
     >
       <div
@@ -216,7 +335,7 @@ function TournamentCard({
         }}>
           {tournament.name}
         </span>
-        <LockToggle locked={tournament.locked} onToggle={onLockToggle} />
+        <LockToggle locked={isLocked} onToggle={onLockToggle} />
         <EditViewButton onClick={onExpand} />
       </div>
       {isExpanded && (
@@ -251,36 +370,47 @@ function TournamentCard({
               }}
             />
           </div>
-          {[0, 1, 2, 3].map(i => (
-            <div key={i} style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
-              <label style={{ color: "#fff", fontWeight: 600, marginRight: 16, minWidth: 120 }}>{getOrdinal(i + 1)} Place:</label>
-              <select
-                value={results[i]}
-                onChange={e => {
-                  const newResults = [...results];
-                  newResults[i] = e.target.value;
-                  setResults(newResults);
-                }}
-                style={{
-                  background: "#111",
-                  color: "#fff",
-                  border: "1px solid #228B22",
-                  borderRadius: 6,
-                  padding: "12px 16px",
-                  fontSize: 18,
-                  width: "100%",
-                  boxSizing: "border-box"
-                }}
-              >
-                <option value="">Select Player</option>
-                {playerOptions.map(player => (
-                  <option key={player} value={player}>{player}</option>
-                ))}
-              </select>
+          {loadingResults ? (
+            <div style={{ color: "#aaa", textAlign: "center", padding: "20px" }}>
+              Loading existing results...
             </div>
-          ))}
+          ) : (
+            [0, 1, 2, 3].map(i => (
+              <div key={i} style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
+                <label style={{ color: "#fff", fontWeight: 600, marginRight: 16, minWidth: 120 }}>
+                  {getOrdinal(i + 1)} Place:
+                </label>
+                <select
+                  value={results[i]}
+                  onChange={e => {
+                    const newResults = [...results];
+                    newResults[i] = e.target.value;
+                    setResults(newResults);
+                  }}
+                  style={{
+                    background: "#111",
+                    color: "#fff",
+                    border: "1px solid #228B22",
+                    borderRadius: 6,
+                    padding: "12px 16px",
+                    fontSize: 18,
+                    width: "100%",
+                    boxSizing: "border-box"
+                  }}
+                >
+                  <option value="">Select Player</option>
+                  {participants.map(participant => (
+                    <option key={participant.id} value={participant.name}>
+                      {participant.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ))
+          )}
           <button
             type="submit"
+            disabled={loadingResults}
             style={{
               background: "#003300",
               color: "#fff",
@@ -289,12 +419,13 @@ function TournamentCard({
               padding: "16px 0",
               fontWeight: 700,
               marginTop: 16,
-              cursor: "pointer",
+              cursor: loadingResults ? "not-allowed" : "pointer",
               fontSize: 20,
-              width: "100%"
+              width: "100%",
+              opacity: loadingResults ? 0.6 : 1
             }}
           >
-            Save Results
+            {loadingResults ? "Loading..." : "Save Results"}
           </button>
           {inlineMessage && <InlineMessage message={inlineMessage.message} type={inlineMessage.type} />}
         </form>
@@ -306,8 +437,11 @@ function TournamentCard({
 export default function AdminDashboardPage() {
   const { user, role, loading } = useAuth();
   const router = useRouter();
-  const [tournaments, setTournaments] = useState(mockTournaments);
-  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [participants, setParticipants] = useState<Record<string, Participant[]>>({});
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [loadingTournaments, setLoadingTournaments] = useState(true);
+  const [loadingParticipants, setLoadingParticipants] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!loading) {
@@ -319,25 +453,109 @@ export default function AdminDashboardPage() {
     }
   }, [user, role, loading, router]);
 
-  if (loading || !user || role !== "admin") return null;
+  // Fetch tournaments on component mount
+  useEffect(() => {
+    const fetchTournaments = async () => {
+      if (!user || role !== "admin") return;
+      
+      try {
+        setLoadingTournaments(true);
+        const tournamentsData = await tournamentService.getTournaments();
+        setTournaments(tournamentsData);
+      } catch (error) {
+        console.error('Error fetching tournaments:', error);
+      } finally {
+        setLoadingTournaments(false);
+      }
+    };
+
+    fetchTournaments();
+  }, [user, role]);
+
+  // Fetch participants for a specific tournament
+  const fetchParticipants = async (tournamentId: string) => {
+    if (participants[tournamentId] || loadingParticipants[tournamentId]) {
+      return; // Already loaded or loading
+    }
+
+    setLoadingParticipants(prev => ({ ...prev, [tournamentId]: true }));
+    
+    try {
+      const participantsData = await tournamentService.getTournamentParticipants(tournamentId);
+      setParticipants(prev => ({ ...prev, [tournamentId]: participantsData }));
+    } catch (error) {
+      console.error('Error fetching participants:', error);
+    } finally {
+      setLoadingParticipants(prev => ({ ...prev, [tournamentId]: false }));
+    }
+  };
+
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: "100vh",
+        background: "#111",
+        color: "#fff",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 18
+      }}>
+        Loading admin dashboard...
+      </div>
+    );
+  }
+
+  if (!user || role !== "admin") return null;
 
   // Accordion logic: only one expanded at a time
-  const handleExpand = (id: number) => {
-    setExpandedId(prev => (prev === id ? null : id));
+  const handleExpand = (id: string) => {
+    if (expandedId === id) {
+      setExpandedId(null);
+    } else {
+      setExpandedId(id);
+      fetchParticipants(id); // Load participants when expanding
+    }
   };
 
-  const handleLockToggle = (id: number) => {
-    setTournaments(prev =>
-      prev.map(t =>
-        t.id === id ? { ...t, locked: !t.locked } : t
-      )
-    );
+  const handleLockToggle = async (tournamentId: string) => {
+    const tournament = tournaments.find(t => t.id === tournamentId);
+    if (!tournament) return;
+
+    try {
+      const isCurrentlyLocked = arePredictionsLocked(tournament);
+      const now = new Date();
+      
+      // If currently locked, unlock by setting cutoff 1 hour from now
+      // If currently unlocked, lock by setting cutoff to now
+      const newCutoff = isCurrentlyLocked 
+        ? new Date(now.getTime() + 60 * 60 * 1000).toISOString() // 1 hour from now
+        : now.toISOString(); // Now (locks immediately)
+
+      const response = await fetch(`/api/tournaments/${tournamentId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cutoff_time: newCutoff })
+      });
+
+      if (response.ok) {
+        // Update local state
+        setTournaments(prev =>
+          prev.map(t =>
+            t.id === tournamentId ? { ...t, cutoff_time: newCutoff } : t
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Error toggling lock status:', error);
+    }
   };
 
-  const handleSaveResults = (id: number, cutoff: string, results: string[]) => {
+  const handleSaveResults = (tournamentId: string, cutoff: string, results: string[]) => {
+    // Update local tournament state
     setTournaments(prev =>
       prev.map(t =>
-        t.id === id ? { ...t, cutoff, results: [...results] } : t
+        t.id === tournamentId ? { ...t, cutoff_time: cutoff } : t
       )
     );
   };
@@ -354,19 +572,32 @@ export default function AdminDashboardPage() {
       }}
     >
       <h1 style={{ color: "#fff", textAlign: "center", marginBottom: 32, fontSize: 32, letterSpacing: 2, fontWeight: 900 }}>
-        Tournament Admin Dashboard
+        Administrator Portal
       </h1>
       <div style={{ maxWidth: 600, margin: "0 auto" }}>
-        {tournaments.map(tournament => (
-          <TournamentCard
-            key={tournament.id}
-            tournament={tournament}
-            isExpanded={expandedId === tournament.id}
-            onExpand={() => handleExpand(tournament.id)}
-            onLockToggle={() => handleLockToggle(tournament.id)}
-            onSaveResults={(cutoff, results) => handleSaveResults(tournament.id, cutoff, results)}
-          />
-        ))}
+        {loadingTournaments ? (
+          <div style={{ color: "#aaa", textAlign: "center", padding: "40px" }}>
+            <div style={{ fontSize: 18 }}>Loading tournaments...</div>
+          </div>
+        ) : tournaments.length === 0 ? (
+          <div style={{ color: "#aaa", textAlign: "center", padding: "40px" }}>
+            <div style={{ fontSize: 18 }}>No tournaments found</div>
+          </div>
+        ) : (
+          tournaments.map(tournament => (
+            <TournamentCard
+              key={tournament.id}
+              tournament={tournament}
+              participants={participants[tournament.id] || []}
+              isExpanded={expandedId === tournament.id}
+              onExpand={() => handleExpand(tournament.id)}
+              onLockToggle={() => handleLockToggle(tournament.id)}
+              onSaveResults={(cutoff, results) => handleSaveResults(tournament.id, cutoff, results)}
+              loading={loadingParticipants[tournament.id]}
+              currentUserId={user?.id}
+            />
+          ))
+        )}
       </div>
       <button
         style={{
