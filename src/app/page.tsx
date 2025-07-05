@@ -16,7 +16,7 @@ import { supabase } from "@/lib/supabase";
 export default function Home() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut, role } = useAuth();
 
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [tournamentsWithResults, setTournamentsWithResults] = useState<Set<string>>(new Set());
@@ -264,7 +264,20 @@ export default function Home() {
 
             {/* Logout button for logged in users - positioned at bottom */}
             {user && (
-              <div className="flex justify-center pt-8 border-t border-gray-800 mt-8">
+              <div className="flex flex-col items-center pt-8 border-t border-gray-800 mt-8 space-y-4">
+                {/* Admin Dashboard button for admins only */}
+                {role === "admin" && (
+                  <Button
+                    onClick={() => router.push("/admin")}
+                    variant="default"
+                    className="bg-green-700 hover:bg-green-800 text-white font-bold px-8 py-3 rounded-lg shadow-md transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7M16 3v4M8 3v4M4 11h16" />
+                    </svg>
+                    Admin Dashboard
+                  </Button>
+                )}
                 <Button 
                   onClick={handleLogout}
                   variant="ghost"
