@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 
 // Mock tournament data
 const mockTournaments = [
@@ -242,36 +243,22 @@ function TournamentCard({
 }
 
 export default function AdminDashboardPage() {
+  const { user, role, loading } = useAuth();
   const router = useRouter();
   const [tournaments, setTournaments] = useState(mockTournaments);
   const [expandedId, setExpandedId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const checkAdmin = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+    if (!loading) {
       if (!user) {
-        router.push("/login");
-        return;
+        router.replace("/login");
+      } else if (role !== "admin") {
+        router.replace("/");
       }
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
-      if (profile?.role === "admin") {
-        setIsAdmin(true);
-      } else {
-        router.push("/");
-      }
-      setLoading(false);
-    };
-    checkAdmin();
-  }, [router]);
+    }
+  }, [user, role, loading, router]);
 
-  if (loading) return null;
-  if (!isAdmin) return null;
+  if (loading || !user || role !== "admin") return null;
 
   // Accordion logic: only one expanded at a time
   const handleExpand = (id: number) => {
