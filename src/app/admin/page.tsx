@@ -164,61 +164,65 @@ function TournamentCard({
   const [loadingResults, setLoadingResults] = useState(false);
   const [lastTournamentId, setLastTournamentId] = useState<string>(tournament.id);
 
+  // Update cutoff time only when tournament cutoff_time changes (no reload)
   useEffect(() => {
     setCutoff(formatDateTimeLocal(tournament.cutoff_time));
-    
-    // If this is a different tournament, reset results
+  }, [tournament.cutoff_time]);
+
+  // Handle tournament changes (reset results and update ID)
+  useEffect(() => {
     if (lastTournamentId !== tournament.id) {
       setResults(["", "", "", ""]);
       setLastTournamentId(tournament.id);
     }
-    
-    // Load existing results if they exist - but only if participants are loaded
-    if (participants.length > 0) {
-      console.log(`Loading results for tournament ${tournament.id} with ${participants.length} participants`);
-      loadExistingResults();
-    }
-  }, [tournament, participants, lastTournamentId]);
+  }, [tournament.id, lastTournamentId]);
 
-  // Load existing results from database
-  const loadExistingResults = async () => {
-    if (participants.length === 0) {
-      console.log('Participants not loaded yet, skipping results load');
-      return;
-    }
-    
-    setLoadingResults(true);
-    try {
-      const response = await fetch(`/api/tournaments/${tournament.id}/results`);
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Results API response:', data);
-        
-        if (data.results && data.results.position_1_participant_id) {
-          // Map participant IDs to names for display
-          const resultNames = [
-            findParticipantNameById(data.results.position_1_participant_id),
-            findParticipantNameById(data.results.position_2_participant_id),
-            findParticipantNameById(data.results.position_3_participant_id),
-            findParticipantNameById(data.results.position_4_participant_id)
-          ];
-          console.log('Mapped result names:', resultNames);
-          setResults(resultNames);
+  // Load existing results only when participants are loaded for the current tournament
+  useEffect(() => {
+    const loadResults = async () => {
+      if (participants.length === 0) {
+        console.log('Participants not loaded yet, skipping results load');
+        return;
+      }
+      
+      setLoadingResults(true);
+      try {
+        const response = await fetch(`/api/tournaments/${tournament.id}/results`);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Results API response:', data);
+          
+          if (data.results && data.results.position_1_participant_id) {
+            // Map participant IDs to names for display
+            const resultNames = [
+              participants.find(p => p.id === data.results.position_1_participant_id)?.name || "",
+              participants.find(p => p.id === data.results.position_2_participant_id)?.name || "",
+              participants.find(p => p.id === data.results.position_3_participant_id)?.name || "",
+              participants.find(p => p.id === data.results.position_4_participant_id)?.name || ""
+            ];
+            console.log('Mapped result names:', resultNames);
+            setResults(resultNames);
+          } else {
+            console.log('No results found for tournament');
+            setResults(["", "", "", ""]);
+          }
         } else {
-          console.log('No results found for tournament');
+          console.log('Results API returned non-ok response:', response.status);
           setResults(["", "", "", ""]);
         }
-      } else {
-        console.log('Results API returned non-ok response:', response.status);
+      } catch (error) {
+        console.error('Error loading existing results:', error);
         setResults(["", "", "", ""]);
+      } finally {
+        setLoadingResults(false);
       }
-    } catch (error) {
-      console.error('Error loading existing results:', error);
-      setResults(["", "", "", ""]);
-    } finally {
-      setLoadingResults(false);
+    };
+
+    if (participants.length > 0 && tournament.id === lastTournamentId) {
+      console.log(`Loading results for tournament ${tournament.id} with ${participants.length} participants`);
+      loadResults();
     }
-  };
+  }, [participants, tournament.id, lastTournamentId]);
 
   const findParticipantNameById = (participantId: string): string => {
     if (!participantId) return "";
@@ -251,24 +255,23 @@ function TournamentCard({
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate that all positions are filled
     if (results.some(result => !result)) {
       setInlineMessage({ message: "Please fill all positions before saving", type: "error" });
       return;
     }
 
-         try {
-       // Save cutoff time first if it changed
-       const currentCutoffFormatted = formatDateTimeLocal(tournament.cutoff_time);
-       if (cutoff !== currentCutoffFormatted) {
-         // Convert datetime-local format back to ISO format for database
-         const cutoffIsoFormat = new Date(cutoff).toISOString();
-         await fetch(`/api/tournaments/${tournament.id}`, {
-           method: 'PATCH',
-           headers: { 'Content-Type': 'application/json' },
-           body: JSON.stringify({ cutoff_time: cutoffIsoFormat })
-         });
-       }
+    try {
+      // Save cutoff time first if it changed
+      const currentCutoffFormatted = formatDateTimeLocal(tournament.cutoff_time);
+      if (cutoff !== currentCutoffFormatted) {
+        // Convert datetime-local format back to ISO format for database
+        const cutoffIsoFormat = new Date(cutoff).toISOString();
+        await fetch(`/api/tournaments/${tournament.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cutoff_time: cutoffIsoFormat })
+        });
+      }
 
       // Save results
       const resultData = {
@@ -285,12 +288,12 @@ function TournamentCard({
         body: JSON.stringify(resultData)
       });
 
-             if (response.ok) {
-         setInlineMessage({ message: "Results saved successfully!", type: "success" });
-         // Pass ISO format back to parent component
-         const cutoffIsoFormat = new Date(cutoff).toISOString();
-         onSaveResults(cutoffIsoFormat, results);
-       } else {
+      if (response.ok) {
+        setInlineMessage({ message: "Results saved successfully!", type: "success" });
+        // Pass ISO format back to parent component
+        const cutoffIsoFormat = new Date(cutoff).toISOString();
+        onSaveResults(cutoffIsoFormat, results);
+      } else {
         const errorData = await response.json();
         setInlineMessage({ message: `Error: ${errorData.error}`, type: "error" });
       }
@@ -526,10 +529,14 @@ export default function AdminDashboardPage() {
       const isCurrentlyLocked = arePredictionsLocked(tournament);
       const now = new Date();
       
-      // If currently locked, unlock by setting cutoff 1 hour from now
+      // If currently locked, unlock by setting cutoff 1 month from now
       // If currently unlocked, lock by setting cutoff to now
       const newCutoff = isCurrentlyLocked 
-        ? new Date(now.getTime() + 60 * 60 * 1000).toISOString() // 1 hour from now
+        ? (() => {
+            const oneMonthFromNow = new Date(now);
+            oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
+            return oneMonthFromNow.toISOString();
+          })() // 1 month from now
         : now.toISOString(); // Now (locks immediately)
 
       const response = await fetch(`/api/tournaments/${tournamentId}`, {
