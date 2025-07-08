@@ -156,9 +156,9 @@ export default function Home() {
             <div className="flex flex-col items-center justify-center text-center">
               <div className="flex justify-center mb-4 w-full px-4 md:px-0">
                 <div className="flex flex-col sm:flex-row items-center gap-2 sm:space-x-4 sm:gap-0 max-w-max">
-                  <div className="flex-shrink-0 h-12 sm:h-[4.5rem] w-auto aspect-square relative">
+                  <div className="flex-shrink-0 h-10 sm:h-12 w-auto aspect-square relative">
                     <div className="animate-slow-rotate w-full h-full flex items-center">
-                      <div className="relative w-full h-12 sm:h-16">
+                      <div className="relative w-full h-10 sm:h-12">
                         <Image
                           src="/images/fullComboLogo.png"
                           alt="Full Combo Logo"
@@ -170,7 +170,7 @@ export default function Home() {
                     </div>
                   </div>
                   <CardTitle className="text-3xl sm:text-4xl md:text-5xl font-bold gradient-rotate gradient-text-fix text-center leading-tight">
-                    Bracket Challenge
+                    Full Combo Bracket Challenge
                   </CardTitle>
                 </div>
               </div>
