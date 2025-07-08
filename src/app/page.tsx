@@ -189,11 +189,11 @@ export default function Home() {
           <CardContent className="space-y-8">
             {/* Social Login Section - only show if not logged in */}
             {!user && (
-              <div className="flex flex-col items-center space-y-6">
+              <div className="flex flex-col items-center space-y-2">
                 <div className="text-center">
-                  <h3 className="text-2xl font-bold text-white mb-4">
-                    Sign in to create your prediction
-                  </h3>
+                  <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
+                    Sign in to create predictions
+                  </h2>
                 </div>
                 <SocialLogin />
               </div>
@@ -201,7 +201,7 @@ export default function Home() {
             
             {/* Game Selection */}
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-white">Choose Your Tournament</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-white">Choose a Game</h2>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 gap-y-8 w-full max-w-md mx-auto">
               {tournaments.map((tournament) => {
