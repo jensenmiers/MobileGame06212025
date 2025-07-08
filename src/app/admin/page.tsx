@@ -303,6 +303,53 @@ function TournamentCard({
     }
   };
 
+  const handleClearResults = async () => {
+    // Confirmation dialog - this is destructive action
+    const isConfirmed = window.confirm(
+      `⚠️ Clear all results for "${tournament.name}"?\n\nThis will:\n• Delete tournament results\n• Reset all prediction scores to unprocessed\n• Cannot be undone\n\nProceed?`
+    );
+    
+    if (!isConfirmed) {
+      return;
+    }
+
+    try {
+      console.log(`🗑️ Admin: Clearing results for tournament ${tournament.id}`);
+      
+      const response = await fetch(`/api/tournaments/${tournament.id}/results`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Clear results response:', data);
+        
+        // Reset form fields to empty state
+        setResults(["", "", "", ""]);
+        
+        // Show success message
+        setInlineMessage({ 
+          message: `Results cleared successfully! ${data.message || ''}`, 
+          type: "success" 
+        });
+      } else {
+        const errorData = await response.json();
+        console.error('❌ Error clearing results:', errorData);
+        setInlineMessage({ 
+          message: `Failed to clear results: ${errorData.error}`, 
+          type: "error" 
+        });
+      }
+    } catch (error) {
+      console.error('❌ Network error clearing results:', error);
+      setInlineMessage({ 
+        message: "Network error: Failed to clear results", 
+        type: "error" 
+      });
+    }
+  };
+
   const isLocked = arePredictionsLocked(tournament);
 
   return (
@@ -411,25 +458,58 @@ function TournamentCard({
               </div>
             ))
           )}
-          <button
-            type="submit"
-            disabled={loadingResults}
-            style={{
-              background: "#003300",
-              color: "#fff",
-              border: "1px solid #228B22",
-              borderRadius: 8,
-              padding: "16px 0",
-              fontWeight: 700,
-              marginTop: 16,
-              cursor: loadingResults ? "not-allowed" : "pointer",
-              fontSize: 20,
-              width: "100%",
-              opacity: loadingResults ? 0.6 : 1
-            }}
-          >
-            {loadingResults ? "Loading..." : "Save Results"}
-          </button>
+          <div style={{ display: "flex", gap: "12px", marginTop: 16 }}>
+            <button
+              type="submit"
+              disabled={loadingResults}
+              style={{
+                background: "#003300",
+                color: "#fff",
+                border: "1px solid #228B22",
+                borderRadius: 8,
+                padding: "16px 0",
+                fontWeight: 700,
+                cursor: loadingResults ? "not-allowed" : "pointer",
+                fontSize: 20,
+                flex: 1,
+                opacity: loadingResults ? 0.6 : 1
+              }}
+            >
+              {loadingResults ? "Loading..." : "Save Results"}
+            </button>
+            <button
+              type="button"
+              onClick={handleClearResults}
+              disabled={loadingResults}
+              style={{
+                background: "#330000",
+                color: "#fff",
+                border: "1px solid #884444",
+                borderRadius: 8,
+                padding: "16px 0",
+                fontWeight: 700,
+                cursor: loadingResults ? "not-allowed" : "pointer",
+                fontSize: 20,
+                flex: 1,
+                opacity: loadingResults ? 0.6 : 1,
+                transition: "background 0.2s, border-color 0.2s"
+              }}
+              onMouseEnter={(e) => {
+                if (!loadingResults) {
+                  e.currentTarget.style.background = "#440000";
+                  e.currentTarget.style.borderColor = "#aa5555";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loadingResults) {
+                  e.currentTarget.style.background = "#330000";
+                  e.currentTarget.style.borderColor = "#884444";
+                }
+              }}
+            >
+              Clear Results
+            </button>
+          </div>
           {inlineMessage && <InlineMessage message={inlineMessage.message} type={inlineMessage.type} />}
         </form>
       )}
@@ -522,12 +602,19 @@ export default function AdminDashboardPage() {
   };
 
   const handleLockToggle = async (tournamentId: string) => {
+    console.log('🔄 Toggle clicked for tournament:', tournamentId);
+    
     const tournament = tournaments.find(t => t.id === tournamentId);
-    if (!tournament) return;
+    if (!tournament) {
+      console.error('❌ Tournament not found:', tournamentId);
+      return;
+    }
 
     try {
       const isCurrentlyLocked = arePredictionsLocked(tournament);
       const now = new Date();
+      
+      console.log('🔒 Current lock status:', isCurrentlyLocked ? 'LOCKED' : 'UNLOCKED');
       
       // If currently locked, unlock by setting cutoff 1 month from now
       // If currently unlocked, lock by setting cutoff to now
@@ -539,22 +626,33 @@ export default function AdminDashboardPage() {
           })() // 1 month from now
         : now.toISOString(); // Now (locks immediately)
 
+      console.log('⏰ New cutoff time:', newCutoff);
+      console.log('🌐 Making API request to:', `/api/tournaments/${tournamentId}`);
+
       const response = await fetch(`/api/tournaments/${tournamentId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cutoff_time: newCutoff })
       });
 
+      console.log('📡 API Response status:', response.status);
+      
       if (response.ok) {
+        console.log('✅ Toggle successful - updating local state');
         // Update local state
         setTournaments(prev =>
           prev.map(t =>
             t.id === tournamentId ? { ...t, cutoff_time: newCutoff } : t
           )
         );
+      } else {
+        const errorText = await response.text();
+        console.error('❌ API Error:', response.status, errorText);
+        alert(`Failed to toggle lock status: ${response.status} - ${errorText}`);
       }
     } catch (error) {
-      console.error('Error toggling lock status:', error);
+      console.error('❌ Network/JavaScript Error:', error);
+      alert(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
