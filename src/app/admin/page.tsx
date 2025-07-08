@@ -401,8 +401,8 @@ function TournamentCard({
           }}
         >
           <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
-            <label style={{ color: "#fff", fontWeight: 600, marginRight: 16, minWidth: 120 }}>
-              Cutoff Time:
+            <label style={{ color: "#fff", fontWeight: 600, marginRight: 16, minWidth: 80, fontSize: 20 }}>
+              Cutoff:
             </label>
             <input
               type="datetime-local"
@@ -427,8 +427,8 @@ function TournamentCard({
           ) : (
             [0, 1, 2, 3].map(i => (
               <div key={i} style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
-                <label style={{ color: "#fff", fontWeight: 600, marginRight: 16, minWidth: 120 }}>
-                  {getOrdinal(i + 1)} Place:
+                <label style={{ color: "#fff", fontWeight: 600, marginRight: 16, minWidth: 80, fontSize: 24 }}>
+                  {getOrdinal(i + 1)}:
                 </label>
                 <select
                   value={results[i]}
