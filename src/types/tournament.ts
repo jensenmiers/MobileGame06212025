@@ -16,6 +16,7 @@ export interface Tournament {
   max_participants: number;
   created_at: string;
   updated_at: string;
+  startgg_tournament_url?: string; // Start.gg tournament URL for entrant sync
   players?: Player[];
 }
 

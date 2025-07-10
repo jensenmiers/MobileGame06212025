@@ -135,6 +135,7 @@ function TournamentCard({
   onExpand,
   onLockToggle,
   onSaveResults,
+  onRefreshParticipants,
   loading = false,
   currentUserId
 }: {
@@ -144,6 +145,7 @@ function TournamentCard({
   onExpand: () => void;
   onLockToggle: () => void;
   onSaveResults: (cutoff: string, results: string[]) => void;
+  onRefreshParticipants: () => void;
   loading?: boolean;
   currentUserId?: string;
 }) {
@@ -158,11 +160,35 @@ function TournamentCard({
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
+  const extractTournamentName = (url: string): string => {
+    if (!url) return '';
+    try {
+      // Extract slug from URL like: https://www.start.gg/tournament/tournament-slug/events
+      const match = url.match(/\/tournament\/([^\/]+)/);
+      if (!match) return '';
+      
+      const slug = match[1];
+      // Convert slug to readable name: replace hyphens with spaces and capitalize
+      return slug
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    } catch {
+      return '';
+    }
+  };
+
   const [cutoff, setCutoff] = useState(formatDateTimeLocal(tournament.cutoff_time));
   const [results, setResults] = useState<string[]>(["", "", "", ""]);
   const [inlineMessage, setInlineMessage] = useState<null | { message: string; type: "success" | "error" }>(null);
   const [loadingResults, setLoadingResults] = useState(false);
   const [lastTournamentId, setLastTournamentId] = useState<string>(tournament.id);
+  const [startggUrl, setStartggUrl] = useState(tournament.startgg_tournament_url || '');
+  const [syncingEntrants, setSyncingEntrants] = useState(false);
+  // Track the tournament name that corresponds to CURRENT participants (not the URL input)
+  const [currentTournamentName, setCurrentTournamentName] = useState(
+    tournament.startgg_tournament_url ? extractTournamentName(tournament.startgg_tournament_url) : ''
+  );
 
   // Update cutoff time only when tournament cutoff_time changes (no reload)
   useEffect(() => {
@@ -174,6 +200,10 @@ function TournamentCard({
     if (lastTournamentId !== tournament.id) {
       setResults(["", "", "", ""]);
       setLastTournamentId(tournament.id);
+      // Reset current tournament name to match the new tournament's URL
+      setCurrentTournamentName(
+        tournament.startgg_tournament_url ? extractTournamentName(tournament.startgg_tournament_url) : ''
+      );
     }
   }, [tournament.id, lastTournamentId]);
 
@@ -303,6 +333,50 @@ function TournamentCard({
     }
   };
 
+  const handleSyncEntrants = async () => {
+    if (!startggUrl.trim()) {
+      setInlineMessage({ message: "Please enter a Start.gg tournament URL", type: "error" });
+      return;
+    }
+
+    setSyncingEntrants(true);
+    try {
+      const response = await fetch(`/api/tournaments/${tournament.id}/sync-entrants`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ startgg_url: startggUrl.trim() })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setInlineMessage({ 
+          message: `✅ ${data.message}`, 
+          type: "success" 
+        });
+        // Update current tournament name to match the successful sync
+        setCurrentTournamentName(extractTournamentName(startggUrl.trim()));
+        // Refresh participants data without page reload
+        setTimeout(() => {
+          onRefreshParticipants();
+        }, 1500);
+      } else {
+        setInlineMessage({ 
+          message: `❌ ${data.error || 'Failed to sync entrants'}`, 
+          type: "error" 
+        });
+      }
+    } catch (error) {
+      console.error('Error syncing entrants:', error);
+      setInlineMessage({ 
+        message: "❌ Network error while syncing entrants", 
+        type: "error" 
+      });
+    } finally {
+      setSyncingEntrants(false);
+    }
+  };
+
   const handleClearResults = async () => {
     // Confirmation dialog - this is destructive action
     const isConfirmed = window.confirm(
@@ -400,6 +474,62 @@ function TournamentCard({
             borderBottomRightRadius: 12
           }}
         >
+          {/* Entrants Count and Tournament Name */}
+          {(participants.length > 0 || currentTournamentName) && (
+            <div style={{ marginBottom: 12, color: "#ccc", fontSize: 16 }}>
+              {participants.length} entrants currently added{currentTournamentName ? ` from ${currentTournamentName}` : ''}
+            </div>
+          )}
+          
+          {/* Start.gg Tournament URL Section */}
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 16, gap: "12px" }}>
+            <input
+              type="url"
+              value={startggUrl}
+              onChange={e => setStartggUrl(e.target.value)}
+              placeholder="https://www.start.gg/tournament/tournament-name/events"
+              style={{
+                background: "#111",
+                color: "#fff",
+                border: "1px solid #228B22",
+                borderRadius: 6,
+                padding: "12px 16px",
+                fontSize: 16,
+                flex: 1,
+                boxSizing: "border-box"
+              }}
+            />
+            <button
+              type="button"
+              onClick={handleSyncEntrants}
+              disabled={syncingEntrants || !startggUrl.trim()}
+              style={{
+                background: syncingEntrants ? "#444" : "#003300",
+                color: "#fff",
+                border: "1px solid #228B22",
+                borderRadius: 6,
+                padding: "12px 20px",
+                fontWeight: 600,
+                cursor: (syncingEntrants || !startggUrl.trim()) ? "not-allowed" : "pointer",
+                fontSize: 16,
+                minWidth: 120,
+                opacity: (syncingEntrants || !startggUrl.trim()) ? 0.6 : 1,
+                transition: "background 0.2s, opacity 0.2s"
+              }}
+              onMouseEnter={(e) => {
+                if (!syncingEntrants && startggUrl.trim()) {
+                  e.currentTarget.style.background = "#004400";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!syncingEntrants && startggUrl.trim()) {
+                  e.currentTarget.style.background = "#003300";
+                }
+              }}
+            >
+              {syncingEntrants ? "Syncing..." : "Update Entrants"}
+            </button>
+          </div>
           <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
             <label style={{ color: "#fff", fontWeight: 600, marginRight: 16, minWidth: 80, fontSize: 20 }}>
               Cutoff:
@@ -698,6 +828,15 @@ export default function AdminDashboardPage() {
               onExpand={() => handleExpand(tournament.id)}
               onLockToggle={() => handleLockToggle(tournament.id)}
               onSaveResults={(cutoff, results) => handleSaveResults(tournament.id, cutoff, results)}
+              onRefreshParticipants={() => {
+                // Force refresh participants by clearing cache and refetching
+                setParticipants(prev => {
+                  const updated = { ...prev };
+                  delete updated[tournament.id];
+                  return updated;
+                });
+                fetchParticipants(tournament.id);
+              }}
               loading={loadingParticipants[tournament.id]}
               currentUserId={user?.id}
             />

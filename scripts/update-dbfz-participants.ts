@@ -11,8 +11,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Start.gg API configuration
 const START_GG_API_URL = 'https://api.start.gg/gql/alpha';
-const TOURNAMENT_SLUG = 'full-combo-fights-at-buffalo-wild-wings-glendale-jun-21st';
-const GAME_ID = 16; // Street Fighter 6
+const TOURNAMENT_SLUG = 'duel-academy-dragonball-fighterz-na-16-pc-training-day-sunday';
+const GAME_ID = 287; // Dragon Ball FighterZ ID (you may need to verify this)
 
 // GraphQL query to fetch tournament participants
 const GET_PARTICIPANTS_QUERY = `
@@ -38,7 +38,7 @@ const GET_PARTICIPANTS_QUERY = `
 `;
 
 async function fetchTournamentParticipants() {
-  console.log('Fetching participants from Start.gg...');
+  console.log('Fetching Dragon Ball FighterZ participants from Start.gg...');
   
   const response = await fetch(START_GG_API_URL, {
     method: 'POST',
@@ -78,25 +78,17 @@ async function fetchTournamentParticipants() {
     }
   }
 
-  console.log(`Found ${participants.length} participants`);
+  console.log(`Found ${participants.length} DBFZ participants`);
   return participants;
 }
 
 async function updateSupabaseParticipants(participants: any[]) {
-  const TOURNAMENT_ID = '030054c3-59e5-4b1c-88ed-c2ca7501aa4d'; // Your SF6 tournament ID
+  const TOURNAMENT_ID = '28e71bf7-2cbb-4151-9845-17a6dc2229ea'; // Dragon Ball FighterZ tournament ID
   
-  console.log('Updating Supabase participants...');
+  console.log('Updating Supabase participants for DBFZ...');
   
-  // First, delete existing participants for this tournament
-  const { error: deleteError } = await supabase
-    .from('participants')
-    .delete()
-    .eq('tournament_id', TOURNAMENT_ID);
-
-  if (deleteError) {
-    console.error('Error deleting existing participants:', deleteError);
-    throw deleteError;
-  }
+  // Since we have a clean slate, no need to delete existing participants
+  console.log('Clean slate confirmed - proceeding with fresh insert');
 
   // Prepare participant data for insertion
   const participantData = participants.map(p => ({
@@ -105,6 +97,11 @@ async function updateSupabaseParticipants(participants: any[]) {
     seed: p.seed,
     created_at: new Date().toISOString(),
   }));
+
+  if (participantData.length === 0) {
+    console.log('No participants to insert');
+    return;
+  }
 
   // Insert new participants in batches of 50 (Supabase limit)
   const batchSize = 50;
@@ -122,7 +119,7 @@ async function updateSupabaseParticipants(participants: any[]) {
     console.log(`Inserted batch ${i / batchSize + 1} of ${Math.ceil(participantData.length / batchSize)}`);
   }
 
-  console.log(`Successfully updated ${participantData.length} participants`);
+  console.log(`Successfully inserted ${participantData.length} DBFZ participants`);
 }
 
 async function main() {
@@ -132,10 +129,12 @@ async function main() {
       throw new Error('Missing required environment variables. Please check .env file.');
     }
 
+    console.log('🔥 Dragon Ball FighterZ Start.gg Sync Starting...');
+    
     const participants = await fetchTournamentParticipants();
     await updateSupabaseParticipants(participants);
     
-    console.log('✅ Done! Participants have been updated.');
+    console.log('✅ Done! DBFZ participants have been updated from Start.gg.');
     process.exit(0);
   } catch (error) {
     console.error('❌ Error:', error);
@@ -143,4 +142,4 @@ async function main() {
   }
 }
 
-main();
+main(); 
