@@ -339,8 +339,10 @@ function TournamentCard({
       return;
     }
 
-    console.log(`🔄 [SYNC DEBUG] Starting sync for tournament ${tournament.id}`);
-    console.log(`🔄 [SYNC DEBUG] Current participants count: ${participants.length}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🔄 [SYNC DEBUG] Starting sync for tournament ${tournament.id}`);
+      console.log(`🔄 [SYNC DEBUG] Current participants count: ${participants.length}`);
+    }
     
     setSyncingEntrants(true);
     try {
@@ -703,14 +705,18 @@ export default function AdminDashboardPage() {
   }, [user, role]);
 
   // Fetch participants for a specific tournament
-  const fetchParticipants = async (tournamentId: string) => {
-    console.log(`🔍 [FETCH DEBUG] fetchParticipants called for tournament ${tournamentId}`);
+  const fetchParticipants = async (tournamentId: string, forceRefresh = false) => {
+    console.log(`🔍 [FETCH DEBUG] fetchParticipants called for tournament ${tournamentId}, forceRefresh: ${forceRefresh}`);
     console.log(`🔍 [FETCH DEBUG] Current participants cache:`, participants[tournamentId]?.length || 0);
     console.log(`🔍 [FETCH DEBUG] Currently loading:`, loadingParticipants[tournamentId] || false);
     
-    if (participants[tournamentId] || loadingParticipants[tournamentId]) {
+    if (!forceRefresh && (participants[tournamentId] || loadingParticipants[tournamentId])) {
       console.log(`🔍 [FETCH DEBUG] Skipping fetch - already loaded or loading`);
       return; // Already loaded or loading
+    }
+
+    if (forceRefresh) {
+      console.log(`🔍 [FETCH DEBUG] Force refresh enabled - bypassing cache check`);
     }
 
     console.log(`🔍 [FETCH DEBUG] Starting fetch for tournament ${tournamentId}`);
@@ -758,7 +764,7 @@ export default function AdminDashboardPage() {
       setExpandedId(null);
     } else {
       setExpandedId(id);
-      fetchParticipants(id); // Load participants when expanding
+      fetchParticipants(id, false); // Load participants when expanding (normal cache behavior)
     }
   };
 
@@ -861,9 +867,9 @@ export default function AdminDashboardPage() {
               onSaveResults={(cutoff, results) => handleSaveResults(tournament.id, cutoff, results)}
               onRefreshParticipants={() => {
                 console.log(`🔄 [REFRESH DEBUG] onRefreshParticipants called for tournament ${tournament.id}`);
-                console.log(`🔄 [REFRESH DEBUG] Current participants before clear:`, participants[tournament.id]?.length || 0);
+                console.log(`🔄 [REFRESH DEBUG] Current participants before refresh:`, participants[tournament.id]?.length || 0);
                 
-                // Force refresh participants by clearing cache and refetching
+                // Clear cache and force refresh immediately without waiting for state update
                 setParticipants(prev => {
                   const updated = { ...prev };
                   delete updated[tournament.id];
@@ -871,11 +877,9 @@ export default function AdminDashboardPage() {
                   return updated;
                 });
                 
-                // Use setTimeout to ensure state update completes before fetch
-                setTimeout(() => {
-                  console.log(`🔄 [REFRESH DEBUG] Calling fetchParticipants after cache clear`);
-                  fetchParticipants(tournament.id);
-                }, 100);
+                // Force refresh immediately - don't wait for state update or rely on cache
+                console.log(`🔄 [REFRESH DEBUG] Calling fetchParticipants with forceRefresh=true`);
+                fetchParticipants(tournament.id, true);
               }}
               loading={loadingParticipants[tournament.id]}
               currentUserId={user?.id}
