@@ -339,8 +339,14 @@ function TournamentCard({
       return;
     }
 
+    console.log(`🔄 [SYNC DEBUG] Starting sync for tournament ${tournament.id}`);
+    console.log(`🔄 [SYNC DEBUG] Current participants count: ${participants.length}`);
+    
     setSyncingEntrants(true);
     try {
+      const startTime = Date.now();
+      console.log(`🔄 [SYNC DEBUG] Calling sync API at ${new Date().toISOString()}`);
+      
       const response = await fetch(`/api/tournaments/${tournament.id}/sync-entrants`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -348,32 +354,43 @@ function TournamentCard({
       });
 
       const data = await response.json();
+      const apiDuration = Date.now() - startTime;
+      
+      console.log(`🔄 [SYNC DEBUG] API response received after ${apiDuration}ms:`, data);
 
       if (response.ok && data.success) {
+        console.log(`✅ [SYNC DEBUG] API success - participants_added: ${data.participants_added}`);
+        
         setInlineMessage({ 
           message: `✅ ${data.message}`, 
           type: "success" 
         });
+        
         // Update current tournament name to match the successful sync
         setCurrentTournamentName(extractTournamentName(startggUrl.trim()));
+        console.log(`🔄 [SYNC DEBUG] Tournament name updated, waiting 1500ms for refresh...`);
+        
         // Refresh participants data without page reload
         setTimeout(() => {
+          console.log(`🔄 [SYNC DEBUG] Timeout reached, calling onRefreshParticipants...`);
           onRefreshParticipants();
         }, 1500);
       } else {
+        console.error(`❌ [SYNC DEBUG] API failed:`, data);
         setInlineMessage({ 
           message: `❌ ${data.error || 'Failed to sync entrants'}`, 
           type: "error" 
         });
       }
     } catch (error) {
-      console.error('Error syncing entrants:', error);
+      console.error('❌ [SYNC DEBUG] Network error:', error);
       setInlineMessage({ 
         message: "❌ Network error while syncing entrants", 
         type: "error" 
       });
     } finally {
       setSyncingEntrants(false);
+      console.log(`🔄 [SYNC DEBUG] Sync operation completed`);
     }
   };
 
@@ -687,19 +704,33 @@ export default function AdminDashboardPage() {
 
   // Fetch participants for a specific tournament
   const fetchParticipants = async (tournamentId: string) => {
+    console.log(`🔍 [FETCH DEBUG] fetchParticipants called for tournament ${tournamentId}`);
+    console.log(`🔍 [FETCH DEBUG] Current participants cache:`, participants[tournamentId]?.length || 0);
+    console.log(`🔍 [FETCH DEBUG] Currently loading:`, loadingParticipants[tournamentId] || false);
+    
     if (participants[tournamentId] || loadingParticipants[tournamentId]) {
+      console.log(`🔍 [FETCH DEBUG] Skipping fetch - already loaded or loading`);
       return; // Already loaded or loading
     }
 
+    console.log(`🔍 [FETCH DEBUG] Starting fetch for tournament ${tournamentId}`);
     setLoadingParticipants(prev => ({ ...prev, [tournamentId]: true }));
     
     try {
+      const startTime = Date.now();
       const participantsData = await tournamentService.getTournamentParticipants(tournamentId);
+      const fetchDuration = Date.now() - startTime;
+      
+      console.log(`🔍 [FETCH DEBUG] Fetch completed in ${fetchDuration}ms, got ${participantsData.length} participants`);
+      
       setParticipants(prev => ({ ...prev, [tournamentId]: participantsData }));
+      
+      console.log(`🔍 [FETCH DEBUG] State updated with ${participantsData.length} participants`);
     } catch (error) {
-      console.error('Error fetching participants:', error);
+      console.error('❌ [FETCH DEBUG] Error fetching participants:', error);
     } finally {
       setLoadingParticipants(prev => ({ ...prev, [tournamentId]: false }));
+      console.log(`🔍 [FETCH DEBUG] Fetch operation completed`);
     }
   };
 
@@ -829,13 +860,22 @@ export default function AdminDashboardPage() {
               onLockToggle={() => handleLockToggle(tournament.id)}
               onSaveResults={(cutoff, results) => handleSaveResults(tournament.id, cutoff, results)}
               onRefreshParticipants={() => {
+                console.log(`🔄 [REFRESH DEBUG] onRefreshParticipants called for tournament ${tournament.id}`);
+                console.log(`🔄 [REFRESH DEBUG] Current participants before clear:`, participants[tournament.id]?.length || 0);
+                
                 // Force refresh participants by clearing cache and refetching
                 setParticipants(prev => {
                   const updated = { ...prev };
                   delete updated[tournament.id];
+                  console.log(`🔄 [REFRESH DEBUG] Cache cleared for tournament ${tournament.id}`);
                   return updated;
                 });
-                fetchParticipants(tournament.id);
+                
+                // Use setTimeout to ensure state update completes before fetch
+                setTimeout(() => {
+                  console.log(`🔄 [REFRESH DEBUG] Calling fetchParticipants after cache clear`);
+                  fetchParticipants(tournament.id);
+                }, 100);
               }}
               loading={loadingParticipants[tournament.id]}
               currentUserId={user?.id}

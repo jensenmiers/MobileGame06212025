@@ -41,7 +41,8 @@ export async function GET(request: NextRequest) {
       },
       environment: {
         use_backend_api: process.env.NEXT_PUBLIC_USE_BACKEND_API || 'false',
-        has_service_key: !!process.env.SUPABASE_SERVICE_ROLE_KEY
+        has_service_key: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+        has_startgg_key: !!process.env.START_GG_API_KEY
       }
     })
   } catch (error) {

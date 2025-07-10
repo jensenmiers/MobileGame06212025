@@ -9,6 +9,7 @@ export async function GET() {
       hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
       hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      hasStartggKey: !!process.env.START_GG_API_KEY,
       // Show first few characters of the URL for verification (don't log full keys)
       supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL 
         ? `${process.env.NEXT_PUBLIC_SUPABASE_URL.substring(0, 10)}...` 

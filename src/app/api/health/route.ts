@@ -22,6 +22,7 @@ export async function GET() {
             urlPresent: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
             anonKeyPresent: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
             serviceKeyPresent: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+            startggKeyPresent: !!process.env.START_GG_API_KEY,
             nodeEnv: process.env.NODE_ENV
           } : undefined
         },
@@ -39,7 +40,8 @@ export async function GET() {
         hasEnvVars: {
           url: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
           anonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-          serviceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY
+          serviceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+          startggKey: !!process.env.START_GG_API_KEY
         }
       } : undefined
     });

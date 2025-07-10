@@ -153,15 +153,23 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       });
     }
 
+    console.log(`🔄 [API DEBUG] Starting database operations for tournament ${tournamentId}`);
+    console.log(`🔄 [API DEBUG] About to clear existing participants`);
+    
     // Clear existing participants (clean slate approach)
+    const deleteStartTime = Date.now();
     const { error: deleteError } = await database
       .from('participants')
       .delete()
       .eq('tournament_id', tournamentId);
 
     if (deleteError) {
+      console.error(`❌ [API DEBUG] Delete failed:`, deleteError);
       throw new Error(`Failed to clear existing participants: ${deleteError.message}`);
     }
+    
+    const deleteDuration = Date.now() - deleteStartTime;
+    console.log(`✅ [API DEBUG] Participants cleared in ${deleteDuration}ms`);
 
     // Prepare participant data for insertion
     const participantData = startggParticipants.map(p => ({
@@ -171,18 +179,31 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       created_at: new Date().toISOString(),
     }));
 
+    console.log(`🔄 [API DEBUG] Prepared ${participantData.length} participants for insertion`);
+
     // Insert new participants in batches
+    const insertStartTime = Date.now();
     const batchSize = 50;
     for (let i = 0; i < participantData.length; i += batchSize) {
       const batch = participantData.slice(i, i + batchSize);
+      console.log(`🔄 [API DEBUG] Inserting batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(participantData.length/batchSize)} (${batch.length} participants)`);
+      
       const { error: insertError } = await database
         .from('participants')
         .insert(batch);
 
       if (insertError) {
+        console.error(`❌ [API DEBUG] Insert batch failed:`, insertError);
         throw new Error(`Failed to insert participants: ${insertError.message}`);
       }
     }
+    
+    const insertDuration = Date.now() - insertStartTime;
+    console.log(`✅ [API DEBUG] All participants inserted in ${insertDuration}ms`);
+    
+    // Add a small delay to ensure database consistency
+    console.log(`🔄 [API DEBUG] Adding 500ms delay for database consistency...`);
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     // Update tournament with Start.gg URL
     const { error: updateError } = await database
@@ -195,6 +216,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       // Don't fail the whole operation for this
     }
 
+    console.log(`✅ [API DEBUG] Sync operation completed successfully - returning response`);
+    
     return NextResponse.json({
       success: true,
       message: `Successfully synced ${startggParticipants.length} entrants from Start.gg`,

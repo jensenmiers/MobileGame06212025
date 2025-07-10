@@ -32,6 +32,10 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
 # Set to 'true' to use new Next.js backend APIs instead of direct Supabase calls
 # Set to 'false' to use existing Supabase functions (default)
 NEXT_PUBLIC_USE_BACKEND_API=false
+
+# Start.gg API Configuration
+# Used for syncing tournament participants from start.gg tournaments
+START_GG_API_KEY=your_startgg_api_key_here
 ```
 
 ## Backend Architecture Migration
