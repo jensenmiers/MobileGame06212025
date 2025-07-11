@@ -186,6 +186,7 @@ function TournamentCard({
   const [cutoff, setCutoff] = useState(formatDateTimeLocal(tournament.cutoff_time));
   const [results, setResults] = useState<string[]>(["", "", "", ""]);
   const [bracketReset, setBracketReset] = useState<'upper_no_reset' | 'upper_with_reset' | 'lower_bracket' | null>(null);
+  const [grandFinalsScore, setGrandFinalsScore] = useState<'score_3_0' | 'score_3_1' | 'score_3_2' | null>(null);
   const [inlineMessage, setInlineMessage] = useState<null | { message: string; type: "success" | "error" }>(null);
   const [loadingResults, setLoadingResults] = useState(false);
   const [lastTournamentId, setLastTournamentId] = useState<string>(tournament.id);
@@ -206,6 +207,7 @@ function TournamentCard({
     if (lastTournamentId !== tournament.id) {
       setResults(["", "", "", ""]);
       setBracketReset(null);
+      setGrandFinalsScore(null);
       setLastTournamentId(tournament.id);
       // Reset current tournament name to match the new tournament's URL
       setCurrentTournamentName(
@@ -241,10 +243,13 @@ function TournamentCard({
             setResults(resultNames);
             // Load existing bracket reset value
             setBracketReset(data.results.bracket_reset || null);
+            // Load existing grand finals score value
+            setGrandFinalsScore(data.results.grand_finals_score || null);
           } else {
             console.log('No results found for tournament');
             setResults(["", "", "", ""]);
             setBracketReset(null);
+            setGrandFinalsScore(null);
           }
         } else {
           console.log('Results API returned non-ok response:', response.status);
@@ -323,6 +328,7 @@ function TournamentCard({
         position_3_participant_id: findParticipantIdByName(results[2]),
         position_4_participant_id: findParticipantIdByName(results[3]),
         bracket_reset: bracketReset,
+        grand_finals_score: grandFinalsScore,
         entered_by: currentUserId || null // Use the current admin user's ID
       };
 
@@ -435,6 +441,7 @@ function TournamentCard({
         // Reset form fields to empty state
         setResults(["", "", "", ""]);
         setBracketReset(null);
+        setGrandFinalsScore(null);
         
         // Show success message
         setInlineMessage({ 
@@ -650,6 +657,37 @@ function TournamentCard({
                 <option value="upper_no_reset">👑 Upper bracket winner (no reset)</option>
                 <option value="upper_with_reset">🔄 Upper bracket winner (with reset)</option>
                 <option value="lower_bracket">⚡ Lower bracket winner</option>
+              </select>
+            </div>
+          )}
+          
+          {/* Grand Finals Score Section */}
+          {!loadingResults && (
+            <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
+              <label style={{ color: "#fff", fontWeight: 600, marginRight: 16, minWidth: 80, fontSize: 24 }}>
+                Score:
+              </label>
+              <select
+                value={grandFinalsScore || ""}
+                onChange={e => {
+                  const value = e.target.value;
+                  setGrandFinalsScore(value === "" ? null : value as 'score_3_0' | 'score_3_1' | 'score_3_2');
+                }}
+                style={{
+                  background: "#111",
+                  color: "#fff",
+                  border: "1px solid #228B22",
+                  borderRadius: 6,
+                  padding: "12px 16px",
+                  fontSize: 18,
+                  width: "75%",
+                  boxSizing: "border-box"
+                }}
+              >
+                <option value="">Select Score (Optional)</option>
+                <option value="score_3_0">🧹 3-0 (sweep)</option>
+                <option value="score_3_1">🎯 3-1 (close series)</option>
+                <option value="score_3_2">🔥 3-2 (very close series)</option>
               </select>
             </div>
           )}

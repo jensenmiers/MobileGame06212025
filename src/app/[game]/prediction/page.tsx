@@ -15,6 +15,7 @@ export default function PredictionPage() {
   const { session } = useAuth();
   const [predictions, setPredictions] = useState<(Player | null)[]>(Array(4).fill(null));
   const [bracketReset, setBracketReset] = useState<'upper_no_reset' | 'upper_with_reset' | 'lower_bracket' | null>(null);
+  const [grandFinalsScore, setGrandFinalsScore] = useState<'score_3_0' | 'score_3_1' | 'score_3_2' | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [tournamentId, setTournamentId] = useState<string | null>(null);
   const [tournamentTitle, setTournamentTitle] = useState<string>("");
@@ -93,6 +94,11 @@ export default function PredictionPage() {
     setSubmissionMessage(null);
   };
 
+  const handleGrandFinalsScoreChange = (value: 'score_3_0' | 'score_3_1' | 'score_3_2' | null) => {
+    setGrandFinalsScore(value);
+    setSubmissionMessage(null);
+  };
+
   const handleSubmit = async () => {
     if (!isComplete || !tournamentId || isSubmitting) return;
 
@@ -109,6 +115,7 @@ export default function PredictionPage() {
       slot_3_participant_id: predictions[2]!.id,
       slot_4_participant_id: predictions[3]!.id,
       bracket_reset: bracketReset,
+      grand_finals_score: grandFinalsScore,
     };
 
     // Debug logging for production issues
@@ -117,7 +124,8 @@ export default function PredictionPage() {
       user_email: session.user.email,
       session_valid: !!session,
       predictions_selected: predictions.map(p => ({ id: p?.id, name: p?.name })),
-      bracket_reset_selected: bracketReset
+      bracket_reset_selected: bracketReset,
+      grand_finals_score_selected: grandFinalsScore
     });
 
     setIsSubmitting(true);
@@ -227,6 +235,8 @@ export default function PredictionPage() {
           availablePlayers={availablePlayers.map(p => p.name)}
           onBracketResetChange={handleBracketResetChange}
           bracketReset={bracketReset}
+          onGrandFinalsScoreChange={handleGrandFinalsScoreChange}
+          grandFinalsScore={grandFinalsScore}
         />
       </div>
 

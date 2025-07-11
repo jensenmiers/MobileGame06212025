@@ -11,6 +11,8 @@ interface SlotsProps {
   availablePlayers: string[];
   bracketReset?: 'upper_no_reset' | 'upper_with_reset' | 'lower_bracket' | null;
   onBracketResetChange: (value: 'upper_no_reset' | 'upper_with_reset' | 'lower_bracket' | null) => void;
+  grandFinalsScore?: 'score_3_0' | 'score_3_1' | 'score_3_2' | null;
+  onGrandFinalsScoreChange: (value: 'score_3_0' | 'score_3_1' | 'score_3_2' | null) => void;
 }
 
 const slotLabels = ["1st", "2nd", "3rd", "4th"];
@@ -32,7 +34,7 @@ const positionIcons = [
   "🏅"  // 4th place
 ];
 
-export default function Slots({ predictions, onSlotFill, onSlotClear, availablePlayers, bracketReset, onBracketResetChange }: SlotsProps) {
+export default function Slots({ predictions, onSlotFill, onSlotClear, availablePlayers, bracketReset, onBracketResetChange, grandFinalsScore, onGrandFinalsScoreChange }: SlotsProps) {
   const [bonusExpanded, setBonusExpanded] = useState(false);
 
   const handleValueChange = (value: string, index: number) => {
@@ -144,6 +146,13 @@ export default function Slots({ predictions, onSlotFill, onSlotClear, availableP
                  bracketReset === 'lower_bracket' ? '⚡' : ''}
               </span>
             )}
+            {grandFinalsScore && (
+              <span className="text-xs bg-purple-600/30 px-2 py-1 rounded text-purple-200">
+                {grandFinalsScore === 'score_3_0' ? '🧹' : 
+                 grandFinalsScore === 'score_3_1' ? '🎯' : 
+                 grandFinalsScore === 'score_3_2' ? '🔥' : ''}
+              </span>
+            )}
             <svg 
               className={`w-5 h-5 text-purple-300 transition-transform ${bonusExpanded ? 'rotate-180' : ''}`}
               fill="none" 
@@ -209,6 +218,61 @@ export default function Slots({ predictions, onSlotFill, onSlotClear, availableP
                   Clear selection
                 </button>
               )}
+            </div>
+
+            {/* Grand Finals Score Section */}
+            <div className="mt-6 pt-4 border-t border-purple-500/20">
+              <h4 className="text-base font-semibold text-white mb-3">Grand Finals Score</h4>
+              
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 p-2 rounded hover:bg-purple-900/20 cursor-pointer transition-colors">
+                  <input
+                    type="radio"
+                    name="grand-finals-score"
+                    value="score_3_0"
+                    checked={grandFinalsScore === 'score_3_0'}
+                    onChange={(e) => onGrandFinalsScoreChange(e.target.value as 'score_3_0')}
+                    className="w-4 h-4 text-purple-500 bg-gray-700 border-gray-600 focus:ring-purple-500"
+                  />
+                  <span className="text-base">🧹</span>
+                  <span className="text-sm text-white">3-0 (sweep)</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-2 rounded hover:bg-purple-900/20 cursor-pointer transition-colors">
+                  <input
+                    type="radio"
+                    name="grand-finals-score"
+                    value="score_3_1"
+                    checked={grandFinalsScore === 'score_3_1'}
+                    onChange={(e) => onGrandFinalsScoreChange(e.target.value as 'score_3_1')}
+                    className="w-4 h-4 text-purple-500 bg-gray-700 border-gray-600 focus:ring-purple-500"
+                  />
+                  <span className="text-base">🎯</span>
+                  <span className="text-sm text-white">3-1 (close series)</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-2 rounded hover:bg-purple-900/20 cursor-pointer transition-colors">
+                  <input
+                    type="radio"
+                    name="grand-finals-score"
+                    value="score_3_2"
+                    checked={grandFinalsScore === 'score_3_2'}
+                    onChange={(e) => onGrandFinalsScoreChange(e.target.value as 'score_3_2')}
+                    className="w-4 h-4 text-purple-500 bg-gray-700 border-gray-600 focus:ring-purple-500"
+                  />
+                  <span className="text-base">🔥</span>
+                  <span className="text-sm text-white">3-2 (very close series)</span>
+                </label>
+
+                {grandFinalsScore && (
+                  <button
+                    onClick={() => onGrandFinalsScoreChange(null)}
+                    className="text-xs text-purple-300 hover:text-purple-200 underline mt-2"
+                  >
+                    Clear selection
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}

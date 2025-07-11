@@ -76,6 +76,7 @@ class BackendService {
     slot_3_participant_id: string
     slot_4_participant_id: string
     bracket_reset?: 'upper_no_reset' | 'upper_with_reset' | 'lower_bracket' | null;
+    grand_finals_score?: 'score_3_0' | 'score_3_1' | 'score_3_2' | null;
   }): Promise<Prediction> {
     const { prediction } = await this.request<{ prediction: Prediction }>(`/api/tournaments/${tournamentId}/predictions`, {
       method: 'POST',
@@ -95,6 +96,8 @@ class BackendService {
     position_2_participant_id: string
     position_3_participant_id: string
     position_4_participant_id: string
+    bracket_reset?: 'upper_no_reset' | 'upper_with_reset' | 'lower_bracket' | null;
+    grand_finals_score?: 'score_3_0' | 'score_3_1' | 'score_3_2' | null;
     entered_by?: string
   }): Promise<TournamentResult> {
     const { results } = await this.request<{ results: TournamentResult }>(`/api/tournaments/${tournamentId}/results`, {

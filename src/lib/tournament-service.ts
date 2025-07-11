@@ -283,6 +283,7 @@ export const tournamentService = {
     slot_3_participant_id: string;
     slot_4_participant_id: string;
     bracket_reset?: 'upper_no_reset' | 'upper_with_reset' | 'lower_bracket' | null;
+    grand_finals_score?: 'score_3_0' | 'score_3_1' | 'score_3_2' | null;
   }): Promise<Prediction | null> {
     if (USE_BACKEND_API) {
       try {
