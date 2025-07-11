@@ -1,7 +1,7 @@
 import { createClient } from './supabase';
 const supabase = createClient();
 import { backendService } from './backend-service';
-import { Tournament, Participant, Prediction, TournamentResult, LeaderboardEntry } from '../types/tournament';
+import { Tournament, Participant, Prediction, TournamentResult, LeaderboardEntry, CommunityFavorite } from '../types/tournament';
 
 // Feature flag to control migration
 const USE_BACKEND_API = process.env.NEXT_PUBLIC_USE_BACKEND_API === 'true';
@@ -270,6 +270,26 @@ export async function getLeaderboard(tournamentId: string): Promise<LeaderboardE
   return leaderboard;
 }
 
+// Fetches community favorites based on aggregated prediction data
+export async function getCommunityFavorites(tournamentId: string): Promise<{ favorites: CommunityFavorite[], total_predictions: number }> {
+  try {
+    const response = await fetch(`/api/tournaments/${tournamentId}/favorites`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch community favorites: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return {
+      favorites: data.favorites || [],
+      total_predictions: data.total_predictions || 0
+    };
+  } catch (error) {
+    console.error('Error fetching community favorites:', error);
+    return { favorites: [], total_predictions: 0 };
+  }
+}
+
 export const tournamentService = {
   /**
    * Submits a user's prediction for a tournament.
@@ -353,4 +373,5 @@ export const tournamentService = {
   getTournamentParticipants,
   getParticipantById,
   getLeaderboard,
+  getCommunityFavorites,
 };

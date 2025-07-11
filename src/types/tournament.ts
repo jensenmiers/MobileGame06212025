@@ -85,3 +85,14 @@ export interface LeaderboardEntry {
   points: number;
   userId?: string; // Optional since we may not always need to expose user IDs
 }
+
+// Represents a participant's community ranking based on prediction aggregation
+export interface CommunityFavorite {
+  participant_id: string;
+  participant_name: string;
+  total_points: number;
+  pick_count: number;
+  pick_percentage: number;
+  seed?: number;
+  avatar_url?: string;
+}
