@@ -14,6 +14,7 @@ import { syncUserProfile } from "@/lib/tournament-service";
 export default function PredictionPage() {
   const { session } = useAuth();
   const [predictions, setPredictions] = useState<(Player | null)[]>(Array(4).fill(null));
+  const [bracketReset, setBracketReset] = useState<'upper_no_reset' | 'upper_with_reset' | 'lower_bracket' | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [tournamentId, setTournamentId] = useState<string | null>(null);
   const [tournamentTitle, setTournamentTitle] = useState<string>("");
@@ -42,7 +43,14 @@ export default function PredictionPage() {
       if (currentTournament) {
         setTournamentId(currentTournament.id);
         const participantData = await tournamentService.getTournamentParticipants(currentTournament.id);
-        setPlayers(participantData);
+        // Convert Participant to Player format
+        const playersData = participantData.map(participant => ({
+          id: participant.id,
+          name: participant.name,
+          seed: participant.seed || 0,
+          avatarUrl: participant.avatar_url
+        }));
+        setPlayers(playersData);
       } else {
         console.error(`${tournamentName} tournament not found.`);
       }
@@ -80,6 +88,11 @@ export default function PredictionPage() {
     setSubmissionMessage(null);
   };
 
+  const handleBracketResetChange = (value: 'upper_no_reset' | 'upper_with_reset' | 'lower_bracket' | null) => {
+    setBracketReset(value);
+    setSubmissionMessage(null);
+  };
+
   const handleSubmit = async () => {
     if (!isComplete || !tournamentId || isSubmitting) return;
 
@@ -95,6 +108,7 @@ export default function PredictionPage() {
       slot_2_participant_id: predictions[1]!.id,
       slot_3_participant_id: predictions[2]!.id,
       slot_4_participant_id: predictions[3]!.id,
+      bracket_reset: bracketReset,
     };
 
     // Debug logging for production issues
@@ -102,7 +116,8 @@ export default function PredictionPage() {
       ...predictionData,
       user_email: session.user.email,
       session_valid: !!session,
-      predictions_selected: predictions.map(p => ({ id: p?.id, name: p?.name }))
+      predictions_selected: predictions.map(p => ({ id: p?.id, name: p?.name })),
+      bracket_reset_selected: bracketReset
     });
 
     setIsSubmitting(true);
@@ -112,17 +127,18 @@ export default function PredictionPage() {
       await tournamentService.submitPrediction(predictionData);
       setSubmissionMessage({ type: 'success', text: 'Prediction submitted successfully! You can update it until the tournament starts.' });
     } catch (error) {
+      const err = error as Error;
       console.error('❌ Failed to submit prediction:', error);
       console.error('❌ Error details:', {
-        error_message: error.message,
-        error_code: error.code,
-        error_details: error.details,
+        error_message: err.message,
+        error_code: (err as any).code,
+        error_details: (err as any).details,
         user_id: session.user.id,
         tournament_id: tournamentId
       });
       
       // Check if this is a profile-related error
-      if (error.message?.includes('profile') || error.code === 'PGRST301' || error.code === '23503') {
+      if (err.message?.includes('profile') || (err as any).code === 'PGRST301' || (err as any).code === '23503') {
         setSubmissionMessage({ 
           type: 'error', 
           text: 'Your account profile is not set up yet. Please refresh the page and try again, or sign out and back in.' 
@@ -130,7 +146,7 @@ export default function PredictionPage() {
       } else {
         setSubmissionMessage({ 
           type: 'error', 
-          text: `Failed to submit prediction. Please try again. Error: ${error.message || 'Unknown error'}` 
+          text: `Failed to submit prediction. Please try again. Error: ${err.message || 'Unknown error'}` 
         });
       }
     } finally {
@@ -147,6 +163,7 @@ export default function PredictionPage() {
       await syncUserProfile(session.user.id);
       setSubmissionMessage({ type: 'success', text: 'Profile setup complete! You can now submit your prediction.' });
     } catch (error) {
+      const err = error as Error;
       console.error('Profile sync retry failed:', error);
       setSubmissionMessage({ 
         type: 'error', 
@@ -208,6 +225,8 @@ export default function PredictionPage() {
           }}
           onSlotClear={handleSlotClear}
           availablePlayers={availablePlayers.map(p => p.name)}
+          onBracketResetChange={handleBracketResetChange}
+          bracketReset={bracketReset}
         />
       </div>
 

@@ -282,6 +282,7 @@ export const tournamentService = {
     slot_2_participant_id: string;
     slot_3_participant_id: string;
     slot_4_participant_id: string;
+    bracket_reset?: 'upper_no_reset' | 'upper_with_reset' | 'lower_bracket' | null;
   }): Promise<Prediction | null> {
     if (USE_BACKEND_API) {
       try {

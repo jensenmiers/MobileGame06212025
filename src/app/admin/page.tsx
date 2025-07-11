@@ -185,6 +185,7 @@ function TournamentCard({
 
   const [cutoff, setCutoff] = useState(formatDateTimeLocal(tournament.cutoff_time));
   const [results, setResults] = useState<string[]>(["", "", "", ""]);
+  const [bracketReset, setBracketReset] = useState<'upper_no_reset' | 'upper_with_reset' | 'lower_bracket' | null>(null);
   const [inlineMessage, setInlineMessage] = useState<null | { message: string; type: "success" | "error" }>(null);
   const [loadingResults, setLoadingResults] = useState(false);
   const [lastTournamentId, setLastTournamentId] = useState<string>(tournament.id);
@@ -204,6 +205,7 @@ function TournamentCard({
   useEffect(() => {
     if (lastTournamentId !== tournament.id) {
       setResults(["", "", "", ""]);
+      setBracketReset(null);
       setLastTournamentId(tournament.id);
       // Reset current tournament name to match the new tournament's URL
       setCurrentTournamentName(
@@ -237,9 +239,12 @@ function TournamentCard({
             ];
             console.log('Mapped result names:', resultNames);
             setResults(resultNames);
+            // Load existing bracket reset value
+            setBracketReset(data.results.bracket_reset || null);
           } else {
             console.log('No results found for tournament');
             setResults(["", "", "", ""]);
+            setBracketReset(null);
           }
         } else {
           console.log('Results API returned non-ok response:', response.status);
@@ -317,6 +322,7 @@ function TournamentCard({
         position_2_participant_id: findParticipantIdByName(results[1]),
         position_3_participant_id: findParticipantIdByName(results[2]),
         position_4_participant_id: findParticipantIdByName(results[3]),
+        bracket_reset: bracketReset,
         entered_by: currentUserId || null // Use the current admin user's ID
       };
 
@@ -428,6 +434,7 @@ function TournamentCard({
         
         // Reset form fields to empty state
         setResults(["", "", "", ""]);
+        setBracketReset(null);
         
         // Show success message
         setInlineMessage({ 
@@ -615,6 +622,38 @@ function TournamentCard({
               </div>
             ))
           )}
+          
+          {/* Bracket Reset Section */}
+          {!loadingResults && (
+            <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
+              <label style={{ color: "#fff", fontWeight: 600, marginRight: 16, minWidth: 80, fontSize: 24 }}>
+                Bracket:
+              </label>
+              <select
+                value={bracketReset || ""}
+                onChange={e => {
+                  const value = e.target.value;
+                  setBracketReset(value === "" ? null : value as 'upper_no_reset' | 'upper_with_reset' | 'lower_bracket');
+                }}
+                style={{
+                  background: "#111",
+                  color: "#fff",
+                  border: "1px solid #228B22",
+                  borderRadius: 6,
+                  padding: "12px 16px",
+                  fontSize: 18,
+                  width: "75%",
+                  boxSizing: "border-box"
+                }}
+              >
+                <option value="">Select Outcome (Optional)</option>
+                <option value="upper_no_reset">👑 Upper bracket winner (no reset)</option>
+                <option value="upper_with_reset">🔄 Upper bracket winner (with reset)</option>
+                <option value="lower_bracket">⚡ Lower bracket winner</option>
+              </select>
+            </div>
+          )}
+          
           <div style={{ display: "flex", gap: "12px", marginTop: 16 }}>
             <button
               type="submit"

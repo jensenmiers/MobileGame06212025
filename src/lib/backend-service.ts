@@ -75,6 +75,7 @@ class BackendService {
     slot_2_participant_id: string
     slot_3_participant_id: string
     slot_4_participant_id: string
+    bracket_reset?: 'upper_no_reset' | 'upper_with_reset' | 'lower_bracket' | null;
   }): Promise<Prediction> {
     const { prediction } = await this.request<{ prediction: Prediction }>(`/api/tournaments/${tournamentId}/predictions`, {
       method: 'POST',

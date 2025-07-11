@@ -49,6 +49,7 @@ export interface Prediction {
   slot_2_participant_id: string;
   slot_3_participant_id: string;
   slot_4_participant_id: string;
+  bracket_reset?: 'upper_no_reset' | 'upper_with_reset' | 'lower_bracket' | null;
   first_submitted_at: string;
   last_updated_at: string;
   submission_count: number;
@@ -70,6 +71,7 @@ export interface TournamentResult {
   position_2_participant_id: string;
   position_3_participant_id: string;
   position_4_participant_id: string;
+  bracket_reset?: 'upper_no_reset' | 'upper_with_reset' | 'lower_bracket' | null;
   entered_by?: string;
   entered_at: string;
 }

@@ -7,6 +7,9 @@ const POSITION_POINTS = [89, 144, 233, 377] as const;
 // Proximity multipliers for different position accuracy
 const PROXIMITY_MULTIPLIERS = [1.0, 0.61, 0.41, 0.17] as const; // 100%, 61%, 41%, 17%
 
+// Points for correct bracket reset prediction
+const BRACKET_RESET_POINTS = 21;
+
 /**
  * Calculates the score for a single prediction based on actual results
  * @param prediction The prediction to score
@@ -18,7 +21,8 @@ export function calculatePredictionScore(
     'slot_1_participant_id' | 
     'slot_2_participant_id' | 
     'slot_3_participant_id' | 
-    'slot_4_participant_id'
+    'slot_4_participant_id' |
+    'bracket_reset'
   >,
   results: TournamentResult | null
 ): number {
@@ -59,6 +63,16 @@ export function calculatePredictionScore(
 
     totalScore += pointsEarned;
   }
+
+  // Bracket reset scoring logic
+  if (results.bracket_reset !== null && results.bracket_reset !== undefined) {
+    // Results have a bracket reset value - check if prediction matches
+    if (prediction.bracket_reset === results.bracket_reset) {
+      totalScore += BRACKET_RESET_POINTS;
+    }
+    // If prediction.bracket_reset is null/undefined, 0 points added (no bonus)
+  }
+  // If results.bracket_reset is null/undefined, no points for anyone regardless of their prediction
 
   // Round to nearest integer
   return Math.round(totalScore);
@@ -228,5 +242,6 @@ export function getScoringConfig() {
   return {
     positionPoints: [...POSITION_POINTS],
     positionOffPoints: PROXIMITY_MULTIPLIERS, // 0, 1, 2, 3 positions off
+    bracketResetPoints: BRACKET_RESET_POINTS,
   };
 }
