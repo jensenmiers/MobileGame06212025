@@ -144,7 +144,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white flex flex-col items-center justify-start p-4 pt-12 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white flex flex-col items-center justify-start p-4 pt-4 relative overflow-hidden">
       {/* Simplified background elements */}
       <div className="fixed inset-0 -z-10">
         <div className="absolute -right-40 -bottom-40 w-96 h-96 bg-green-500/10 filter blur-3xl animate-pulse"></div>
@@ -169,16 +169,21 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
-                  <CardTitle className="text-3xl sm:text-4xl md:text-5xl font-bold gradient-rotate gradient-text-fix text-center leading-tight">
-                    Full Combo Bracket Challenge
-                  </CardTitle>
+                  <div className="text-center">
+                    <h1 className="text-xl sm:text-4xl md:text-5xl font-bold gradient-rotate gradient-text-fix leading-tight">
+                      Full Combo
+                    </h1>
+                    <h1 className="text-xl sm:text-4xl md:text-5xl font-bold gradient-rotate gradient-text-fix leading-tight">
+                      Bracket Challenge
+                    </h1>
+                  </div>
                 </div>
               </div>
               
               {/* Welcome message for logged in users */}
               {user && (
                 <div className="w-full text-center mb-6">
-                  <h2 className="text-2xl font-semibold text-green-400 mb-2">
+                  <h2 className="text-lg font-semibold text-green-400 mb-2">
                     Welcome, {getDisplayName()}!
                   </h2>
                   <p className="text-gray-300">Ready to make your predictions?</p>
@@ -191,7 +196,7 @@ export default function Home() {
             {!user && (
               <div className="flex flex-col items-center space-y-2">
                 <div className="text-center">
-                  <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
+                  <h2 className="text-lg sm:text-2xl font-bold text-white mb-2">
                     Sign in to create predictions
                   </h2>
                 </div>
@@ -201,7 +206,7 @@ export default function Home() {
             
             {/* Game Selection */}
             <div className="text-center mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-white">Choose a Game</h2>
+              <h2 className="text-lg sm:text-2xl font-bold text-white">Choose a Game</h2>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 gap-y-8 w-full max-w-md mx-auto">
               {tournaments.map((tournament) => {
