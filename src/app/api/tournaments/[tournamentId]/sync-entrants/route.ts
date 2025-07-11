@@ -86,6 +86,7 @@ async function fetchStartGGParticipants(tournamentSlug: string, gameId: number) 
   for (const event of data.tournament.events || []) {
     for (const entrant of event.entrants.nodes || []) {
       participants.push({
+        startgg_entrant_id: entrant.id, // ✅ NEW: Capture Start.gg entrant ID
         name: entrant.name,
         seed: entrant.seeds[0]?.seedNum || 999, // Default to high number if no seed
       });
@@ -155,52 +156,103 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     console.log(`🔄 [API DEBUG] Starting database operations for tournament ${tournamentId}`);
-    console.log(`🔄 [API DEBUG] About to clear existing participants`);
+    console.log(`🔄 [API DEBUG] Using UPSERT approach (no more deletes!)`);
     
-    // Clear existing participants (clean slate approach)
-    const deleteStartTime = Date.now();
-    const { error: deleteError } = await database
-      .from('participants')
-      .delete()
-      .eq('tournament_id', tournamentId);
-
-    if (deleteError) {
-      console.error(`❌ [API DEBUG] Delete failed:`, deleteError);
-      throw new Error(`Failed to clear existing participants: ${deleteError.message}`);
-    }
+    // NEW APPROACH: UPSERT instead of DELETE/INSERT
+    // This preserves existing participants and their foreign key relationships
+    const upsertStartTime = Date.now();
     
-    const deleteDuration = Date.now() - deleteStartTime;
-    console.log(`✅ [API DEBUG] Participants cleared in ${deleteDuration}ms`);
-
-    // Prepare participant data for insertion
+    // Prepare participant data for upsert
     const participantData = startggParticipants.map(p => ({
       tournament_id: tournamentId,
+      startgg_entrant_id: p.startgg_entrant_id, // ✅ NEW: Use stable Start.gg ID
       name: p.name,
       seed: p.seed,
       created_at: new Date().toISOString(),
     }));
 
-    console.log(`🔄 [API DEBUG] Prepared ${participantData.length} participants for insertion`);
+    console.log(`🔄 [API DEBUG] Prepared ${participantData.length} participants for upsert`);
 
-    // Insert new participants in batches
-    const insertStartTime = Date.now();
+    // UPSERT participants in batches using Start.gg entrant ID
     const batchSize = 50;
+    let totalUpdated = 0;
+    let totalCreated = 0;
+    
     for (let i = 0; i < participantData.length; i += batchSize) {
       const batch = participantData.slice(i, i + batchSize);
-      console.log(`🔄 [API DEBUG] Inserting batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(participantData.length/batchSize)} (${batch.length} participants)`);
+      console.log(`🔄 [API DEBUG] Upserting batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(participantData.length/batchSize)} (${batch.length} participants)`);
       
-      const { error: insertError } = await database
-        .from('participants')
-        .insert(batch);
+      // Use individual upserts to get proper conflict resolution
+      for (const participant of batch) {
+        // Check for existing participant by startgg_entrant_id first
+        let existingParticipant = null;
+        
+        if (participant.startgg_entrant_id) {
+          const { data, error: selectError } = await database
+            .from('participants')
+            .select('id')
+            .eq('tournament_id', tournamentId)
+            .eq('startgg_entrant_id', participant.startgg_entrant_id)
+            .single();
 
-      if (insertError) {
-        console.error(`❌ [API DEBUG] Insert batch failed:`, insertError);
-        throw new Error(`Failed to insert participants: ${insertError.message}`);
+          if (selectError && selectError.code !== 'PGRST116') {
+            console.error(`❌ [API DEBUG] Error checking existing participant by startgg_entrant_id:`, selectError);
+            throw new Error(`Failed to check existing participant: ${selectError.message}`);
+          }
+          existingParticipant = data;
+        }
+
+        // If not found by startgg_entrant_id, check by (tournament_id, name) due to unique constraint
+        if (!existingParticipant) {
+          const { data, error: selectError } = await database
+            .from('participants')
+            .select('id')
+            .eq('tournament_id', tournamentId)
+            .eq('name', participant.name)
+            .single();
+
+          if (selectError && selectError.code !== 'PGRST116') {
+            console.error(`❌ [API DEBUG] Error checking existing participant by name:`, selectError);
+            throw new Error(`Failed to check existing participant by name: ${selectError.message}`);
+          }
+          existingParticipant = data;
+        }
+
+        if (existingParticipant) {
+          // Update existing participant with new data including startgg_entrant_id
+          const { error: updateError } = await database
+            .from('participants')
+            .update({
+              startgg_entrant_id: participant.startgg_entrant_id, // ✅ NEW: Populate the stable ID
+              name: participant.name,
+              seed: participant.seed,
+            })
+            .eq('id', existingParticipant.id);
+
+          if (updateError) {
+            console.error(`❌ [API DEBUG] Update failed:`, updateError);
+            throw new Error(`Failed to update participant: ${updateError.message}`);
+          }
+          totalUpdated++;
+          console.log(`🔄 [API DEBUG] Updated participant: ${participant.name} with startgg_entrant_id: ${participant.startgg_entrant_id}`);
+        } else {
+          // Insert new participant
+          const { error: insertError } = await database
+            .from('participants')
+            .insert(participant);
+
+          if (insertError) {
+            console.error(`❌ [API DEBUG] Insert failed:`, insertError);
+            throw new Error(`Failed to insert participant: ${insertError.message}`);
+          }
+          totalCreated++;
+          console.log(`🔄 [API DEBUG] Created new participant: ${participant.name} with startgg_entrant_id: ${participant.startgg_entrant_id}`);
+        }
       }
     }
     
-    const insertDuration = Date.now() - insertStartTime;
-    console.log(`✅ [API DEBUG] All participants inserted in ${insertDuration}ms`);
+    const upsertDuration = Date.now() - upsertStartTime;
+    console.log(`✅ [API DEBUG] Upsert completed in ${upsertDuration}ms: ${totalUpdated} updated, ${totalCreated} created`);
     
     // Add a small delay to ensure database consistency
     console.log(`🔄 [API DEBUG] Adding 500ms delay for database consistency...`);
@@ -222,8 +274,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({
       success: true,
       message: `Successfully synced ${startggParticipants.length} entrants from Start.gg`,
-      participants_added: startggParticipants.length,
+      participants_updated: totalUpdated,
+      participants_created: totalCreated,
+      total_participants: startggParticipants.length,
       tournament_slug: tournamentSlug,
+      migration_note: "✅ Using stable Start.gg IDs - no more foreign key conflicts!",
     });
 
   } catch (error) {
