@@ -1,8 +1,11 @@
 import { Prediction, TournamentResult } from '@/types/tournament';
 import { database } from '@/lib/database';
 
-// Base points for each position (1st to 4th)
-const POSITION_POINTS = [100, 50, 30, 10] as const;
+// Base points for each position (1st to 4th) - Custom progression: 89, 144, 233, 377
+const POSITION_POINTS = [89, 144, 233, 377] as const;
+
+// Proximity multipliers for different position accuracy
+const PROXIMITY_MULTIPLIERS = [1.0, 0.61, 0.41, 0.17] as const; // 100%, 61%, 41%, 17%
 
 /**
  * Calculates the score for a single prediction based on actual results
@@ -48,20 +51,11 @@ export function calculatePredictionScore(
 
     // Calculate points based on how close the prediction was
     let pointsEarned = 0;
-    if (positionOff === 0) {
-      // Exact match - 100% of base points
-      pointsEarned = POSITION_POINTS[predictedPosition - 1];
-    } else if (positionOff === 1) {
-      // 1 position off - 50% of base points
-      pointsEarned = POSITION_POINTS[predictedPosition - 1] * 0.5;
-    } else if (positionOff === 2) {
-      // 2 positions off - 25% of base points
-      pointsEarned = POSITION_POINTS[predictedPosition - 1] * 0.25;
-    } else if (positionOff === 3) {
-      // 3 positions off - 10% of base points
-      pointsEarned = POSITION_POINTS[predictedPosition - 1] * 0.1;
+    if (positionOff <= 3) {
+      // Use proximity multiplier based on how many positions off
+      pointsEarned = POSITION_POINTS[predictedPosition - 1] * PROXIMITY_MULTIPLIERS[positionOff];
     }
-    // More than 3 positions off - 0 points
+    // More than 3 positions off - 0 points (shouldn't happen with 4 positions)
 
     totalScore += pointsEarned;
   }
@@ -233,6 +227,6 @@ export async function updateAllPredictionScores(tournamentId: string): Promise<n
 export function getScoringConfig() {
   return {
     positionPoints: [...POSITION_POINTS],
-    positionOffPoints: [1, 0.5, 0.25, 0.1], // 0, 1, 2, 3 positions off
+    positionOffPoints: PROXIMITY_MULTIPLIERS, // 0, 1, 2, 3 positions off
   };
 }
