@@ -8,13 +8,14 @@ interface RouteParams {
 }
 
 // Map of game names to Start.gg videogame IDs
+// Updated with verified correct IDs from testing against real tournament data
 const STARTGG_GAME_IDS: Record<string, number> = {
-  'Street Fighter 6': 16,
-  'Tekken 8': 49,
-  'Dragon Ball FighterZ': 287,
-  'Mortal Kombat 1': 287, // TODO: Verify correct ID
-  'Guilty Gear Strive': 287, // TODO: Verify correct ID  
-  'Fatal Fury: City of the Wolves': 287, // TODO: Verify correct ID
+  'Street Fighter 6': 43868,           // ✅ VERIFIED: Discovery ID works, old ID 16 failed
+  'Tekken 8': 49783,                   // ✅ VERIFIED: Discovery ID works, old ID 49 failed
+  'Dragon Ball FighterZ': 287,         // ✅ VERIFIED: Already correct
+  'Mortal Kombat 1': 48599,            // ✅ DISCOVERED: Found correct ID
+  'Guilty Gear Strive': 33945,         // ✅ DISCOVERED: Found correct ID
+  'Fatal Fury: City of the Wolves': 73221, // ✅ DISCOVERED: Found correct ID
 };
 
 // GraphQL query to fetch tournament participants
@@ -217,7 +218,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     console.log(`✅ [API DEBUG] Sync operation completed successfully - returning response`);
-    
+
     return NextResponse.json({
       success: true,
       message: `Successfully synced ${startggParticipants.length} entrants from Start.gg`,

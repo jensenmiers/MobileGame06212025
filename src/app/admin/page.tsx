@@ -114,13 +114,18 @@ function InlineMessage({ message, type }: { message: string; type: "success" | "
     <div
       style={{
         marginTop: 12,
-        padding: "6px 12px",
-        borderRadius: 6,
-        background: type === "success" ? "#003300" : "#330000",
-        color: type === "success" ? "#fff" : "#f55",
+        padding: type === "error" ? "12px 16px" : "8px 12px", // More padding for errors
+        borderRadius: 8,
+        background: type === "success" ? "#003300" : "#440000", // Darker red for better contrast
+        color: type === "success" ? "#fff" : "#ffaaaa", // Lighter red text for errors
         fontWeight: 600,
-        opacity: 0.95,
-        transition: "opacity 0.5s"
+        opacity: 0.98,
+        transition: "opacity 0.5s",
+        fontSize: type === "error" ? "15px" : "14px", // Larger font for errors
+        lineHeight: type === "error" ? "1.4" : "1.3", // Better line height for errors
+        border: type === "error" ? "1px solid #666" : "none", // Border for errors
+        wordBreak: "break-word", // Allow long error messages to wrap
+        maxWidth: "100%"
       }}
     >
       {message}
@@ -274,10 +279,13 @@ function TournamentCard({
     return id;
   };
 
-  // Fade out message after 3 seconds
+  // Fade out message after different durations based on type
   useEffect(() => {
     if (inlineMessage) {
-      const timer = setTimeout(() => setInlineMessage(null), 3000);
+      // Error messages stay longer (10 seconds) so users can read them
+      // Success messages stay shorter (5 seconds) 
+      const duration = inlineMessage.type === 'error' ? 10000 : 5000;
+      const timer = setTimeout(() => setInlineMessage(null), duration);
       return () => clearTimeout(timer);
     }
   }, [inlineMessage]);
