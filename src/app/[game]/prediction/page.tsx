@@ -2,23 +2,29 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useParams, notFound } from "next/navigation";
+import { useParams, notFound, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Slots from "@/components/Prediction/Slots";
 import { tournamentService } from "@/lib/tournament-service";
-import { Player } from "@/types/tournament";
+import { Player, Prediction, Tournament } from "@/types/tournament";
 import { gameUiDetailsMap } from "@/lib/game-utils";
 import { useAuth } from "@/context/AuthContext";
 import { syncUserProfile } from "@/lib/tournament-service";
 
 export default function PredictionPage() {
   const { session } = useAuth();
+  const router = useRouter();
   const [predictions, setPredictions] = useState<(Player | null)[]>(Array(4).fill(null));
   const [bracketReset, setBracketReset] = useState<'upper_no_reset' | 'upper_with_reset' | 'lower_bracket' | null>(null);
   const [grandFinalsScore, setGrandFinalsScore] = useState<'score_3_0' | 'score_3_1' | 'score_3_2' | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [tournamentId, setTournamentId] = useState<string | null>(null);
   const [tournamentTitle, setTournamentTitle] = useState<string>("");
+  const [existingPrediction, setExistingPrediction] = useState<Prediction | null>(null);
+  const [isLoadingPrediction, setIsLoadingPrediction] = useState(false);
+  const [tournament, setTournament] = useState<Tournament | null>(null);
+  const [isPredictionsClosed, setIsPredictionsClosed] = useState(false);
+  const [areResultsPosted, setAreResultsPosted] = useState(false);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionMessage, setSubmissionMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
@@ -30,6 +36,34 @@ export default function PredictionPage() {
   const tournamentName = Object.keys(gameUiDetailsMap).find(
     key => gameUiDetailsMap[key].slug === gameSlug
   );
+
+  // Helper function to check if predictions are closed
+  const checkPredictionsClosed = (tournament: Tournament): boolean => {
+    const cutoffTime = new Date(tournament.cutoff_time);
+    const now = new Date();
+    return cutoffTime <= now;
+  };
+
+  // Helper function to check if results have been posted
+  const checkResultsPosted = async (tournamentId: string): Promise<boolean> => {
+    try {
+      const results = await tournamentService.getResultsForTournament(tournamentId);
+      return results !== null;
+    } catch (error) {
+      console.error('Error checking results status:', error);
+      return false;
+    }
+  };
+
+  // Helper function to map prediction IDs to Player objects
+  const mapPredictionToPlayers = (prediction: Prediction, players: Player[]): (Player | null)[] => {
+    return [
+      players.find(p => p.id === prediction.slot_1_participant_id) || null,
+      players.find(p => p.id === prediction.slot_2_participant_id) || null,
+      players.find(p => p.id === prediction.slot_3_participant_id) || null,
+      players.find(p => p.id === prediction.slot_4_participant_id) || null,
+    ];
+  };
 
   useEffect(() => {
     if (!tournamentName) {
@@ -43,22 +77,69 @@ export default function PredictionPage() {
 
       if (currentTournament) {
         setTournamentId(currentTournament.id);
-        const participantData = await tournamentService.getTournamentParticipants(currentTournament.id);
-        // Convert Participant to Player format
-        const playersData = participantData.map(participant => ({
-          id: participant.id,
-          name: participant.name,
-          seed: participant.seed || 0,
-          avatarUrl: participant.avatar_url
-        }));
-        setPlayers(playersData);
+        setTournament(currentTournament);
+        
+        const isPredictionsClosed = checkPredictionsClosed(currentTournament);
+        setIsPredictionsClosed(isPredictionsClosed);
+        
+        // Check if results have been posted
+        const areResultsPosted = await checkResultsPosted(currentTournament.id);
+        setAreResultsPosted(areResultsPosted);
+        
+        // Redirect to leaderboard if both cutoff passed AND results posted
+        if (isPredictionsClosed && areResultsPosted) {
+          console.log('🚀 Redirecting to leaderboard: cutoff passed and results posted');
+          router.push(`/${gameSlug}/leaderboard`);
+          return;
+        }
+        
+        setIsLoadingPrediction(true);
+        
+        try {
+          // Load both participants and existing prediction in parallel
+          const [participantData, existingPredictionData] = await Promise.all([
+            tournamentService.getTournamentParticipants(currentTournament.id),
+            session?.user ? tournamentService.getUserPrediction(currentTournament.id, session.user.id) : Promise.resolve(null)
+          ]);
+
+          // Convert Participant to Player format
+          const playersData = participantData.map(participant => ({
+            id: participant.id,
+            name: participant.name,
+            seed: participant.seed || 0,
+            avatarUrl: participant.avatar_url
+          }));
+          setPlayers(playersData);
+
+          // Store existing prediction data
+          setExistingPrediction(existingPredictionData);
+
+          // If we have existing prediction data, populate the form
+          if (existingPredictionData && playersData.length > 0) {
+            const mappedPredictions = mapPredictionToPlayers(existingPredictionData, playersData);
+            setPredictions(mappedPredictions);
+            setBracketReset(existingPredictionData.bracket_reset || null);
+            setGrandFinalsScore(existingPredictionData.grand_finals_score || null);
+            
+            console.log('🔄 Loaded existing prediction:', {
+              prediction_id: existingPredictionData.id,
+              submission_count: existingPredictionData.submission_count,
+              mapped_players: mappedPredictions.map(p => p?.name || 'null'),
+              predictions_closed: checkPredictionsClosed(currentTournament)
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching tournament data:', error);
+        } finally {
+          setIsLoadingPrediction(false);
+        }
       } else {
         console.error(`${tournamentName} tournament not found.`);
       }
     };
 
     fetchTournamentData();
-  }, [gameSlug, tournamentName]);
+  }, [gameSlug, tournamentName, session?.user]);
 
   // Sync user profile when component loads and user is authenticated
   useEffect(() => {
@@ -225,55 +306,115 @@ export default function PredictionPage() {
 
       {/* Prediction Slots */}
       <div className="w-full max-w-2xl mb-8">
+        {isPredictionsClosed && (
+          <div className="text-center mb-4 p-4 bg-yellow-900/20 border border-yellow-600/50 rounded-lg">
+            <div className="text-yellow-300 font-semibold text-lg mb-2">
+              🔒 Predictions Closed
+            </div>
+            <div className="text-yellow-200 text-sm">
+              {areResultsPosted ? (
+                "The tournament has concluded. Check the leaderboard for final results!"
+              ) : (
+                "The cutoff time has passed. You can view your submitted predictions below, but no changes can be made."
+              )}
+            </div>
+          </div>
+        )}
+        {isLoadingPrediction && (
+          <div className="text-center mb-4">
+            <div className="text-gray-300 flex items-center justify-center gap-2">
+              <svg className="animate-spin h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Loading your predictions...
+            </div>
+          </div>
+        )}
         <Slots 
           predictions={predictions.map(p => p?.name || "")}
           onSlotFill={(slotIndex, playerName) => {
+            if (isPredictionsClosed) return; // Prevent changes when closed
             const player = players.find(p => p.name === playerName);
             if (player) handleSlotFill(slotIndex, player);
           }}
-          onSlotClear={handleSlotClear}
+          onSlotClear={(slotIndex) => {
+            if (isPredictionsClosed) return; // Prevent changes when closed
+            handleSlotClear(slotIndex);
+          }}
           availablePlayers={availablePlayers.map(p => p.name)}
-          onBracketResetChange={handleBracketResetChange}
+          onBracketResetChange={(value) => {
+            if (isPredictionsClosed) return; // Prevent changes when closed
+            handleBracketResetChange(value);
+          }}
           bracketReset={bracketReset}
-          onGrandFinalsScoreChange={handleGrandFinalsScoreChange}
+          onGrandFinalsScoreChange={(value) => {
+            if (isPredictionsClosed) return; // Prevent changes when closed
+            handleGrandFinalsScoreChange(value);
+          }}
           grandFinalsScore={grandFinalsScore}
+          readonly={isPredictionsClosed}
         />
       </div>
 
       {/* Submit Button & Feedback */}
       <div className="w-full max-w-2xl mb-12">
-        <Button
-          onClick={handleSubmit}
-          disabled={!isComplete || isSubmitting || !session?.user}
-          className={`relative w-full py-6 text-lg sm:text-xl md:text-2xl font-bold overflow-hidden transition-all duration-300 transform gradient-rotate ${ 
-            isComplete && !isSubmitting && session?.user
-              ? 'hover:scale-[1.02] hover:shadow-2xl' 
-              : 'opacity-50 cursor-not-allowed'
-          }`}
-          style={{
-            boxShadow: isComplete && !isSubmitting && session?.user
-              ? '0 10px 25px -5px rgba(0, 172, 78, 0.4)'
-              : '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-          }}
-        >
-          <span className="relative z-10 flex items-center justify-center gap-3">
-            {isSubmitting 
-              ? 'Submitting...' 
-              : !session?.user 
-              ? 'Log In to Submit' 
-              : isComplete ? (
-              <>
-                <span>Submit Predictions</span>
-                <span className="text-yellow-300">🏆</span>
-              </>
-            ) : (
-              'Select All Players to Continue'
+        {!isPredictionsClosed ? (
+          <Button
+            onClick={handleSubmit}
+            disabled={!isComplete || isSubmitting || !session?.user}
+            className={`relative w-full py-6 text-lg sm:text-xl md:text-2xl font-bold overflow-hidden transition-all duration-300 transform gradient-rotate ${ 
+              isComplete && !isSubmitting && session?.user
+                ? 'hover:scale-[1.02] hover:shadow-2xl' 
+                : 'opacity-50 cursor-not-allowed'
+            }`}
+            style={{
+              boxShadow: isComplete && !isSubmitting && session?.user
+                ? '0 10px 25px -5px rgba(0, 172, 78, 0.4)'
+                : '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+            }}
+          >
+            <span className="relative z-10 flex items-center justify-center gap-3">
+              {isSubmitting 
+                ? 'Submitting...' 
+                : !session?.user 
+                ? 'Log In to Submit' 
+                : isComplete ? (
+                <>
+                  <span>{existingPrediction ? 'Update Your Submission?' : 'Submit Predictions'}</span>
+                  <span className="text-yellow-300">🏆</span>
+                </>
+              ) : (
+                'Select All Players to Continue'
+              )}
+            </span>
+            {isComplete && !isSubmitting && session?.user && (
+              <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
             )}
-          </span>
-          {isComplete && !isSubmitting && session?.user && (
-            <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-          )}
-        </Button>
+          </Button>
+        ) : (
+          <div className="text-center p-6 bg-gray-900/50 border border-gray-600 rounded-lg">
+            <div className="text-gray-300 text-lg mb-2">
+              {existingPrediction ? (
+                <>
+                  <span className="text-green-400 font-semibold">✅ Your Predictions Submitted</span>
+                  <div className="text-sm text-gray-400 mt-1">
+                    Submitted {existingPrediction.submission_count} time{existingPrediction.submission_count > 1 ? 's' : ''}
+                  </div>
+                </>
+              ) : (
+                <span className="text-red-400 font-semibold">❌ No Predictions Submitted</span>
+              )}
+            </div>
+            <div className="text-gray-400 text-sm">
+              {areResultsPosted ? (
+                "Tournament has concluded. Check the leaderboard for final results!"
+              ) : (
+                "Tournament cutoff has passed. Waiting for results to be posted."
+              )}
+            </div>
+          </div>
+        )}
         {submissionMessage && (
           <div className={`mt-4 text-center p-3 rounded-md ${ 
             submissionMessage.type === 'success' ? 'bg-green-900/50 text-green-200' : 
@@ -301,10 +442,10 @@ export default function PredictionPage() {
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent'
             }}>
-            Available Players
+            {isPredictionsClosed ? 'Tournament Players' : 'Available Players'}
           </h2>
           <div className="flex flex-wrap gap-3 justify-center">
-            {availablePlayers.length > 0 ? (
+            {!isPredictionsClosed && availablePlayers.length > 0 ? (
               availablePlayers.map((player) => (
                 <button
                   key={player.id}
@@ -319,8 +460,18 @@ export default function PredictionPage() {
                   {player.name}
                 </button>
               ))
-            ) : (
+            ) : !isPredictionsClosed && availablePlayers.length === 0 ? (
               <p className="text-gray-300 italic text-lg">All players have been placed in the bracket</p>
+            ) : (
+              // Show all players when predictions are closed (read-only view)
+              players.map((player) => (
+                <div
+                  key={player.id}
+                  className="px-4 py-2 bg-gray-900/50 text-base text-gray-300 font-medium shadow-sm border border-gray-700 rounded-none"
+                >
+                  {player.name}
+                </div>
+              ))
             )}
           </div>
         </div>

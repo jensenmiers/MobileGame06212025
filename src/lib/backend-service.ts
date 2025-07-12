@@ -85,6 +85,17 @@ class BackendService {
     return prediction
   }
 
+  async getUserPrediction(tournamentId: string, userId: string): Promise<Prediction | null> {
+    try {
+      const { predictions } = await this.request<{ predictions: Prediction[] }>(`/api/tournaments/${tournamentId}/predictions?userId=${userId}`)
+      // Return the most recent prediction (API returns them ordered by created_at desc)
+      return predictions.length > 0 ? predictions[0] : null
+    } catch (error) {
+      console.error('Error fetching user prediction from backend API:', error)
+      return null
+    }
+  }
+
   // Results operations
   async getResults(tournamentId: string): Promise<TournamentResult | null> {
     const { results } = await this.request<{ results: TournamentResult | null }>(`/api/tournaments/${tournamentId}/results`)

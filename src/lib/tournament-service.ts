@@ -135,6 +135,44 @@ export async function getParticipantById(participantId: string): Promise<Partici
 }
 
 /**
+ * Fetches a specific user's prediction for a tournament
+ * Uses backend API if enabled, falls back to Supabase
+ */
+export async function getUserPrediction(tournamentId: string, userId: string): Promise<Prediction | null> {
+  if (USE_BACKEND_API) {
+    try {
+      console.log('🚀 Using Backend API for user prediction');
+      return await backendService.getUserPrediction(tournamentId, userId);
+    } catch (error) {
+      console.error('Backend API failed, falling back to Supabase:', error);
+    }
+  }
+
+  // Fallback to Supabase
+  try {
+    const { data, error } = await supabase
+      .from('predictions')
+      .select('*')
+      .eq('tournament_id', tournamentId)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 means no rows found, which is fine
+      console.error('Error fetching user prediction:', error);
+      return null;
+    }
+
+    return data || null;
+  } catch (error) {
+    console.error('Unexpected error fetching user prediction:', error);
+    return null;
+  }
+}
+
+/**
  * Fetches all tournaments
  * Uses backend API if enabled, falls back to Supabase
  */
@@ -372,6 +410,8 @@ export const tournamentService = {
   getTournaments,
   getTournamentParticipants,
   getParticipantById,
+  getUserPrediction,
   getLeaderboard,
   getCommunityFavorites,
+  getResultsForTournament,
 };
