@@ -89,8 +89,8 @@
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  padding-bottom: 0.125rem;
-  line-height: 1.1;
+  padding-bottom: 0.25rem;
+  line-height: 1.4;
   display: inline-block;
   /* Ensure proper text rendering */
   -webkit-font-smoothing: antialiased;

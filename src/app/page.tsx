@@ -144,21 +144,21 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white flex flex-col items-center justify-start p-4 pt-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white flex flex-col items-center justify-start p-2 pt-2 relative overflow-hidden">
       {/* Simplified background elements */}
       <div className="fixed inset-0 -z-10">
         <div className="absolute -right-40 -bottom-40 w-96 h-96 bg-green-500/10 filter blur-3xl animate-pulse"></div>
       </div>
 
-      <div className="w-full max-w-4xl mx-auto">
+      <div className="w-full max-w-6xl mx-auto">
         <Card className="bg-black/70 border-gray-800 backdrop-blur-sm rounded-lg">
-          <CardHeader className="space-y-6">
+          <CardHeader className="space-y-2">
             <div className="flex flex-col items-center justify-center text-center">
-              <div className="flex justify-center mb-4 w-full px-4 md:px-0">
-                <div className="flex flex-col sm:flex-row items-center gap-2 sm:space-x-4 sm:gap-0 max-w-max">
-                  <div className="flex-shrink-0 h-10 sm:h-12 w-auto aspect-square relative">
+              <div className="flex justify-center mb-2 w-full px-1">
+                <div className="flex flex-row items-center gap-2 sm:gap-3 w-full max-w-6xl">
+                  <div className="flex-shrink-0 h-10 sm:h-12 md:h-14 lg:h-14 xl:h-16 w-auto aspect-square relative">
                     <div className="animate-slow-rotate w-full h-full flex items-center">
-                      <div className="relative w-full h-10 sm:h-12">
+                      <div className="relative w-full h-10 sm:h-12 md:h-14 lg:h-14 xl:h-16">
                         <Image
                           src="/images/fullComboLogo.png"
                           alt="Full Combo Logo"
@@ -169,8 +169,8 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
-                  <div className="text-center">
-                    <h1 className="text-xl sm:text-4xl md:text-5xl font-bold gradient-rotate gradient-text-fix leading-tight">
+                  <div className="text-center flex-1">
+                    <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold gradient-rotate gradient-text-fix leading-normal">
                       Full Combo{' '}
                       <span className="inline-block">Bracket Challenge</span>
                     </h1>
@@ -180,16 +180,16 @@ export default function Home() {
               
               {/* Welcome message for logged in users */}
               {user && (
-                <div className="w-full text-center mb-6">
-                  <h2 className="text-lg font-semibold text-green-400 mb-2">
+                <div className="w-full text-center mb-1">
+                  <h2 className="text-xl sm:text-2xl font-semibold text-green-400 mb-0">
                     Welcome, {getDisplayName()}!
                   </h2>
-                  <p className="text-gray-300">Ready to make your predictions?</p>
+                  <p className="text-xs text-gray-300">Ready to make your predictions?</p>
                 </div>
               )}
             </div>
           </CardHeader>
-          <CardContent className="space-y-8">
+          <CardContent className="space-y-2">
             {/* Social Login Section - only show if not logged in */}
             {!user && (
               <div className="flex flex-col items-center space-y-2">
@@ -203,9 +203,6 @@ export default function Home() {
             )}
             
             {/* Game Selection */}
-            <div className="text-center mb-6">
-              <h2 className="text-lg sm:text-2xl font-bold text-white">Choose a Game</h2>
-            </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 gap-y-8 w-full max-w-md mx-auto">
               {tournaments.map((tournament) => {
                 const uiDetails = gameUiDetailsMap[tournament.name];
@@ -281,16 +278,19 @@ export default function Home() {
                     Admin Dashboard
                   </Button>
                 )}
-                <Button 
-                  onClick={handleLogout}
-                  variant="ghost"
-                  className="text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors rounded-lg"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  Log Out
-                </Button>
+                <div className="flex items-center justify-between w-full max-w-sm">
+                  <span className="text-sm text-gray-400">{user.email}</span>
+                  <Button 
+                    onClick={handleLogout}
+                    variant="ghost"
+                    className="text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors rounded-lg"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Log Out
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>
