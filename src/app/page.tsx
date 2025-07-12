@@ -171,10 +171,8 @@ export default function Home() {
                   </div>
                   <div className="text-center">
                     <h1 className="text-xl sm:text-4xl md:text-5xl font-bold gradient-rotate gradient-text-fix leading-tight">
-                      Full Combo
-                    </h1>
-                    <h1 className="text-xl sm:text-4xl md:text-5xl font-bold gradient-rotate gradient-text-fix leading-tight">
-                      Bracket Challenge
+                      Full Combo{' '}
+                      <span className="inline-block">Bracket Challenge</span>
                     </h1>
                   </div>
                 </div>
