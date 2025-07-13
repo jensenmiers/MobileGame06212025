@@ -23,6 +23,17 @@ export default function Home() {
   // Toggle to show/hide the text labels under each game icon
   const SHOW_TITLES = false;
 
+  // Helper function to generate synchronized border and background colors
+  const getStatusColors = (baseColor: string, hoverColor: string) => ({
+    border: `border-${baseColor} group-hover:border-${hoverColor}`,
+    background: `bg-${baseColor} group-hover:bg-${hoverColor}`
+  });
+
+  // Single definition for uniform corner roundness
+  const CORNER_RADIUS = 'rounded-xl';
+  const CORNER_RADIUS_TOP = 'rounded-t-xl'; // Top corners only
+  const CORNER_RADIUS_BOTTOM = 'rounded-b-xl'; // Bottom corners only
+
   // Helper function to dynamically calculate if predictions are open
   // PRIORITY: Results posted overrides cutoff time
   const arePredictionsOpen = (tournament: Tournament): boolean => {
@@ -125,7 +136,7 @@ export default function Home() {
       console.log('🔄 Starting logout process...');
       console.log('📋 Current user before logout:', user?.email);
       
-      await signOut();
+    await signOut();
       console.log('✅ SignOut called successfully');
       
       // Clear any local storage that might be caching auth state
@@ -233,34 +244,41 @@ export default function Home() {
 
                 // Determine tournament status for banner
                 let bannerText = '';
-                let bannerColor = '';
+                let statusColors = { border: '', background: '' };
                 
                 if (hasResults) {
                   // Tournament completed - has results
-                  bannerText = 'VIEW\nLEADERBOARD';
-                  bannerColor = 'bg-blue-600/80 hover:bg-blue-500/80';
+                  bannerText = 'VIEW RESULTS';
+                  statusColors = getStatusColors('blue-600/80', 'blue-400/90');
                 } else if (predictionsOpen) {
                   // Predictions still open
                   bannerText = 'MAKE\nPREDICTIONS';
-                  bannerColor = 'bg-green-600/80 hover:bg-green-500/80';
+                  statusColors = getStatusColors('green-600/80', 'green-400/90');
                 } else {
                   // Active tournament - no results, cutoff passed
                   bannerText = 'RESULTS\nPENDING';
-                  bannerColor = 'bg-yellow-600/80 hover:bg-yellow-500/80';
+                  statusColors = getStatusColors('yellow-600/80', 'yellow-400/90');
                 }
 
                 return (
                   <div key={tournament.id} className="flex flex-col items-center">
                     <button
                       onClick={() => handleGameSelect(uiDetails.slug)}
-                      className={`relative transition-all cursor-pointer hover:scale-105 ${SHOW_TITLES ? 'mb-2' : ''}`}
+                      className={`relative transition-all duration-300 cursor-pointer hover:scale-105 hover:shadow-lg hover:shadow-black/50 group border ${statusColors.border} ${CORNER_RADIUS} overflow-hidden ${SHOW_TITLES ? 'mb-2' : ''}`}
+                      style={{ 
+                        transition: 'all 0.3s ease-in-out, border-color 0.3s ease-in-out',
+                        backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden',
+                        willChange: 'transform',
+                        WebkitFontSmoothing: 'antialiased'
+                      }}
                     >
                       <div className="relative w-[8.4rem] h-[8.4rem]">
                         <Image
                           src={uiDetails.imageUrl}
                           alt={tournament.name}
                           fill
-                          className={`rounded-lg ${
+                          className={`${CORNER_RADIUS_TOP} transition-all duration-300 group-hover:brightness-110 ${
                             tournament.name === 'Dragon Ball FighterZ' || tournament.name === 'Tekken 8' || tournament.name === 'Mortal Kombat 1' || tournament.name === 'Guilty Gear Strive'
                               ? 'object-cover' 
                               : 'object-contain'
@@ -279,14 +297,12 @@ export default function Home() {
                           priority
                         />
                       </div>
-                    </button>
-                    
-                    {/* Status banner positioned below the image */}
-                    <div className="mt-0 w-full flex justify-center">
-                      <span className={`text-white text-xs font-bold text-center px-3 py-2 rounded-lg ${bannerColor}`}>
+                      
+                      {/* Status banner positioned below the image within the same button */}
+                      <span className={`text-white text-xs font-bold text-center py-2 w-full block transition-all duration-300 group-hover:brightness-125 ${statusColors.background}`}>
                         {bannerText}
                       </span>
-                    </div>
+                    </button>
                     
                     {SHOW_TITLES && (<span className="text-white text-sm">{uiDetails.title}</span>)}
                   </div>
@@ -312,16 +328,16 @@ export default function Home() {
                 )}
                 <div className="flex items-center justify-between w-full max-w-sm">
                   <span className="text-sm text-gray-400">{user.email}</span>
-                  <Button 
-                    onClick={handleLogout}
-                    variant="ghost"
-                    className="text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors rounded-lg"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    Log Out
-                  </Button>
+                <Button 
+                  onClick={handleLogout}
+                  variant="ghost"
+                  className="text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors rounded-lg"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Log Out
+                </Button>
                 </div>
               </div>
             )}
