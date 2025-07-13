@@ -24,10 +24,30 @@ export default function Home() {
   const SHOW_TITLES = false;
 
   // Helper function to generate synchronized border and background colors
-  const getStatusColors = (baseColor: string, hoverColor: string) => ({
-    border: `border-${baseColor} group-hover:border-${hoverColor}`,
-    background: `bg-${baseColor} group-hover:bg-${hoverColor}`
-  });
+  const getStatusColors = (status: 'results' | 'predictions' | 'pending') => {
+    switch (status) {
+      case 'results':
+        return {
+          border: 'border-blue-600/80 group-hover:border-blue-400/90',
+          background: 'bg-blue-600/80 group-hover:bg-blue-400/90'
+        };
+      case 'predictions':
+        return {
+          border: 'border-green-600/80 group-hover:border-green-400/90',
+          background: 'bg-green-600/80 group-hover:bg-green-400/90'
+        };
+      case 'pending':
+        return {
+          border: 'border-yellow-600/80 group-hover:border-yellow-400/90',
+          background: 'bg-yellow-600/80 group-hover:bg-yellow-400/90'
+        };
+      default:
+        return {
+          border: 'border-gray-600/80 group-hover:border-gray-400/90',
+          background: 'bg-gray-600/80 group-hover:bg-gray-400/90'
+        };
+    }
+  };
 
   // Single definition for uniform corner roundness
   const CORNER_RADIUS = 'rounded-xl';
@@ -249,15 +269,15 @@ export default function Home() {
                 if (hasResults) {
                   // Tournament completed - has results
                   bannerText = 'VIEW RESULTS';
-                  statusColors = getStatusColors('blue-600/80', 'blue-400/90');
+                  statusColors = getStatusColors('results');
                 } else if (predictionsOpen) {
                   // Predictions still open
                   bannerText = 'MAKE\nPREDICTIONS';
-                  statusColors = getStatusColors('green-600/80', 'green-400/90');
+                  statusColors = getStatusColors('predictions');
                 } else {
                   // Active tournament - no results, cutoff passed
                   bannerText = 'RESULTS\nPENDING';
-                  statusColors = getStatusColors('yellow-600/80', 'yellow-400/90');
+                  statusColors = getStatusColors('pending');
                 }
 
                 return (
