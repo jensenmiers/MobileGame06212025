@@ -130,7 +130,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Add signOut function
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      console.log('🔄 AuthContext: Starting signOut...');
+      
+      // Sign out from Supabase (scope: 'global' clears all sessions)
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      if (error) {
+        console.error('❌ AuthContext: Supabase signOut error:', error);
+        throw error;
+      }
+      
+      console.log('✅ AuthContext: Supabase signOut successful');
+      
+      // Force clear the session state immediately
+      setSession(null);
+      setRole(null);
+      setLoading(false);
+      
+      console.log('✅ AuthContext: Local state cleared');
+      
+    } catch (error) {
+      console.error('❌ AuthContext: Failed to sign out:', error);
+      // Even if there's an error, clear local state
+      setSession(null);
+      setRole(null);
+      setLoading(false);
+      throw error;
+    }
   };
 
   const value = {

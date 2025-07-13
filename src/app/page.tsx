@@ -121,9 +121,26 @@ export default function Home() {
   };
 
   const handleLogout = async () => {
-    await signOut();
-    // Redirect to clean main page
-    router.push('/');
+    try {
+      console.log('🔄 Starting logout process...');
+      console.log('📋 Current user before logout:', user?.email);
+      
+      await signOut();
+      console.log('✅ SignOut called successfully');
+      
+      // Clear any local storage that might be caching auth state
+      localStorage.removeItem('supabase.auth.token');
+      localStorage.removeItem('sb-' + process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split('.')[0] + '-auth-token');
+      
+      // Force a complete page reload to ensure clean state
+      console.log('🔄 Forcing page reload...');
+      window.location.href = '/';
+      
+    } catch (error) {
+      console.error('❌ Logout failed:', error);
+      // Still try to redirect even if there's an error
+      window.location.href = '/';
+    }
   };
 
   // Get display name from user metadata
@@ -192,7 +209,7 @@ export default function Home() {
           <CardContent className="space-y-2">
             {/* Social Login Section - only show if not logged in */}
             {!user && (
-              <div className="flex flex-col items-center space-y-2">
+              <div className="flex flex-col items-center space-y-2 mb-6">
                 <div className="text-center">
                   <h2 className="text-lg sm:text-2xl font-bold text-white mb-2">
                     Sign in to create predictions
