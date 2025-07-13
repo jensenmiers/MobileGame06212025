@@ -192,7 +192,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white flex flex-col items-center justify-start p-2 pt-2 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white flex flex-col items-center justify-start p-3 pt-3 relative overflow-hidden">
       {/* Simplified background elements */}
       <div className="fixed inset-0 -z-10">
         <div className="absolute -right-40 -bottom-40 w-96 h-96 bg-green-500/10 filter blur-3xl animate-pulse"></div>
@@ -200,9 +200,9 @@ export default function Home() {
 
       <div className="w-full max-w-6xl mx-auto">
         <Card className="bg-black/70 border-gray-800 backdrop-blur-sm rounded-lg">
-          <CardHeader className="space-y-2">
+          <CardHeader className="space-y-1 pb-2">
             <div className="flex flex-col items-center justify-center text-center">
-              <div className="flex justify-center mb-2 w-full px-1">
+              <div className="flex justify-center mb-1 w-full px-1">
                 <div className="flex flex-row items-center gap-2 sm:gap-3 w-full max-w-6xl">
                   <div className="flex-shrink-0 h-10 sm:h-12 md:h-14 lg:h-14 xl:h-16 w-auto aspect-square relative">
                     <div className="animate-slow-rotate w-full h-full flex items-center">
@@ -237,10 +237,10 @@ export default function Home() {
               )}
             </div>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-2 px-3 pt-1 pb-2">
             {/* Social Login Section - only show if not logged in */}
             {!user && (
-              <div className="flex flex-col items-center space-y-2 mb-6">
+              <div className="flex flex-col items-center space-y-2 mb-2">
                 <div className="text-center">
                   <h2 className="text-lg sm:text-2xl font-bold text-white mb-2">
                     Sign in to create predictions
@@ -251,7 +251,7 @@ export default function Home() {
             )}
             
             {/* Game Selection */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 gap-y-8 w-full max-w-md mx-auto">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-2xl mx-auto">
               {tournaments.map((tournament) => {
                 const uiDetails = gameUiDetailsMap[tournament.name];
                 if (!uiDetails) return null; // Don't render if no UI details are mapped
