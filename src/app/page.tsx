@@ -260,7 +260,22 @@ export default function Home() {
                           src={uiDetails.imageUrl}
                           alt={tournament.name}
                           fill
-                          className="object-contain rounded-lg"
+                          className={`rounded-lg ${
+                            tournament.name === 'Dragon Ball FighterZ' || tournament.name === 'Tekken 8' || tournament.name === 'Mortal Kombat 1' || tournament.name === 'Guilty Gear Strive'
+                              ? 'object-cover' 
+                              : 'object-contain'
+                          }`}
+                          style={
+                            tournament.name === 'Dragon Ball FighterZ' 
+                              ? { objectPosition: 'center 12.5%' }
+                              : tournament.name === 'Tekken 8'
+                              ? { objectPosition: 'center 20.45%' }
+                              : tournament.name === 'Mortal Kombat 1'
+                              ? { objectPosition: 'center 50%' }
+                              : tournament.name === 'Guilty Gear Strive'
+                              ? { objectPosition: 'center 5.68%' }
+                              : undefined
+                          }
                           priority
                         />
                       </div>
