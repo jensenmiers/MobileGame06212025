@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
@@ -197,6 +197,46 @@ function TournamentCard({
     tournament.startgg_tournament_url ? extractTournamentName(tournament.startgg_tournament_url) : ''
   );
   const [predictionCount, setPredictionCount] = useState<number | null>(null);
+  const [showPredictionsModal, setShowPredictionsModal] = useState(false);
+  const [predictions, setPredictions] = useState<any[]>([]);
+  const [loadingPredictions, setLoadingPredictions] = useState(false);
+  const [predictionsError, setPredictionsError] = useState<string | null>(null);
+
+  // Add state for column widths
+  const [colWidths, setColWidths] = useState([
+    180, // Name
+    220, // Email
+    340, // Top 4 Slots
+    120, // Bonus
+  ]);
+  const draggingCol = useRef<number | null>(null);
+  const startX = useRef(0);
+  const startWidth = useRef(0);
+
+  // Handle drag start
+  const handleDragStart = (idx: number, e: React.MouseEvent<HTMLSpanElement>) => {
+    draggingCol.current = idx;
+    startX.current = e.clientX;
+    startWidth.current = colWidths[idx];
+    document.addEventListener('mousemove', handleDrag as any);
+    document.addEventListener('mouseup', handleDragEnd as any);
+  };
+  // Handle drag
+  const handleDrag = (e: MouseEvent) => {
+    if (draggingCol.current === null) return;
+    const delta = e.clientX - startX.current;
+    setColWidths(widths => {
+      const newWidths = [...widths];
+      newWidths[draggingCol.current as number] = Math.max(60, startWidth.current + delta);
+      return newWidths;
+    });
+  };
+  // Handle drag end
+  const handleDragEnd = () => {
+    draggingCol.current = null;
+    document.removeEventListener('mousemove', handleDrag as any);
+    document.removeEventListener('mouseup', handleDragEnd as any);
+  };
 
   // Update cutoff time only when tournament cutoff_time changes (no reload)
   useEffect(() => {
@@ -290,6 +330,28 @@ function TournamentCard({
       fetchPredictionCount();
     }
   }, [isExpanded, tournament.id]);
+
+  // Fetch predictions for modal
+  const fetchPredictions = async () => {
+    setLoadingPredictions(true);
+    setPredictionsError(null);
+    try {
+      const res = await fetch(`/api/tournaments/${tournament.id}/predictions`);
+      if (!res.ok) throw new Error('Failed to fetch predictions');
+      const data = await res.json();
+      setPredictions(data.predictions || []);
+    } catch (err: any) {
+      setPredictionsError(err.message || 'Unknown error');
+    } finally {
+      setLoadingPredictions(false);
+    }
+  };
+
+  // Open modal and fetch predictions
+  const handleShowPredictions = () => {
+    setShowPredictionsModal(true);
+    fetchPredictions();
+  };
 
   const findParticipantNameById = (participantId: string): string => {
     if (!participantId) return "";
@@ -601,19 +663,176 @@ function TournamentCard({
               }}
             />
           </div>
-          {/* Prediction count display: below cutoff, above 1st position */}
-          <div style={{
-            marginBottom: 16,
-            color: "#fff",
-            fontSize: 16,
-            fontWeight: 600,
-            background: "#003300",
-            borderRadius: 6,
-            padding: "8px 14px",
-            display: "inline-block"
-          }}>
-            {predictionCount === null ? 'Loading predictions...' : `${predictionCount} predictions currently submitted`}
+          {/* Prediction count and show predictions button row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12 }}>
+            <span style={{ color: '#fff', fontWeight: 600, fontSize: 16 }}>
+              {predictionCount === null ? 'Loading predictions...' : `${predictionCount} predictions currently submitted`}
+            </span>
+            <button
+              type="button"
+              style={{
+                background: '#222',
+                color: '#fff',
+                border: '1px solid #228B22',
+                borderRadius: 6,
+                padding: '6px 14px',
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'background 0.2s, color 0.2s',
+                marginLeft: 4
+              }}
+              onClick={handleShowPredictions}
+            >
+              Show Submitted Predictions
+            </button>
           </div>
+
+          {/* Predictions Modal */}
+          {showPredictionsModal && (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              background: 'rgba(0,0,0,0.85)',
+              zIndex: 1000,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <div style={{
+                background: '#181818',
+                borderRadius: 12,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                width: 'min(90vw, 900px)',
+                maxHeight: '80vh',
+                overflowY: 'auto',
+                padding: 32,
+                position: 'relative',
+                color: '#fff',
+                display: 'flex',
+                flexDirection: 'column',
+              }}>
+                {/* X button */}
+                <button
+                  onClick={() => setShowPredictionsModal(false)}
+                  style={{
+                    position: 'absolute',
+                    top: 16,
+                    right: 16,
+                    background: 'transparent',
+                    color: '#fff',
+                    border: 'none',
+                    fontSize: 28,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+                <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 18, textAlign: 'center' }}>
+                  Submitted Predictions
+                </h2>
+                {loadingPredictions ? (
+                  <div style={{ textAlign: 'center', fontSize: 18, margin: '32px 0' }}>Loading...</div>
+                ) : predictionsError ? (
+                  <div style={{ color: 'red', textAlign: 'center', margin: '32px 0' }}>{predictionsError}</div>
+                ) : (
+                  <>
+                    {/* Debug: Log predictions data */}
+                    {console.log("Predictions data:", predictions)}
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 24 }}>
+                      <thead>
+                        <tr style={{ borderBottom: '2px solid #228B22' }}>
+                          {['Name', 'Email', 'Top 4 Slots', 'Bonus'].map((label, idx) => (
+                            <th
+                              key={label}
+                              style={{
+                                padding: 8,
+                                textAlign: 'left',
+                                fontWeight: 700,
+                                position: 'relative',
+                                width: colWidths[idx],
+                                minWidth: 60,
+                                userSelect: 'none',
+                              }}
+                            >
+                              {label}
+                              <span
+                                style={{
+                                  position: 'absolute',
+                                  right: 0,
+                                  top: 0,
+                                  height: '100%',
+                                  width: 8,
+                                  cursor: 'col-resize',
+                                  zIndex: 2,
+                                  display: 'inline-block',
+                                }}
+                                onMouseDown={e => handleDragStart(idx, e)}
+                              />
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {predictions.length === 0 ? (
+                          <tr><td colSpan={4} style={{ textAlign: 'center' }}>No predictions submitted yet</td></tr>
+                        ) : (
+                          predictions.map((prediction, idx) => (
+                            <tr key={prediction.id || idx} style={{ background: idx % 2 === 0 ? '#333333' : '#181818' }}>
+                              <td style={{ width: colWidths[0], minWidth: 60 }}>{prediction.profiles?.display_name || "—"}</td>
+                              <td
+                                style={{
+                                  width: colWidths[1],
+                                  minWidth: 60,
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  maxWidth: colWidths[1],
+                                }}
+                                title={prediction.profiles?.email || undefined}
+                              >
+                                {prediction.profiles?.email || "—"}
+                              </td>
+                              <td style={{ width: colWidths[2], minWidth: 60 }}>{[
+                                getParticipantName(participants, prediction.slot_1_participant_id),
+                                getParticipantName(participants, prediction.slot_2_participant_id),
+                                getParticipantName(participants, prediction.slot_3_participant_id),
+                                getParticipantName(participants, prediction.slot_4_participant_id)
+                              ].filter(Boolean).join(", ")}</td>
+                              <td style={{ width: colWidths[3], minWidth: 60 }}>—</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </>
+                )}
+                <button
+                  onClick={() => setShowPredictionsModal(false)}
+                  style={{
+                    margin: '0 auto',
+                    marginTop: 12,
+                    background: '#228B22',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 6,
+                    padding: '12px 32px',
+                    fontSize: 18,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'block',
+                  }}
+                >
+                  Close Window
+                </button>
+              </div>
+            </div>
+          )}
           {loadingResults ? (
             <div style={{ color: "#aaa", textAlign: "center", padding: "20px" }}>
               Loading existing results...
@@ -783,6 +1002,13 @@ const TOURNAMENT_ABBREVIATIONS: Record<string, string> = {
   'Guilty Gear Strive': 'GGS',
   // Add more as needed
 };
+
+// Helper to map participant ID to name
+function getParticipantName(participants: Participant[], id: string): string {
+  if (!id) return "—";
+  const p = participants?.find(p => p.id === id);
+  return p?.name || id || "—";
+}
 
 export default function AdminDashboardPage() {
   const { user, role, loading } = useAuth();
