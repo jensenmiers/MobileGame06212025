@@ -196,6 +196,7 @@ function TournamentCard({
   const [currentTournamentName, setCurrentTournamentName] = useState(
     tournament.startgg_tournament_url ? extractTournamentName(tournament.startgg_tournament_url) : ''
   );
+  const [predictionCount, setPredictionCount] = useState<number | null>(null);
 
   // Update cutoff time only when tournament cutoff_time changes (no reload)
   useEffect(() => {
@@ -268,6 +269,27 @@ function TournamentCard({
       loadResults();
     }
   }, [participants, tournament.id, lastTournamentId]);
+
+  // Fetch prediction count when expanded
+  useEffect(() => {
+    async function fetchPredictionCount() {
+      try {
+        const response = await fetch(`/api/tournaments/${tournament.id}/predictions`);
+        if (response.ok) {
+          const data = await response.json();
+          // Assume API returns { count: number }
+          setPredictionCount(data.count ?? 0);
+        } else {
+          setPredictionCount(0);
+        }
+      } catch {
+        setPredictionCount(0);
+      }
+    }
+    if (isExpanded) {
+      fetchPredictionCount();
+    }
+  }, [isExpanded, tournament.id]);
 
   const findParticipantNameById = (participantId: string): string => {
     if (!participantId) return "";
@@ -553,24 +575,12 @@ function TournamentCard({
                 fontWeight: 600,
                 cursor: (syncingEntrants || !startggUrl.trim()) ? "not-allowed" : "pointer",
                 fontSize: 16,
-                minWidth: 120,
-                opacity: (syncingEntrants || !startggUrl.trim()) ? 0.6 : 1,
-                transition: "background 0.2s, opacity 0.2s"
-              }}
-              onMouseEnter={(e) => {
-                if (!syncingEntrants && startggUrl.trim()) {
-                  e.currentTarget.style.background = "#004400";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!syncingEntrants && startggUrl.trim()) {
-                  e.currentTarget.style.background = "#003300";
-                }
               }}
             >
-              {syncingEntrants ? "Syncing..." : "Update Entrants"}
+              {syncingEntrants ? "Updating..." : "Update Entrants"}
             </button>
           </div>
+          {/* Cutoff time input and other controls here... */}
           <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
             <label style={{ color: "#fff", fontWeight: 600, marginRight: 16, minWidth: 80, fontSize: 20 }}>
               Cutoff:
@@ -590,6 +600,19 @@ function TournamentCard({
                 boxSizing: "border-box"
               }}
             />
+          </div>
+          {/* Prediction count display: below cutoff, above 1st position */}
+          <div style={{
+            marginBottom: 16,
+            color: "#fff",
+            fontSize: 16,
+            fontWeight: 600,
+            background: "#003300",
+            borderRadius: 6,
+            padding: "8px 14px",
+            display: "inline-block"
+          }}>
+            {predictionCount === null ? 'Loading predictions...' : `${predictionCount} predictions currently submitted`}
           </div>
           {loadingResults ? (
             <div style={{ color: "#aaa", textAlign: "center", padding: "20px" }}>
@@ -751,12 +774,23 @@ function TournamentCard({
   );
 }
 
+// Add abbreviation mapping at the top of the file
+const TOURNAMENT_ABBREVIATIONS: Record<string, string> = {
+  'Tekken 8': 'TK8',
+  'Dragon Ball FighterZ': 'DBFZ',
+  'Mortal Kombat 1': 'MK1',
+  'Street Fighter 6': 'SF6',
+  'Guilty Gear Strive': 'GGS',
+  // Add more as needed
+};
+
 export default function AdminDashboardPage() {
   const { user, role, loading } = useAuth();
   const router = useRouter();
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [participants, setParticipants] = useState<Record<string, Participant[]>>({});
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedTab, setSelectedTab] = useState<number>(0); // index of selected tournament
+  const [hoveredTab, setHoveredTab] = useState<number | null>(null);
   const [loadingTournaments, setLoadingTournaments] = useState(true);
   const [loadingParticipants, setLoadingParticipants] = useState<Record<string, boolean>>({});
 
@@ -774,7 +808,6 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     const fetchTournaments = async () => {
       if (!user || role !== "admin") return;
-      
       try {
         setLoadingTournaments(true);
         const tournamentsData = await tournamentService.getTournaments();
@@ -785,45 +818,35 @@ export default function AdminDashboardPage() {
         setLoadingTournaments(false);
       }
     };
-
     fetchTournaments();
   }, [user, role]);
 
   // Fetch participants for a specific tournament
   const fetchParticipants = async (tournamentId: string, forceRefresh = false) => {
-    console.log(`🔍 [FETCH DEBUG] fetchParticipants called for tournament ${tournamentId}, forceRefresh: ${forceRefresh}`);
-    console.log(`🔍 [FETCH DEBUG] Current participants cache:`, participants[tournamentId]?.length || 0);
-    console.log(`🔍 [FETCH DEBUG] Currently loading:`, loadingParticipants[tournamentId] || false);
-    
     if (!forceRefresh && (participants[tournamentId] || loadingParticipants[tournamentId])) {
-      console.log(`🔍 [FETCH DEBUG] Skipping fetch - already loaded or loading`);
       return; // Already loaded or loading
     }
-
-    if (forceRefresh) {
-      console.log(`🔍 [FETCH DEBUG] Force refresh enabled - bypassing cache check`);
-    }
-
-    console.log(`🔍 [FETCH DEBUG] Starting fetch for tournament ${tournamentId}`);
     setLoadingParticipants(prev => ({ ...prev, [tournamentId]: true }));
-    
     try {
-      const startTime = Date.now();
       const participantsData = await tournamentService.getTournamentParticipants(tournamentId);
-      const fetchDuration = Date.now() - startTime;
-      
-      console.log(`🔍 [FETCH DEBUG] Fetch completed in ${fetchDuration}ms, got ${participantsData.length} participants`);
-      
       setParticipants(prev => ({ ...prev, [tournamentId]: participantsData }));
-      
-      console.log(`🔍 [FETCH DEBUG] State updated with ${participantsData.length} participants`);
     } catch (error) {
-      console.error('❌ [FETCH DEBUG] Error fetching participants:', error);
+      console.error('Error fetching participants:', error);
     } finally {
       setLoadingParticipants(prev => ({ ...prev, [tournamentId]: false }));
-      console.log(`🔍 [FETCH DEBUG] Fetch operation completed`);
     }
   };
+
+  // Fetch participants for selected tournament when tab changes
+  useEffect(() => {
+    if (tournaments.length > 0) {
+      const selectedTournament = tournaments[selectedTab];
+      if (selectedTournament) {
+        fetchParticipants(selectedTournament.id, false);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTab, tournaments.length]);
 
   if (loading) {
     return (
@@ -843,80 +866,7 @@ export default function AdminDashboardPage() {
 
   if (!user || role !== "admin") return null;
 
-  // Accordion logic: only one expanded at a time
-  const handleExpand = (id: string) => {
-    if (expandedId === id) {
-      setExpandedId(null);
-    } else {
-      setExpandedId(id);
-      fetchParticipants(id, false); // Load participants when expanding (normal cache behavior)
-    }
-  };
-
-  const handleLockToggle = async (tournamentId: string) => {
-    console.log('🔄 Toggle clicked for tournament:', tournamentId);
-    
-    const tournament = tournaments.find(t => t.id === tournamentId);
-    if (!tournament) {
-      console.error('❌ Tournament not found:', tournamentId);
-      return;
-    }
-
-    try {
-      const isCurrentlyLocked = arePredictionsLocked(tournament);
-      const now = new Date();
-      
-      console.log('🔒 Current lock status:', isCurrentlyLocked ? 'LOCKED' : 'UNLOCKED');
-      
-      // If currently locked, unlock by setting cutoff 1 month from now
-      // If currently unlocked, lock by setting cutoff to now
-      const newCutoff = isCurrentlyLocked 
-        ? (() => {
-            const oneMonthFromNow = new Date(now);
-            oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
-            return oneMonthFromNow.toISOString();
-          })() // 1 month from now
-        : now.toISOString(); // Now (locks immediately)
-
-      console.log('⏰ New cutoff time:', newCutoff);
-      console.log('🌐 Making API request to:', `/api/tournaments/${tournamentId}`);
-
-      const response = await fetch(`/api/tournaments/${tournamentId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cutoff_time: newCutoff })
-      });
-
-      console.log('📡 API Response status:', response.status);
-      
-      if (response.ok) {
-        console.log('✅ Toggle successful - updating local state');
-        // Update local state
-        setTournaments(prev =>
-          prev.map(t =>
-            t.id === tournamentId ? { ...t, cutoff_time: newCutoff } : t
-          )
-        );
-      } else {
-        const errorText = await response.text();
-        console.error('❌ API Error:', response.status, errorText);
-        alert(`Failed to toggle lock status: ${response.status} - ${errorText}`);
-      }
-    } catch (error) {
-      console.error('❌ Network/JavaScript Error:', error);
-      alert(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  };
-
-  const handleSaveResults = (tournamentId: string, cutoff: string, results: string[]) => {
-    // Update local tournament state
-    setTournaments(prev =>
-      prev.map(t =>
-        t.id === tournamentId ? { ...t, cutoff_time: cutoff } : t
-      )
-    );
-  };
-
+  // Tabbed navigation UI
   return (
     <div
       style={{
@@ -931,7 +881,66 @@ export default function AdminDashboardPage() {
       <h1 style={{ color: "#fff", textAlign: "center", marginBottom: 32, fontSize: 32, letterSpacing: 2, fontWeight: 900 }}>
         Administrator Portal
       </h1>
-      <div style={{ maxWidth: 600, margin: "0 auto" }}>
+      <div style={{ maxWidth: 800, margin: "0 auto" }}>
+        {/* Tabs */}
+        <div style={{ display: "flex", borderBottom: "2px solid #228B22", marginBottom: 24, position: 'relative' }}>
+          {tournaments.map((tournament, idx) => (
+            <div key={tournament.id} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <button
+                onMouseEnter={() => setHoveredTab(idx)}
+                onMouseLeave={() => setHoveredTab(null)}
+                onFocus={() => setHoveredTab(idx)}
+                onBlur={() => setHoveredTab(null)}
+                onClick={() => setSelectedTab(idx)}
+                style={{
+                  background:
+                    selectedTab === idx
+                      ? "#003300"
+                      : hoveredTab === idx
+                        ? "#2a2a2a"
+                        : "#181818",
+                  color: selectedTab === idx ? "#fff" : "#ccc",
+                  border: "none",
+                  borderBottom: selectedTab === idx ? "4px solid #228B22" : "4px solid transparent",
+                  fontWeight: 700,
+                  fontSize: 18,
+                  padding: "4px 32px",
+                  cursor: "pointer",
+                  outline: "none",
+                  transition: "background 0.2s, color 0.2s, border-bottom 0.2s",
+                  borderTopLeftRadius: 6,
+                  borderTopRightRadius: 6,
+                }}
+              >
+                {TOURNAMENT_ABBREVIATIONS[tournament.name] || tournament.name.slice(0, 4).toUpperCase()}
+              </button>
+              {/* Floating tooltip for full name */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '-2.5em',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  background: '#222',
+                  color: '#fff',
+                  padding: '6px 18px',
+                  borderRadius: 8,
+                  fontSize: 16,
+                  fontWeight: 700,
+                  whiteSpace: 'nowrap',
+                  boxShadow: '0 2px 8px #0008',
+                  opacity: hoveredTab === idx ? 1 : 0,
+                  pointerEvents: 'none',
+                  zIndex: 10,
+                  transition: 'opacity 0.2s',
+                }}
+              >
+                {tournament.name}
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Card for selected tournament */}
         {loadingTournaments ? (
           <div style={{ color: "#aaa", textAlign: "center", padding: "40px" }}>
             <div style={{ fontSize: 18 }}>Loading tournaments...</div>
@@ -941,35 +950,18 @@ export default function AdminDashboardPage() {
             <div style={{ fontSize: 18 }}>No tournaments found</div>
           </div>
         ) : (
-          tournaments.map(tournament => (
-            <TournamentCard
-              key={tournament.id}
-              tournament={tournament}
-              participants={participants[tournament.id] || []}
-              isExpanded={expandedId === tournament.id}
-              onExpand={() => handleExpand(tournament.id)}
-              onLockToggle={() => handleLockToggle(tournament.id)}
-              onSaveResults={(cutoff, results) => handleSaveResults(tournament.id, cutoff, results)}
-              onRefreshParticipants={() => {
-                console.log(`🔄 [REFRESH DEBUG] onRefreshParticipants called for tournament ${tournament.id}`);
-                console.log(`🔄 [REFRESH DEBUG] Current participants before refresh:`, participants[tournament.id]?.length || 0);
-                
-                // Clear cache and force refresh immediately without waiting for state update
-                setParticipants(prev => {
-                  const updated = { ...prev };
-                  delete updated[tournament.id];
-                  console.log(`🔄 [REFRESH DEBUG] Cache cleared for tournament ${tournament.id}`);
-                  return updated;
-                });
-                
-                // Force refresh immediately - don't wait for state update or rely on cache
-                console.log(`🔄 [REFRESH DEBUG] Calling fetchParticipants with forceRefresh=true`);
-                fetchParticipants(tournament.id, true);
-              }}
-              loading={loadingParticipants[tournament.id]}
-              currentUserId={user?.id}
-            />
-          ))
+          <TournamentCard
+            key={tournaments[selectedTab].id}
+            tournament={tournaments[selectedTab]}
+            participants={participants[tournaments[selectedTab].id] || []}
+            isExpanded={true}
+            onExpand={() => {}}
+            onLockToggle={() => {}}
+            onSaveResults={(cutoff, results) => {}}
+            onRefreshParticipants={() => fetchParticipants(tournaments[selectedTab].id, true)}
+            loading={loadingParticipants[tournaments[selectedTab].id]}
+            currentUserId={user?.id}
+          />
         )}
       </div>
       <button
