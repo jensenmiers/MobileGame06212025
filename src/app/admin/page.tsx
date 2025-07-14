@@ -664,8 +664,8 @@ function TournamentCard({
             />
           </div>
           {/* Prediction count and show predictions button row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12 }}>
-            <span style={{ color: '#fff', fontWeight: 600, fontSize: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+            <span style={{ color: '#fff', fontWeight: 600, fontSize: 20 }}>
               {predictionCount === null ? 'Loading predictions...' : `${predictionCount} predictions currently submitted`}
             </span>
             <button
@@ -675,8 +675,8 @@ function TournamentCard({
                 color: '#fff',
                 border: '1px solid #228B22',
                 borderRadius: 6,
-                padding: '6px 14px',
-                fontSize: 15,
+                padding: '12px 20px',
+                fontSize: 18,
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'background 0.2s, color 0.2s',
