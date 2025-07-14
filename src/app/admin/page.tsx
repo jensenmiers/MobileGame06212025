@@ -196,6 +196,7 @@ function TournamentCard({
   const [currentTournamentName, setCurrentTournamentName] = useState(
     tournament.startgg_tournament_url ? extractTournamentName(tournament.startgg_tournament_url) : ''
   );
+  const [predictionCount, setPredictionCount] = useState<number | null>(null);
 
   // Update cutoff time only when tournament cutoff_time changes (no reload)
   useEffect(() => {
@@ -268,6 +269,27 @@ function TournamentCard({
       loadResults();
     }
   }, [participants, tournament.id, lastTournamentId]);
+
+  // Fetch prediction count when expanded
+  useEffect(() => {
+    async function fetchPredictionCount() {
+      try {
+        const response = await fetch(`/api/tournaments/${tournament.id}/predictions`);
+        if (response.ok) {
+          const data = await response.json();
+          // Assume API returns { count: number }
+          setPredictionCount(data.count ?? 0);
+        } else {
+          setPredictionCount(0);
+        }
+      } catch {
+        setPredictionCount(0);
+      }
+    }
+    if (isExpanded) {
+      fetchPredictionCount();
+    }
+  }, [isExpanded, tournament.id]);
 
   const findParticipantNameById = (participantId: string): string => {
     if (!participantId) return "";
@@ -558,19 +580,7 @@ function TournamentCard({
               {syncingEntrants ? "Updating..." : "Update Entrants"}
             </button>
           </div>
-          {/* Entrant count display - visually distinct, below update row */}
-          <div style={{
-            marginBottom: 16,
-            color: "#fff",
-            fontSize: 16,
-            fontWeight: 600,
-            background: "#003300",
-            borderRadius: 6,
-            padding: "8px 14px",
-            display: "inline-block"
-          }}>
-            {participants.length} entrants currently loaded
-          </div>
+          {/* Cutoff time input and other controls here... */}
           <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
             <label style={{ color: "#fff", fontWeight: 600, marginRight: 16, minWidth: 80, fontSize: 20 }}>
               Cutoff:
@@ -590,6 +600,19 @@ function TournamentCard({
                 boxSizing: "border-box"
               }}
             />
+          </div>
+          {/* Prediction count display: below cutoff, above 1st position */}
+          <div style={{
+            marginBottom: 16,
+            color: "#fff",
+            fontSize: 16,
+            fontWeight: 600,
+            background: "#003300",
+            borderRadius: 6,
+            padding: "8px 14px",
+            display: "inline-block"
+          }}>
+            {predictionCount === null ? 'Loading predictions...' : `${predictionCount} predictions currently submitted`}
           </div>
           {loadingResults ? (
             <div style={{ color: "#aaa", textAlign: "center", padding: "20px" }}>
