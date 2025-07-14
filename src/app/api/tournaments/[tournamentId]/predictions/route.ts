@@ -29,7 +29,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       query = query.eq('user_id', userId)
     }
 
-    const { data: predictions, error } = await query.order('created_at', { ascending: false })
+    // Fetch predictions with user profile info (display_name and email)
+    const { data: predictions, error } = await database
+      .from('predictions')
+      .select(`*, profiles:profiles (display_name, email)`)
+      .eq('tournament_id', tournamentId);
 
     if (error) {
       console.error('Error fetching predictions:', error)
@@ -39,6 +43,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       )
     }
 
+    // Return the full predictions array with all relevant fields
+    // If using Supabase, ensure you select all needed columns
     return NextResponse.json({ predictions: predictions || [] })
   } catch (error) {
     console.error('Unexpected error in GET /api/tournaments/[id]/predictions:', error)
