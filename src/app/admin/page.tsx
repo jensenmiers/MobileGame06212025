@@ -602,7 +602,10 @@ function TournamentCard({
           {/* Entrants Count and Tournament Name */}
           {(participants.length > 0 || currentTournamentName) && (
             <div style={{ marginBottom: 12, color: "#ccc", fontSize: 16 }}>
-              {participants.length} entrants currently added{currentTournamentName ? ` from ${currentTournamentName}` : ''}
+              <span style={{ color: '#fff', fontWeight: 700, background: '#003300', borderRadius: 6, padding: '2px 8px', marginRight: 4 }}>
+                {participants.length} entrants
+              </span>
+              {currentTournamentName ? `currently added from ${currentTournamentName}` : 'currently added'}
             </div>
           )}
           
@@ -840,7 +843,7 @@ function TournamentCard({
           ) : (
             [0, 1, 2, 3].map(i => (
               <div key={i} style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
-                <label style={{ color: "#fff", fontWeight: 600, marginRight: 16, minWidth: 80, fontSize: 24 }}>
+                <label style={{ color: "#fff", fontWeight: 600, marginRight: 0, minWidth: 80, fontSize: 20 }}>
                   {getOrdinal(i + 1)}:
                 </label>
                 <select
@@ -875,7 +878,7 @@ function TournamentCard({
           {/* Bracket Reset Section */}
           {!loadingResults && (
             <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
-              <label style={{ color: "#fff", fontWeight: 600, marginRight: 16, minWidth: 80, fontSize: 24 }}>
+              <label style={{ color: "#fff", fontWeight: 600, marginRight: 28, minWidth: 80, fontSize: 20 }}>
                 Bracket:
               </label>
               <select
@@ -891,7 +894,7 @@ function TournamentCard({
                   borderRadius: 6,
                   padding: "12px 16px",
                   fontSize: 18,
-                  width: "75%",
+                  width: "100%",
                   boxSizing: "border-box"
                 }}
               >
@@ -906,7 +909,7 @@ function TournamentCard({
           {/* Grand Finals Score Section */}
           {!loadingResults && (
             <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
-              <label style={{ color: "#fff", fontWeight: 600, marginRight: 16, minWidth: 80, fontSize: 24 }}>
+              <label style={{ color: "#fff", fontWeight: 600, marginRight: 16, minWidth: 80, fontSize: 20 }}>
                 Score:
               </label>
               <select
@@ -922,7 +925,7 @@ function TournamentCard({
                   borderRadius: 6,
                   padding: "12px 16px",
                   fontSize: 18,
-                  width: "75%",
+                  width: "100%",
                   boxSizing: "border-box"
                 }}
               >
