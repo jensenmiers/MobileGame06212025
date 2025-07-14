@@ -82,33 +82,6 @@ function LockToggle({ locked, onToggle }: { locked: boolean; onToggle: () => voi
   );
 }
 
-function EditViewButton({ onClick }: { onClick: (e: React.MouseEvent) => void }) {
-  return (
-    <button
-      onClick={e => { e.stopPropagation(); onClick(e); }}
-      style={{
-        background: "#003300",
-        color: "#fff",
-        border: "1px solid #228B22",
-        borderRadius: 10,
-        padding: "0 20px",
-        cursor: "pointer",
-        fontSize: 16,
-        fontWeight: 600,
-        lineHeight: 1.2,
-        height: 50,
-        width: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        whiteSpace: "nowrap"
-      }}
-    >
-      Edit/View Results
-    </button>
-  );
-}
-
 function InlineMessage({ message, type }: { message: string; type: "success" | "error" }) {
   return (
     <div
@@ -567,7 +540,7 @@ function TournamentCard({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) 220px 180px",
+          gridTemplateColumns: "1fr 220px 180px",
           alignItems: "center",
           gap: "20px",
           padding: "20px 28px",
@@ -580,12 +553,16 @@ function TournamentCard({
       >
         <span style={{ 
           color: "#fff", 
-          lineHeight: 1.2
+          lineHeight: 1.2,
+          gridColumn: '1 / span 3',
+          textAlign: 'center',
+          width: '100%',
+          fontSize: '2.5rem',
+          fontWeight: 900
         }}>
           {tournament.name}
         </span>
-        <LockToggle locked={isLocked} onToggle={onLockToggle} />
-        <EditViewButton onClick={onExpand} />
+        {/* Removed LockToggle from header */}
       </div>
       {isExpanded && (
         <form
@@ -645,8 +622,9 @@ function TournamentCard({
               {syncingEntrants ? "Updating..." : "Update Entrants"}
             </button>
           </div>
+          <hr style={{ border: 0, borderTop: '1px solid #228B22', height: 1, margin: '16px 0', marginLeft: -24, marginRight: -24, width: 'calc(100% + 48px)' }} />
           {/* Cutoff time input and other controls here... */}
-          <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 16, gap: 24 }}>
             <label style={{ color: "#fff", fontWeight: 600, marginRight: 16, minWidth: 80, fontSize: 20 }}>
               Cutoff:
             </label>
@@ -665,6 +643,9 @@ function TournamentCard({
                 boxSizing: "border-box"
               }}
             />
+            <span style={{ marginLeft: 12 }}>
+              <LockToggle locked={isLocked} onToggle={onLockToggle} />
+            </span>
           </div>
           {/* Prediction count and show predictions button row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
@@ -690,6 +671,7 @@ function TournamentCard({
               Show Submitted Predictions
             </button>
           </div>
+          <hr style={{ border: 0, borderTop: '1px solid #228B22', height: 1, margin: '16px 0', marginLeft: -24, marginRight: -24, width: 'calc(100% + 48px)' }} />
 
           {/* Predictions Modal */}
           {showPredictionsModal && (
