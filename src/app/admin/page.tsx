@@ -1109,7 +1109,17 @@ export default function AdminDashboardPage() {
       </h1>
       <div style={{ maxWidth: 800, margin: "0 auto" }}>
         {/* Tabs */}
-        <div style={{ display: "flex", borderBottom: "2px solid #228B22", marginBottom: 24, position: 'relative' }}>
+        <div
+          style={{
+            display: "flex",
+            borderBottom: "2px solid #228B22",
+            marginBottom: 24,
+            position: 'sticky',
+            top: 0,
+            zIndex: 10,
+            background: '#181818',
+            boxShadow: '0 2px 8px 0 rgba(0,0,0,0.18)',
+          }}>
           {tournaments.map((tournament, idx) => (
             <div key={tournament.id} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <button
@@ -1190,29 +1200,27 @@ export default function AdminDashboardPage() {
           />
         )}
       </div>
-      <button
-        style={{
-          position: "fixed",
-          bottom: 24,
-          left: "50%",
-          transform: "translateX(-50%)",
-          background: "#003300",
-          color: "#fff",
-          border: "2px solid #fff",
-          borderRadius: 12,
-          padding: "12px 48px",
-          fontSize: 20,
-          fontWeight: 700,
-          letterSpacing: 1,
-          cursor: "pointer",
-          zIndex: 100
-        }}
-        onClick={() => {
-          window.location.href = "/";
-        }}
-      >
-        Back to Homepage
-      </button>
+      {/* Move the button here as a regular element, not fixed */}
+      <div style={{ display: "flex", justifyContent: "center", marginTop: 48, marginBottom: 24 }}>
+        <button
+          style={{
+            background: "#003300",
+            color: "#fff",
+            border: "2px solid #fff",
+            borderRadius: 12,
+            padding: "12px 48px",
+            fontSize: 20,
+            fontWeight: 700,
+            letterSpacing: 1,
+            cursor: "pointer",
+          }}
+          onClick={() => {
+            window.location.href = "/";
+          }}
+        >
+          Back to Homepage
+        </button>
+      </div>
     </div>
   );
 } 
