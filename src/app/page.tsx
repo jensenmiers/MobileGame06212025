@@ -237,10 +237,10 @@ export default function Home() {
               )}
             </div>
           </CardHeader>
-          <CardContent className="space-y-2 px-3 pt-1 pb-2">
+          <CardContent className="space-y-2 px-3 pt-0 pb-2">
             {/* Social Login Section - only show if not logged in */}
             {!user && (
-              <div className="flex flex-col items-center space-y-2 mb-2">
+              <div className="flex flex-col items-center space-y-2 mb-6">
                 <div className="text-center">
                   <h2 className="text-lg sm:text-2xl font-bold text-white mb-2">
                     Sign in to create predictions
