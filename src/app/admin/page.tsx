@@ -553,23 +553,23 @@ function TournamentCard({
                 fontWeight: 600,
                 cursor: (syncingEntrants || !startggUrl.trim()) ? "not-allowed" : "pointer",
                 fontSize: 16,
-                minWidth: 120,
-                opacity: (syncingEntrants || !startggUrl.trim()) ? 0.6 : 1,
-                transition: "background 0.2s, opacity 0.2s"
-              }}
-              onMouseEnter={(e) => {
-                if (!syncingEntrants && startggUrl.trim()) {
-                  e.currentTarget.style.background = "#004400";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!syncingEntrants && startggUrl.trim()) {
-                  e.currentTarget.style.background = "#003300";
-                }
               }}
             >
-              {syncingEntrants ? "Syncing..." : "Update Entrants"}
+              {syncingEntrants ? "Updating..." : "Update Entrants"}
             </button>
+          </div>
+          {/* Entrant count display - visually distinct, below update row */}
+          <div style={{
+            marginBottom: 16,
+            color: "#fff",
+            fontSize: 16,
+            fontWeight: 600,
+            background: "#003300",
+            borderRadius: 6,
+            padding: "8px 14px",
+            display: "inline-block"
+          }}>
+            {participants.length} entrants currently loaded
           </div>
           <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
             <label style={{ color: "#fff", fontWeight: 600, marginRight: 16, minWidth: 80, fontSize: 20 }}>
