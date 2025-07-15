@@ -1,38 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useParams, notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { gameUiDetailsMap } from "@/lib/game-utils";
 
 export default function RulesPage() {
-  const [tournamentTitle, setTournamentTitle] = useState<string>("");
-  const params = useParams();
-  const gameSlug = params.game as string;
-
-  const tournamentName = Object.keys(gameUiDetailsMap).find(
-    key => gameUiDetailsMap[key].slug === gameSlug
-  );
-
-  useEffect(() => {
-    if (!tournamentName) {
-      return notFound();
-    }
-    setTournamentTitle(tournamentName);
-  }, [tournamentName]);
-
-  if (!tournamentName) {
-    return null;
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white p-4">
       <div className="max-w-4xl mx-auto">
         {/* Back Button */}
         <div className="w-full mb-6">
           <Link 
-            href={`/?game=${gameSlug}`}
+            href="/"
             className="inline-flex items-center text-gray-300 hover:text-white transition-colors bg-gray-800/50 hover:bg-gray-700/50 px-4 py-2 rounded-lg"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -44,8 +22,8 @@ export default function RulesPage() {
         
         <div className="mb-8 text-center">
           <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-green-400">Rules & Scoring</h1>
-          <h2 className="text-xl sm:text-2xl font-bold mb-2 text-white">{tournamentTitle}</h2>
-          <p className="text-sm sm:text-base text-gray-300">Everything you need to know about the Bracket Master Challenge</p>
+          <h2 className="text-xl sm:text-2xl font-bold mb-2 text-white">Bracket Master Challenge</h2>
+          <p className="text-sm sm:text-base text-gray-300">Everything you need to know about tournament predictions</p>
         </div>
 
         {/* Basic Rules Section */}
@@ -319,11 +297,11 @@ export default function RulesPage() {
         <div className="text-center mb-8">
           <p className="text-lg sm:text-xl text-gray-300 mb-4">Ready to test your tournament prediction skills?</p>
           <Link 
-            href={`/${gameSlug}/prediction`}
+            href="/"
             className="inline-flex items-center bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg"
           >
             <span className="mr-2">🎮</span>
-            Start Your Prediction
+            Choose Your Tournament
           </Link>
         </div>
       </div>
