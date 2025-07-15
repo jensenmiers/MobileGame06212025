@@ -229,7 +229,7 @@ export default function Home() {
               {/* Welcome message for logged in users */}
               {user && (
                 <div className="w-full text-center mb-1">
-                  <h2 className="text-xl sm:text-2xl font-semibold text-green-400 mb-0">
+                  <h2 className="text-xl sm:text-2xl font-semibold text-white mb-0">
                     Welcome, {getDisplayName()}!
                   </h2>
                   <p className="text-xs text-gray-300">Ready to make your predictions?</p>
