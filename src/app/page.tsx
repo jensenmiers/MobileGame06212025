@@ -284,7 +284,7 @@ export default function Home() {
                   <div key={tournament.id} className="flex flex-col items-center">
                     <button
                       onClick={() => handleGameSelect(uiDetails.slug)}
-                      className={`relative transition-all duration-300 cursor-pointer hover:scale-105 hover:shadow-lg hover:shadow-black/50 group border ${statusColors.border} ${CORNER_RADIUS} overflow-hidden ${SHOW_TITLES ? 'mb-2' : ''}`}
+                      className={`relative transition-all duration-300 cursor-pointer hover:scale-105 hover:shadow-lg hover:shadow-black/50 group ${statusColors.border} ${CORNER_RADIUS} overflow-hidden ${SHOW_TITLES ? 'mb-2' : ''}`}
                       style={{ 
                         transition: 'all 0.3s ease-in-out, border-color 0.3s ease-in-out',
                         backfaceVisibility: 'hidden',
