@@ -1,17 +1,17 @@
 import { Prediction, TournamentResult } from '@/types/tournament';
 import { database } from '@/lib/database';
 
-// Base points for each position (1st to 4th) - Custom progression: 89, 144, 233, 377
-const POSITION_POINTS = [89, 144, 233, 377] as const;
+// Base points for each position (1st to 4th) - Scaled for 999 max: 431, 266, 165, 100
+const POSITION_POINTS = [431, 266, 165, 100] as const;
 
 // Proximity multipliers for different position accuracy
 const PROXIMITY_MULTIPLIERS = [1.0, 0.61, 0.41, 0.17] as const; // 100%, 61%, 41%, 17%
 
 // Points for correct bracket reset prediction
-const BRACKET_RESET_POINTS = 21;
+const BRACKET_RESET_POINTS = 24;
 
 // Points for correct grand finals score prediction  
-const GRAND_FINALS_SCORE_POINTS = 11;
+const GRAND_FINALS_SCORE_POINTS = 13;
 
 /**
  * Calculates the score for a single prediction based on actual results
