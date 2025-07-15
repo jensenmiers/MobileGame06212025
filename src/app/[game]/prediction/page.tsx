@@ -214,7 +214,7 @@ export default function PredictionPage() {
 
     try {
       await tournamentService.submitPrediction(predictionData);
-      setSubmissionMessage({ type: 'success', text: 'Prediction submitted successfully! You can update it until the top eight starts.' });
+      setSubmissionMessage({ type: 'success', text: 'Prediction submitted successfully! You can update it until the top 8 starts.' });
     } catch (error) {
       const err = error as Error;
       console.error('❌ Failed to submit prediction:', error);
