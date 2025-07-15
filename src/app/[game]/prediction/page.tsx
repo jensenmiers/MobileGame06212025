@@ -379,8 +379,7 @@ export default function PredictionPage() {
                 ? 'Log In to Submit' 
                 : isComplete ? (
                 <>
-                  <span>{existingPrediction ? 'Update Your Submission?' : 'Submit Predictions'}</span>
-                  <span className="text-yellow-300">🏆</span>
+                  <span>{existingPrediction ? 'Update Your Prediction' : 'Submit Predictions'}</span>
                 </>
               ) : (
                 'Select All Players to Continue'
@@ -430,49 +429,6 @@ export default function PredictionPage() {
             )}
           </div>
         )}
-      </div>
-
-      {/* Available Players */}
-      <div className="w-full max-w-2xl">
-        <div className="bg-black/70 backdrop-blur-sm p-6 border border-gray-800 rounded-none text-center">
-          <h2 className="text-2xl font-bold mb-4 text-transparent bg-clip-text gradient-rotate inline-block" 
-            style={{
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}>
-            {isPredictionsClosed ? 'Tournament Players' : 'Available Players'}
-          </h2>
-          <div className="flex flex-wrap gap-3 justify-center">
-            {!isPredictionsClosed && availablePlayers.length > 0 ? (
-              availablePlayers.map((player) => (
-                <button
-                  key={player.id}
-                  onClick={() => {
-                    const firstEmptyIndex = predictions.findIndex(p => p === null);
-                    if (firstEmptyIndex !== -1) {
-                      handleSlotFill(firstEmptyIndex, player);
-                    }
-                  }}
-                  className="px-4 py-2 bg-gray-900/80 hover:bg-gray-800/80 text-base text-white font-medium shadow-sm transition-colors border border-gray-800 rounded-none"
-                >
-                  {player.name}
-                </button>
-              ))
-            ) : !isPredictionsClosed && availablePlayers.length === 0 ? (
-              <p className="text-gray-300 italic text-lg">All players have been placed in the bracket</p>
-            ) : (
-              // Show all players when predictions are closed (read-only view)
-              players.map((player) => (
-                <div
-                  key={player.id}
-                  className="px-4 py-2 bg-gray-900/50 text-base text-gray-300 font-medium shadow-sm border border-gray-700 rounded-none"
-                >
-                  {player.name}
-                </div>
-              ))
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );
