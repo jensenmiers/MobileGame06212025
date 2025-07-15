@@ -60,7 +60,7 @@ export default function Slots({ predictions, onSlotFill, onSlotClear, availableP
           `}
         >
           <div className="flex items-center justify-between w-full gap-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 w-[4.25rem] min-w-[4.25rem] justify-start">
               <span className="text-2xl">{positionIcons[index]}</span>
               <div className="text-xl font-bold text-white">
                 {label}
@@ -73,20 +73,20 @@ export default function Slots({ predictions, onSlotFill, onSlotClear, availableP
               disabled={readonly}
             >
               <SelectTrigger 
-                className={`flex-1 bg-gray-800/80 border-2 text-white h-14 transition-all duration-300 rounded-lg ${
+                className={`w-full min-w-[160px] bg-gray-800/80 border-2 text-white h-14 transition-all duration-300 rounded-lg ${
                   readonly ? 'cursor-not-allowed opacity-70' : 'hover:bg-gray-700/90'
                 }`}
               >
                 <SelectValue 
                   placeholder={
-                    <span className="text-gray-300 text-base">
+                    <span className="text-gray-300 text-base truncate block w-full">
                       {readonly ? 'No prediction made' : 'Select a player...'}
                     </span>
                   } 
                 >
                   {predictions[index] && (
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg font-bold text-white">
+                    <div className="flex items-center gap-3 w-full truncate">
+                      <span className="text-lg font-bold text-white truncate block w-full">
                         {predictions[index]}
                       </span>
                     </div>
