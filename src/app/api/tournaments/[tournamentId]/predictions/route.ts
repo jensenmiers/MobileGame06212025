@@ -45,7 +45,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     // Return the full predictions array with all relevant fields
     // If using Supabase, ensure you select all needed columns
-    return NextResponse.json({ predictions: predictions || [] })
+    return NextResponse.json({ 
+      predictions: predictions || [],
+      count: (predictions || []).length
+    })
   } catch (error) {
     console.error('Unexpected error in GET /api/tournaments/[id]/predictions:', error)
     return NextResponse.json(
