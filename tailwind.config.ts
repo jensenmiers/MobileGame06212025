@@ -55,6 +55,10 @@ const config: Config = {
   			inter: [
   				'var(--font-inter)',
   				'sans-serif'
+  			],
+  			chakra: [
+  				'"Chakra Petch"',
+  				'sans-serif'
   			]
   		},
   		borderRadius: {
