@@ -297,11 +297,9 @@ export default function PredictionPage() {
           </h1>
         </div>
         <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-4 w-full text-white">
-          {tournamentTitle}
+          <span>Predict the top 4 players for</span><br />
+          <span className="block text-xl sm:text-2xl md:text-2xl lg:text-3xl font-bold text-yellow-400 mt-1">{tournamentTitle}</span>
         </h2>
-        <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-8 w-full">
-          Predict the top 4 players!
-        </p>
       </div>
 
       {/* Prediction Slots */}

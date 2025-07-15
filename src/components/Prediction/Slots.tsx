@@ -54,7 +54,7 @@ export default function Slots({ predictions, onSlotFill, onSlotClear, availableP
         <div
           key={index}
           className={`
-            p-4 border-2 transition-all duration-200 min-h-[70px] flex items-center rounded-lg
+            p-2 border-2 transition-all duration-200 min-h-[48px] flex items-center rounded-lg
             ${predictions[index] ? slotColors[index] : 'border-gray-600 bg-gray-800/50'}
             ${readonly ? 'opacity-80' : 'hover:brightness-110'}
           `}
@@ -119,16 +119,6 @@ export default function Slots({ predictions, onSlotFill, onSlotClear, availableP
               </SelectContent>
             </Select>
             
-            {predictions[index] && !readonly && (
-              <Button
-                onClick={() => onSlotClear(index)}
-                variant="outline"
-                size="sm"
-                className="ml-2 bg-red-600/30 border-red-500 text-white hover:bg-red-600/50 hover:text-white"
-              >
-                Clear
-              </Button>
-            )}
           </div>
         </div>
       ))}
