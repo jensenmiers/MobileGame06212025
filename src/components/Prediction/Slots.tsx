@@ -163,11 +163,19 @@ export default function Slots({ predictions, onSlotFill, onSlotClear, availableP
 
         {bonusExpanded && (
           <div className="border-t border-purple-500/20 p-3 bg-purple-900/5">
-            <div className="mb-3">
-              <h4 className="text-base font-semibold text-white">Grand Finals Bracket Reset</h4>
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <h4 className="text-base font-semibold text-white m-0 p-0">Grand Finals Bracket Reset</h4>
+              {bracketReset && !readonly && (
+                <button
+                  onClick={() => onBracketResetChange(null)}
+                  className="ml-2 px-2 py-0.5 text-xs text-purple-300 bg-transparent border border-purple-300 rounded hover:bg-purple-900/20 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1">
               <label className={`flex items-center gap-2 p-2 rounded transition-colors ${
                 readonly ? 'cursor-default opacity-70' : 'hover:bg-purple-900/20 cursor-pointer'
               }`}>
@@ -184,7 +192,7 @@ export default function Slots({ predictions, onSlotFill, onSlotClear, availableP
                 <span className="text-sm text-white">Upper bracket winner (no reset)</span>
               </label>
 
-              <label className={`flex items-center gap-2 p-2 rounded transition-colors ${
+              <label className={`flex items-center gap-2 py-1 px-2 rounded transition-colors ${
                 readonly ? 'cursor-default opacity-70' : 'hover:bg-purple-900/20 cursor-pointer'
               }`}>
                 <input
@@ -200,7 +208,7 @@ export default function Slots({ predictions, onSlotFill, onSlotClear, availableP
                 <span className="text-sm text-white">Upper bracket winner (with reset)</span>
               </label>
 
-              <label className={`flex items-center gap-2 p-2 rounded transition-colors ${
+              <label className={`flex items-center gap-2 py-1 px-2 rounded transition-colors ${
                 readonly ? 'cursor-default opacity-70' : 'hover:bg-purple-900/20 cursor-pointer'
               }`}>
                 <input
@@ -215,23 +223,23 @@ export default function Slots({ predictions, onSlotFill, onSlotClear, availableP
                 <span className="text-base">⚡</span>
                 <span className="text-sm text-white">Lower bracket winner</span>
               </label>
-
-              {bracketReset && !readonly && (
-                <button
-                  onClick={() => onBracketResetChange(null)}
-                  className="text-xs text-purple-300 hover:text-purple-200 underline mt-2"
-                >
-                  Clear selection
-                </button>
-              )}
             </div>
 
             {/* Grand Finals Score Section */}
             <div className="mt-6 pt-4 border-t border-purple-500/20">
-              <h4 className="text-base font-semibold text-white mb-3">Grand Finals Score</h4>
-              
-              <div className="space-y-2">
-                <label className={`flex items-center gap-2 p-2 rounded transition-colors ${
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <h4 className="text-base font-semibold text-white m-0 p-0">Grand Finals Score</h4>
+                {grandFinalsScore && !readonly && (
+                  <button
+                    onClick={() => onGrandFinalsScoreChange(null)}
+                    className="ml-2 px-2 py-0.5 text-xs text-purple-300 bg-transparent border border-purple-300 rounded hover:bg-purple-900/20 transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              <div className="space-y-1">
+                <label className={`flex items-center gap-2 py-1 px-2 rounded transition-colors ${
                   readonly ? 'cursor-default opacity-70' : 'hover:bg-purple-900/20 cursor-pointer'
                 }`}>
                   <input
@@ -247,7 +255,7 @@ export default function Slots({ predictions, onSlotFill, onSlotClear, availableP
                   <span className="text-sm text-white">3-0 (sweep)</span>
                 </label>
 
-                <label className={`flex items-center gap-2 p-2 rounded transition-colors ${
+                <label className={`flex items-center gap-2 py-1 px-2 rounded transition-colors ${
                   readonly ? 'cursor-default opacity-70' : 'hover:bg-purple-900/20 cursor-pointer'
                 }`}>
                   <input
@@ -263,7 +271,7 @@ export default function Slots({ predictions, onSlotFill, onSlotClear, availableP
                   <span className="text-sm text-white">3-1 (close series)</span>
                 </label>
 
-                <label className={`flex items-center gap-2 p-2 rounded transition-colors ${
+                <label className={`flex items-center gap-2 py-1 px-2 rounded transition-colors ${
                   readonly ? 'cursor-default opacity-70' : 'hover:bg-purple-900/20 cursor-pointer'
                 }`}>
                   <input
@@ -278,15 +286,6 @@ export default function Slots({ predictions, onSlotFill, onSlotClear, availableP
                   <span className="text-base">🔥</span>
                   <span className="text-sm text-white">3-2 (very close series)</span>
                 </label>
-
-                {grandFinalsScore && !readonly && (
-                  <button
-                    onClick={() => onGrandFinalsScoreChange(null)}
-                    className="text-xs text-purple-300 hover:text-purple-200 underline mt-2"
-                  >
-                    Clear selection
-                  </button>
-                )}
               </div>
             </div>
           </div>
