@@ -6,7 +6,7 @@ import { useParams, notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { gameUiDetailsMap } from "@/lib/game-utils";
 import { tournamentService } from "@/lib/tournament-service";
-import { LeaderboardEntry, Tournament, CommunityFavorite } from "@/types/tournament";
+import type { Participant, Prediction, Tournament, LeaderboardEntry, CommunityFavorite } from "@/types/tournament";
 import { supabase } from "@/lib/supabase";
 
 const getRankIcon = (rank: number) => {
@@ -37,6 +37,16 @@ const getFavoriteRankColor = (rank: number) => {
   }
 };
 
+// Helper to format a full name as 'First M. L.' (for privacy)
+function formatNameShort(fullName: string): string {
+  if (!fullName) return '';
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0]; // Single name
+  const first = parts[0];
+  const initials = parts.slice(1).map((n) => n[0]?.toUpperCase() + '.').join(' ');
+  return `${first} ${initials}`.trim();
+}
+
 export default function LeaderboardPage() {
   const [tournamentTitle, setTournamentTitle] = useState<string>("");
   const [tournament, setTournament] = useState<Tournament | null>(null);
@@ -46,6 +56,12 @@ export default function LeaderboardPage() {
   const [hasResults, setHasResults] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
+  const [winnerPrediction, setWinnerPrediction] = useState<Prediction | null>(null);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [expandedRanks, setExpandedRanks] = useState<number[]>([1]);
+  const [userPredictions, setUserPredictions] = useState<Record<string, Prediction | null>>({});
+  const [tournamentResult, setTournamentResult] = useState<any>(null);
+  const [showResults, setShowResults] = useState(false);
   const params = useParams();
   const gameSlug = params.game as string;
 
@@ -63,6 +79,28 @@ export default function LeaderboardPage() {
     return cutoffTime <= now; // Predictions closed but no results yet
   };
 
+  // Helper to toggle expanded/collapsed state for a card
+  function toggleExpand(rank: number, userId?: string, username?: string) {
+    setExpandedRanks((prev) =>
+      prev.includes(rank) ? prev.filter((r) => r !== rank) : [...prev, rank]
+    );
+    // Fetch prediction if not already loaded
+    if (userId && !userPredictions[userId]) {
+      if (tournament?.id) {
+        tournamentService.getUserPrediction(tournament.id, userId).then((pred) => {
+          setUserPredictions((prev) => ({ ...prev, [userId]: pred }));
+        });
+      }
+    } else if (!userId && username && !Object.values(userPredictions).find(p => p?.profiles?.display_name === username)) {
+      if (tournament?.id) {
+        tournamentService.getPredictionsForTournament(tournament.id).then((allPreds) => {
+          const match = allPreds.find((p) => p.profiles && p.profiles.display_name === username);
+          if (match) setUserPredictions((prev) => ({ ...prev, [username]: match }));
+        });
+      }
+    }
+  }
+
   useEffect(() => {
     if (!tournamentName) {
       return notFound();
@@ -79,31 +117,58 @@ export default function LeaderboardPage() {
         
         // Check if tournament has results
         let tournamentHasResults = false;
+        let tournamentResultLocal: any = null; // To store the actual results
         try {
           if (process.env.NEXT_PUBLIC_USE_BACKEND_API === 'true') {
             const response = await fetch(`/api/tournaments/${currentTournament.id}/results`);
             if (response.ok) {
               const resultsData = await response.json();
               tournamentHasResults = !!(resultsData.results && Object.keys(resultsData.results).length > 0);
+              tournamentResultLocal = resultsData.results;
             }
           } else {
             const { data: results, error } = await supabase
               .from('results')
-              .select('id')
+              .select('*')
               .eq('tournament_id', currentTournament.id)
               .limit(1);
             
             tournamentHasResults = !error && results && results.length > 0;
+            if (results && results.length > 0) {
+              tournamentResultLocal = results[0];
+            }
           }
         } catch (error) {
           console.error('Error checking results:', error);
         }
 
         setHasResults(tournamentHasResults);
+        setTournamentResult(tournamentResultLocal);
 
         // Fetch leaderboard data
         const leaderboardData = await tournamentService.getLeaderboard(currentTournament.id);
         setLeaderboard(leaderboardData);
+        // Fetch all participants for mapping IDs to names
+        const participantsData = await tournamentService.getTournamentParticipants(currentTournament.id);
+        setParticipants(participantsData);
+        // Fetch all predictions for fallback matching
+        let allPredictions: Prediction[] = [];
+        try {
+          allPredictions = await tournamentService.getPredictionsForTournament(currentTournament.id);
+        } catch (e) { allPredictions = []; }
+        // Fetch the winner's prediction (first place)
+        if (leaderboardData.length > 0) {
+          const winner = leaderboardData[0];
+          let winnerPred = null;
+          if (winner.userId) {
+            winnerPred = await tournamentService.getUserPrediction(currentTournament.id, winner.userId);
+          }
+          // Fallback: match by username if userId is missing or fetch failed
+          if (!winnerPred && allPredictions.length > 0) {
+            winnerPred = allPredictions.find((p: Prediction) => p.profiles && p.profiles.display_name && p.profiles.display_name === winner.username);
+          }
+          setWinnerPrediction(winnerPred || null);
+        }
 
         // If tournament is pending, fetch community favorites
         if (isTournamentPending(currentTournament, tournamentHasResults)) {
@@ -133,9 +198,15 @@ export default function LeaderboardPage() {
 
   const showCommunityFavorites = tournament && isTournamentPending(tournament, hasResults);
 
+  // Helper to get participant name by ID
+  function getParticipantName(id: string) {
+    const p = participants.find((x: Participant) => x.id === id);
+    return p ? p.name : "?";
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white p-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white px-2 py-4">
+      <div className="max-w-6xl mx-auto">
         {/* Back Button */}
         <div className="w-full mb-6">
           <Link 
@@ -149,10 +220,9 @@ export default function LeaderboardPage() {
           </Link>
         </div>
         
-        <div className="mb-8 text-center">
+        <div className="mb-2 text-center">
           <h1 className="text-4xl font-bold mb-2 text-green-400">Leaderboard</h1>
           <h2 className="text-2xl font-bold mb-2 text-white">{tournamentTitle}</h2>
-          <p className="text-gray-300">See how you rank against other bracket wizards</p>
         </div>
 
         {/* Community Favorites Section (Pending Phase Only) */}
@@ -221,56 +291,141 @@ export default function LeaderboardPage() {
         {/* Leaderboard Section */}
         <Card className="bg-black/70 border-gray-800 rounded-lg shadow-xl overflow-hidden">
           <CardHeader className="border-b border-gray-700/50">
-            <CardTitle className="text-white flex items-center gap-2">
-              <span className="text-green-400">🏆 Top Players</span>
-              <span className="text-sm text-gray-400 font-normal">
-                {hasResults ? "(Final Results)" : "(Live Rankings)"}
-              </span>
+            <CardTitle className="text-white w-full flex justify-center items-center">
+              <span className="text-green-400 text-xl font-bold text-center w-full block">🏆 Top Predictors</span>
             </CardTitle>
+            {/* Toggle button for actual results */}
+            {hasResults && tournament && (
+              <div className="w-full flex justify-center mt-2">
+                <button
+                  className="px-3 py-1 rounded bg-gray-800 text-green-200 hover:bg-gray-700 transition text-sm font-medium border border-green-700"
+                  onClick={() => setShowResults((prev) => !prev)}
+                >
+                  {showResults ? "Hide Results" : "Show Results"}
+                </button>
+              </div>
+            )}
+            {/* Show actual results if available */}
+            {hasResults && tournament && showResults && (
+              <div className="mt-2 text-base md:text-lg text-white flex flex-wrap items-center gap-x-1 gap-y-1">
+                {(() => {
+                  // Find the participant names for the actual results
+                  const getName = (id: string) => {
+                    const p = participants.find((x) => x.id === id);
+                    return p ? p.name : "?";
+                  };
+                  const ids = [
+                    tournamentResult?.position_1_participant_id,
+                    tournamentResult?.position_2_participant_id,
+                    tournamentResult?.position_3_participant_id,
+                    tournamentResult?.position_4_participant_id,
+                  ].filter(Boolean);
+                  return ids.map((id, idx) => (
+                    <>
+                      <span className="whitespace-nowrap" key={"result-"+id}>{getName(id as string)}</span>
+                      {idx < ids.length - 1 && <span className="text-yellow-400 mx-1">&gt;</span>}
+                    </>
+                  ));
+                })()}
+              </div>
+            )}
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="py-3 px-2">
             {isLoading ? (
               <div className="text-center py-10 text-lg text-gray-400">Loading Leaderboard...</div>
             ) : leaderboard.length > 0 ? (
-              <ol className="space-y-4">
-                {leaderboard.map((player) => (
+              <ol className="space-y-2">
+                {/* Winner's expanded card */}
+                {leaderboard[0] && (
                   <li
-                    key={player.userId}
-                    className={`
-                      flex items-center justify-between pl-4 pr-6 py-4 transition-all duration-200 rounded-lg
-                      ${getRankColor(player.rank)}
-                      hover:bg-gray-800/70
-                      border-l-4 ${
-                        player.rank === 1 ? 'border-l-yellow-400' : 
-                        player.rank === 2 ? 'border-l-gray-300' :
-                        player.rank === 3 ? 'border-l-amber-600' :
-                        'border-l-gray-700'
-                      }
-                    `}
+                    key={leaderboard[0].userId || leaderboard[0].username}
+                    className={`grid grid-cols-[1fr_auto] items-center pl-2 pr-3 py-3 mb-2 transition-all duration-200 rounded-lg border-2 border-yellow-400 bg-yellow-900/10 shadow-lg`}
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-12 text-center flex items-center justify-center flex-shrink-0">
-                        {getRankIcon(player.rank)}
+                        {getRankIcon(1)}
                       </div>
                       <div className="w-[120px] sm:w-[150px] md:w-[200px] flex-shrink-0">
                         <div className="flex items-center gap-2">
-                          <h3 className={`font-bold text-lg sm:text-xl md:text-2xl truncate ${player.rank === 1 ? 'text-yellow-400' : 'text-white'}`}>
-                            {player.username}
+                          <h3 className="font-bold text-xl sm:text-2xl md:text-3xl truncate text-yellow-400">
+                            {formatNameShort(leaderboard[0].username)}
                           </h3>
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="text-right">
-                      <div className={`text-lg sm:text-xl md:text-2xl font-bold ${player.rank === 1 ? 'text-yellow-400' : 'text-white'}`}>
-                        {player.points}
-                      </div>
-                      <div className={`text-xs sm:text-sm ${player.rank === 1 ? 'text-yellow-200' : 'text-gray-300'}`}>
-                        points
-                      </div>
+                    <div className="text-right min-w-[80px] flex items-center justify-end">
+                      <span className="text-2xl font-bold text-yellow-400">{leaderboard[0].points}</span>
+                      <span className="text-sm text-yellow-200 ml-1">pts</span>
+                    </div>
+                    <div className="col-span-2 flex-1 flex-col">
+                      {winnerPrediction ? (
+                        <div className="text-base md:text-lg mt-1 text-white flex flex-wrap items-center gap-x-1 gap-y-1">
+                          <span className="whitespace-nowrap">{getParticipantName(winnerPrediction.slot_1_participant_id)}</span>
+                          <span className="text-yellow-400 mx-1">&gt;</span>
+                          <span className="whitespace-nowrap">{getParticipantName(winnerPrediction.slot_2_participant_id)}</span>
+                          <span className="text-yellow-400 mx-1">&gt;</span>
+                          <span className="whitespace-nowrap">{getParticipantName(winnerPrediction.slot_3_participant_id)}</span>
+                          <span className="text-yellow-400 mx-1">&gt;</span>
+                          <span className="whitespace-nowrap">{getParticipantName(winnerPrediction.slot_4_participant_id)}</span>
+                        </div>
+                      ) : (
+                        <div className="text-yellow-200 text-xs mt-1">Picks unavailable</div>
+                      )}
                     </div>
                   </li>
-                ))}
+                )}
+                {/* The rest of the leaderboard */}
+                {leaderboard.slice(1).map((player) => {
+                  const isExpanded = expandedRanks.includes(player.rank);
+                  const userId = player.userId;
+                  const username = player.username;
+                  const prediction = userId ? userPredictions[userId] : userPredictions[username];
+                  return (
+                    <li
+                      key={userId || username}
+                      className={
+                        isExpanded
+                          ? `grid grid-cols-[1fr_auto] items-center w-full pl-1 pr-1 py-3 mb-2 transition-all duration-200 rounded-lg border-2 border-yellow-400 bg-yellow-900/10 shadow-lg cursor-pointer`
+                          : `grid grid-cols-[1fr_auto] items-center w-full pl-1 pr-1 py-2 transition-all duration-200 rounded-lg ${getRankColor(player.rank)} hover:bg-gray-800/70 border-l-4 ${player.rank === 1 ? 'border-l-yellow-400' : player.rank === 2 ? 'border-l-gray-300' : player.rank === 3 ? 'border-l-amber-600' : 'border-l-gray-700'} cursor-pointer`
+                      }
+                      onClick={() => toggleExpand(player.rank, userId, username)}
+                    >
+                      <div className={isExpanded ? "flex items-center gap-4" : "flex items-center gap-2"}>
+                        <div className={isExpanded ? "w-12 text-center flex items-center justify-center flex-shrink-0" : "w-10 text-center flex items-center justify-center flex-shrink-0"}>
+                          {getRankIcon(player.rank)}
+                        </div>
+                        <div className={isExpanded ? "flex-shrink-0" : "flex-shrink-0"}>
+                          <div className={isExpanded ? "flex items-center gap-2" : "flex items-center gap-1"}>
+                            <h3 className={`font-bold ${isExpanded ? "text-xl sm:text-2xl md:text-3xl" : "text-lg sm:text-xl md:text-2xl"} truncate ${player.rank === 1 ? 'text-yellow-400' : player.rank === 2 ? 'text-gray-300' : player.rank === 3 ? 'text-amber-600' : 'text-white'}`}>
+                              {formatNameShort(player.username)}
+                            </h3>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right min-w-[80px] flex items-center justify-end">
+                        <span className={`font-bold ${isExpanded ? "text-2xl" : "text-lg sm:text-xl md:text-2xl"} ${player.rank === 1 ? 'text-yellow-400' : player.rank === 2 ? 'text-gray-300' : player.rank === 3 ? 'text-amber-600' : 'text-white'}`}>{player.points}</span>
+                        <span className={`ml-1 ${isExpanded ? "text-sm text-yellow-200" : "text-xs sm:text-sm " + (player.rank === 1 ? 'text-yellow-200' : player.rank === 2 ? 'text-gray-300' : player.rank === 3 ? 'text-amber-600' : 'text-gray-300')}`}>pts</span>
+                      </div>
+                      {isExpanded && (
+                        <div className="col-span-2 flex-1 flex-col">
+                          {prediction ? (
+                            <div className="text-base md:text-lg mt-1 text-white flex flex-wrap items-center gap-x-1 gap-y-1">
+                              <span className="whitespace-nowrap">{getParticipantName(prediction.slot_1_participant_id)}</span>
+                              <span className="text-yellow-400 mx-1">&gt;</span>
+                              <span className="whitespace-nowrap">{getParticipantName(prediction.slot_2_participant_id)}</span>
+                              <span className="text-yellow-400 mx-1">&gt;</span>
+                              <span className="whitespace-nowrap">{getParticipantName(prediction.slot_3_participant_id)}</span>
+                              <span className="text-yellow-400 mx-1">&gt;</span>
+                              <span className="whitespace-nowrap">{getParticipantName(prediction.slot_4_participant_id)}</span>
+                            </div>
+                          ) : (
+                            <div className="text-yellow-200 text-xs mt-1">Picks unavailable</div>
+                          )}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
               </ol>
             ) : (
               <div className="text-center py-10 text-lg text-gray-400">
@@ -281,14 +436,6 @@ export default function LeaderboardPage() {
               </div>
             )}
             
-            <div className="mt-8 p-4 bg-green-900/20 border border-green-800/30 rounded-lg">
-              <p className="text-sm text-green-100 text-center">
-                🔄 Leaderboard updates automatically after each tournament round
-              </p>
-              <p className="text-xs text-green-200/60 text-center mt-1">
-                Powered by Supabase • Updates in real-time
-              </p>
-            </div>
           </CardContent>
         </Card>
       </div>
