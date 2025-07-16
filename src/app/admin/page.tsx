@@ -1134,10 +1134,15 @@ export default function AdminDashboardPage() {
             zIndex: 10,
             background: '#181818',
             boxShadow: '0 2px 8px 0 rgba(0,0,0,0.18)',
+            overflowX: 'auto', // Allow horizontal scroll if needed
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#228B22 #181818',
           }}>
-          {tournaments.map((tournament, idx) => (
-            <div key={tournament.id} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {tournaments.map((tournament, idx) => {
+            const isSelected = selectedTab === idx;
+            const isActive = tournament.active;
+            return (
+              <div key={tournament.id} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '1 1 0' }}>
                 <button
                   onMouseEnter={() => setHoveredTab(idx)}
                   onMouseLeave={() => setHoveredTab(null)}
@@ -1145,77 +1150,128 @@ export default function AdminDashboardPage() {
                   onBlur={() => setHoveredTab(null)}
                   onClick={() => setSelectedTab(idx)}
                   style={{
-                    background:
-                      selectedTab === idx
-                        ? "#003300"
-                        : hoveredTab === idx
-                          ? "#2a2a2a"
-                          : "#181818",
-                    color: selectedTab === idx ? "#fff" : "#ccc",
-                    border: "none",
-                    borderBottom: selectedTab === idx ? "4px solid #228B22" : "4px solid transparent",
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    background: isSelected ? (isActive ? '#003300' : '#333') : '#181818',
+                    color: isSelected ? '#fff' : '#ccc',
+                    border: 'none',
+                    borderBottom: isSelected ? '4px solid #228B22' : '4px solid transparent',
                     fontWeight: 700,
-                    fontSize: 18,
-                    padding: "4px 32px",
-                    cursor: "pointer",
-                    outline: "none",
-                    transition: "background 0.2s, color 0.2s, border-bottom 0.2s",
+                    fontSize: 16, // Slightly smaller font
+                    padding: '4px 10px', // More compact
+                    cursor: 'pointer',
+                    outline: 'none',
+                    transition: 'background 0.2s, color 0.2s, border-bottom 0.2s',
                     borderTopLeftRadius: 6,
                     borderTopRightRadius: 6,
-                    opacity: tournament.active ? 1 : 0.5,
+                    opacity: isActive ? 1 : 0.5,
+                    minWidth: 70, // More compact
+                    flex: '1 1 0', // Allow tabs to shrink/grow
+                    position: 'relative',
+                    whiteSpace: 'nowrap',
                   }}
+                  aria-label={tournament.name + (isActive ? ' (Visible)' : ' (Hidden)')}
                 >
-                  {TOURNAMENT_ABBREVIATIONS[tournament.name] || tournament.name.slice(0, 4).toUpperCase()}
+                  {/* Tournament abbreviation */}
+                  <span style={{ fontWeight: 900, letterSpacing: 1 }}>{TOURNAMENT_ABBREVIATIONS[tournament.name] || tournament.name.slice(0, 4).toUpperCase()}</span>
+                  {/* Visibility toggle with emojis */}
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 4 }}>
+                    {/* Visible emoji (left) */}
+                    <span
+                      title="Visible"
+                      style={{
+                        fontSize: 18,
+                        opacity: isActive ? 1 : 0.4,
+                        filter: isActive ? 'none' : 'grayscale(1)',
+                        transition: 'opacity 0.2s',
+                        cursor: 'pointer',
+                      }}
+                      onClick={e => {
+                        e.stopPropagation();
+                        if (!isActive && !updatingVisibility[tournament.id]) toggleTournamentVisibility(tournament.id, false);
+                      }}
+                    >👁️</span>
+                    {/* Toggle switch */}
+                    <span
+                      title={isActive ? 'Click to hide tournament' : 'Click to show tournament'}
+                      style={{
+                        display: 'inline-block',
+                        width: 28,
+                        height: 16,
+                        borderRadius: 10,
+                        background: isActive ? '#22c55e' : '#666',
+                        border: isSelected ? '2px solid #228B22' : '2px solid #444',
+                        margin: '0 2px',
+                        position: 'relative',
+                        verticalAlign: 'middle',
+                        cursor: updatingVisibility[tournament.id] ? 'not-allowed' : 'pointer',
+                        transition: 'background 0.2s, border 0.2s',
+                        boxShadow: isSelected ? '0 0 4px #228B22' : undefined,
+                      }}
+                      onClick={e => {
+                        e.stopPropagation();
+                        if (!updatingVisibility[tournament.id]) toggleTournamentVisibility(tournament.id, isActive);
+                      }}
+                    >
+                      <span
+                        style={{
+                          display: 'block',
+                          width: 12,
+                          height: 12,
+                          borderRadius: '50%',
+                          background: '#fff',
+                          position: 'absolute',
+                          top: 1.5,
+                          left: isActive ? 12 : 2,
+                          transition: 'left 0.2s',
+                          boxShadow: '0 1px 4px #0006',
+                        }}
+                      />
+                    </span>
+                    {/* Hidden emoji (right) */}
+                    <span
+                      title="Hidden"
+                      style={{
+                        fontSize: 18,
+                        opacity: isActive ? 0.4 : 1,
+                        filter: isActive ? 'grayscale(1)' : 'none',
+                        transition: 'opacity 0.2s',
+                        cursor: 'pointer',
+                      }}
+                      onClick={e => {
+                        e.stopPropagation();
+                        if (isActive && !updatingVisibility[tournament.id]) toggleTournamentVisibility(tournament.id, true);
+                      }}
+                    >🙈</span>
+                  </span>
                 </button>
-                {/* Visibility toggle button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleTournamentVisibility(tournament.id, tournament.active);
-                  }}
-                  disabled={updatingVisibility[tournament.id]}
+                {/* Floating tooltip for full name */}
+                <div
                   style={{
-                    background: tournament.active ? "#228B22" : "#666",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "4px",
-                    padding: "2px 6px",
-                    fontSize: 12,
+                    position: 'absolute',
+                    top: '-2.5em',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: '#222',
+                    color: '#fff',
+                    padding: '6px 18px',
+                    borderRadius: 8,
+                    fontSize: 14,
                     fontWeight: 700,
-                    cursor: updatingVisibility[tournament.id] ? "not-allowed" : "pointer",
-                    opacity: updatingVisibility[tournament.id] ? 0.5 : 1,
-                    transition: "background 0.2s, opacity 0.2s",
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 2px 8px #0008',
+                    opacity: hoveredTab === idx ? 1 : 0,
+                    pointerEvents: 'none',
+                    zIndex: 10,
+                    transition: 'opacity 0.2s',
                   }}
-                  title={tournament.active ? "Hide tournament from users" : "Show tournament to users"}
                 >
-                  {updatingVisibility[tournament.id] ? "..." : (tournament.active ? "👁️" : "🙈")}
-                </button>
+                  {tournament.name} {!tournament.active && "(Hidden)"}
+                </div>
               </div>
-              {/* Floating tooltip for full name */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '-2.5em',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  background: '#222',
-                  color: '#fff',
-                  padding: '6px 18px',
-                  borderRadius: 8,
-                  fontSize: 16,
-                  fontWeight: 700,
-                  whiteSpace: 'nowrap',
-                  boxShadow: '0 2px 8px #0008',
-                  opacity: hoveredTab === idx ? 1 : 0,
-                  pointerEvents: 'none',
-                  zIndex: 10,
-                  transition: 'opacity 0.2s',
-                }}
-              >
-                {tournament.name} {!tournament.active && "(Hidden)"}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         {/* Card for selected tournament */}
         {loadingTournaments ? (
