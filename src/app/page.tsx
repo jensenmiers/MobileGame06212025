@@ -346,6 +346,16 @@ export default function Home() {
                     Admin Dashboard
                   </Button>
                 )}
+                {/* Rules Button - muted, below Admin button if visible */}
+                <Button
+                  asChild
+                  variant="ghost"
+                  className="mb-2 bg-gray-900/60 border border-gray-700 text-gray-400 hover:bg-gray-800/80 hover:text-green-200 font-normal rounded-lg shadow-none transition-colors text-sm px-8 py-3"
+                >
+                  <Link href="/rules">
+                    Rules
+                  </Link>
+                </Button>
                 <div className="flex items-center justify-between w-full max-w-sm">
                   <span className="text-sm text-gray-400">{user.email}</span>
                 <Button 

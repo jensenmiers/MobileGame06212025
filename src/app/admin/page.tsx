@@ -524,6 +524,27 @@ function TournamentCard({
 
   const isLocked = arePredictionsLocked(tournament);
 
+  // Helper to determine tournament status banner text (copied from main page)
+  const getTournamentStatusText = (tournament: Tournament, hasResults: boolean): string => {
+    if (hasResults) {
+      return 'VIEW RESULTS';
+    }
+    const cutoffTime = new Date(tournament.cutoff_time);
+    const now = new Date();
+    if (cutoffTime > now) {
+      return 'MAKE PREDICTIONS';
+    }
+    return 'RESULTS PENDING';
+  };
+
+  // Determine if tournament has results (same as main page logic)
+  const hasResults = Boolean(
+    tournament &&
+    participants.length > 0 &&
+    // Check if any participant is in the results (simple check, can be improved)
+    results.some(r => r && r.length > 0)
+  );
+
   return (
     <div
       style={{
@@ -561,6 +582,19 @@ function TournamentCard({
           fontWeight: 900
         }}>
           {tournament.name}
+        </span>
+        <span style={{
+          display: 'block',
+          color: '#b5e0b5',
+          fontWeight: 500,
+          fontSize: '1.2rem',
+          textAlign: 'center',
+          gridColumn: '1 / span 3',
+          marginTop: 0,
+          marginBottom: 0,
+          lineHeight: 1.0
+        }}>
+          ({getTournamentStatusText(tournament, hasResults)})
         </span>
         {/* Removed LockToggle from header */}
       </div>
