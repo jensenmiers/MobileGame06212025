@@ -206,7 +206,7 @@ export async function getTournaments(): Promise<Tournament[]> {
 }
 
 // Fetches all user predictions for a specific tournament
-async function getPredictionsForTournament(tournamentId: string): Promise<Prediction[]> {
+export async function getPredictionsForTournament(tournamentId: string): Promise<Prediction[]> {
   if (USE_BACKEND_API) {
     try {
       console.log('🚀 Using Backend API for predictions');
@@ -414,4 +414,5 @@ export const tournamentService = {
   getLeaderboard,
   getCommunityFavorites,
   getResultsForTournament,
+  getPredictionsForTournament, // Add this here for named import
 };
