@@ -41,3 +41,6 @@ next-env.d.ts
 
 # Documentation
 cursor_removing_supabase_and_tournament.md
+
+# Ignore Cursor rules directory
+.cursor/rules/
