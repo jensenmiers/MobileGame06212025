@@ -1004,6 +1004,7 @@ export default function AdminDashboardPage() {
   const [hoveredTab, setHoveredTab] = useState<number | null>(null);
   const [loadingTournaments, setLoadingTournaments] = useState(true);
   const [loadingParticipants, setLoadingParticipants] = useState<Record<string, boolean>>({});
+  const [updatingVisibility, setUpdatingVisibility] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!loading) {
@@ -1021,7 +1022,7 @@ export default function AdminDashboardPage() {
       if (!user || role !== "admin") return;
       try {
         setLoadingTournaments(true);
-        const tournamentsData = await tournamentService.getTournaments();
+        const tournamentsData = await tournamentService.getTournaments(false); // Fetch all tournaments (active and inactive)
         setTournaments(tournamentsData);
       } catch (error) {
         console.error('Error fetching tournaments:', error);
@@ -1058,6 +1059,35 @@ export default function AdminDashboardPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTab, tournaments.length]);
+
+  // Toggle tournament visibility
+  const toggleTournamentVisibility = async (tournamentId: string, currentActive: boolean) => {
+    setUpdatingVisibility(prev => ({ ...prev, [tournamentId]: true }));
+    try {
+      const response = await fetch(`/api/admin/tournaments/${tournamentId}/toggle-visibility`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ active: !currentActive }),
+      });
+
+      if (response.ok) {
+        const { tournament } = await response.json();
+        // Update the tournament in the local state
+        setTournaments(prev => prev.map(t => 
+          t.id === tournamentId ? { ...t, active: tournament.active } : t
+        ));
+        console.log(`✅ Tournament visibility updated: ${tournament.name} is now ${tournament.active ? 'visible' : 'hidden'}`);
+      } else {
+        console.error('❌ Failed to update tournament visibility');
+      }
+    } catch (error) {
+      console.error('❌ Error updating tournament visibility:', error);
+    } finally {
+      setUpdatingVisibility(prev => ({ ...prev, [tournamentId]: false }));
+    }
+  };
 
   if (loading) {
     return (
@@ -1107,34 +1137,60 @@ export default function AdminDashboardPage() {
           }}>
           {tournaments.map((tournament, idx) => (
             <div key={tournament.id} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <button
-                onMouseEnter={() => setHoveredTab(idx)}
-                onMouseLeave={() => setHoveredTab(null)}
-                onFocus={() => setHoveredTab(idx)}
-                onBlur={() => setHoveredTab(null)}
-                onClick={() => setSelectedTab(idx)}
-                style={{
-                  background:
-                    selectedTab === idx
-                      ? "#003300"
-                      : hoveredTab === idx
-                        ? "#2a2a2a"
-                        : "#181818",
-                  color: selectedTab === idx ? "#fff" : "#ccc",
-                  border: "none",
-                  borderBottom: selectedTab === idx ? "4px solid #228B22" : "4px solid transparent",
-                  fontWeight: 700,
-                  fontSize: 18,
-                  padding: "4px 32px",
-                  cursor: "pointer",
-                  outline: "none",
-                  transition: "background 0.2s, color 0.2s, border-bottom 0.2s",
-                  borderTopLeftRadius: 6,
-                  borderTopRightRadius: 6,
-                }}
-              >
-                {TOURNAMENT_ABBREVIATIONS[tournament.name] || tournament.name.slice(0, 4).toUpperCase()}
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  onMouseEnter={() => setHoveredTab(idx)}
+                  onMouseLeave={() => setHoveredTab(null)}
+                  onFocus={() => setHoveredTab(idx)}
+                  onBlur={() => setHoveredTab(null)}
+                  onClick={() => setSelectedTab(idx)}
+                  style={{
+                    background:
+                      selectedTab === idx
+                        ? "#003300"
+                        : hoveredTab === idx
+                          ? "#2a2a2a"
+                          : "#181818",
+                    color: selectedTab === idx ? "#fff" : "#ccc",
+                    border: "none",
+                    borderBottom: selectedTab === idx ? "4px solid #228B22" : "4px solid transparent",
+                    fontWeight: 700,
+                    fontSize: 18,
+                    padding: "4px 32px",
+                    cursor: "pointer",
+                    outline: "none",
+                    transition: "background 0.2s, color 0.2s, border-bottom 0.2s",
+                    borderTopLeftRadius: 6,
+                    borderTopRightRadius: 6,
+                    opacity: tournament.active ? 1 : 0.5,
+                  }}
+                >
+                  {TOURNAMENT_ABBREVIATIONS[tournament.name] || tournament.name.slice(0, 4).toUpperCase()}
+                </button>
+                {/* Visibility toggle button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleTournamentVisibility(tournament.id, tournament.active);
+                  }}
+                  disabled={updatingVisibility[tournament.id]}
+                  style={{
+                    background: tournament.active ? "#228B22" : "#666",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "4px",
+                    padding: "2px 6px",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: updatingVisibility[tournament.id] ? "not-allowed" : "pointer",
+                    opacity: updatingVisibility[tournament.id] ? 0.5 : 1,
+                    transition: "background 0.2s, opacity 0.2s",
+                  }}
+                  title={tournament.active ? "Hide tournament from users" : "Show tournament to users"}
+                >
+                  {updatingVisibility[tournament.id] ? "..." : (tournament.active ? "👁️" : "🙈")}
+                </button>
+              </div>
               {/* Floating tooltip for full name */}
               <div
                 style={{
@@ -1156,7 +1212,7 @@ export default function AdminDashboardPage() {
                   transition: 'opacity 0.2s',
                 }}
               >
-                {tournament.name}
+                {tournament.name} {!tournament.active && "(Hidden)"}
               </div>
             </div>
           ))}

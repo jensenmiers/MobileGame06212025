@@ -88,8 +88,8 @@ export default function Home() {
 
   useEffect(() => {
     async function fetchTournaments() {
-      console.log('🔄 Fetching tournaments and checking results...');
-      const data = await tournamentService.getTournaments();
+      console.log('🔄 Fetching active tournaments and checking results...');
+      const data = await tournamentService.getTournaments(true); // Only fetch active tournaments
       setTournaments(data);
       
       // Check which tournaments have results (PRIORITY: Results override cutoff time)

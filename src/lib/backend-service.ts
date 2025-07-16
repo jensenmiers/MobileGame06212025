@@ -20,8 +20,9 @@ class BackendService {
   }
 
   // Tournament operations
-  async getTournaments(): Promise<Tournament[]> {
-    const { tournaments } = await this.request<{ tournaments: Tournament[] }>('/api/tournaments')
+  async getTournaments(onlyActive: boolean = true): Promise<Tournament[]> {
+    const url = onlyActive ? '/api/tournaments' : '/api/tournaments?onlyActive=false'
+    const { tournaments } = await this.request<{ tournaments: Tournament[] }>(url)
     return tournaments
   }
 

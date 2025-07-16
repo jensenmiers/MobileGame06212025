@@ -38,7 +38,7 @@ export default function RulesPage() {
               <div>
                 <h3 className="text-lg font-semibold text-green-300 mb-2">What You're Predicting</h3>
                 <p className="text-gray-300 leading-relaxed">
-                  You're predicting the <strong className="text-white">top 4 finishers</strong> of a fighting game tournament - who will place 1st, 2nd, 3rd, and 4th. Think of it as calling the "final four" before the tournament even starts!
+                  You're predicting the <strong className="text-white">top 4 finishers of each tournament</strong> – who will place in <strong>1st, 2nd, 3rd, or 4th?</strong> Think of it as calling the final 4 up until the top 8 begins.
                 </p>
               </div>
 
@@ -96,52 +96,51 @@ export default function RulesPage() {
                 <div className="grid grid-cols-2 gap-2 sm:gap-4">
                   <div className="bg-gray-800/50 p-3 rounded-lg border border-yellow-600/30">
                     <div className="text-yellow-400 font-bold">1st Place</div>
-                    <div className="text-2xl font-bold text-white">89 pts</div>
+                    <div className="text-2xl font-bold text-white">431 pts</div>
                   </div>
                   <div className="bg-gray-800/50 p-3 rounded-lg border border-gray-400/30">
                     <div className="text-gray-300 font-bold">2nd Place</div>
-                    <div className="text-2xl font-bold text-white">144 pts</div>
+                    <div className="text-2xl font-bold text-white">266 pts</div>
                   </div>
                   <div className="bg-gray-800/50 p-3 rounded-lg border border-amber-600/30">
                     <div className="text-amber-400 font-bold">3rd Place</div>
-                    <div className="text-2xl font-bold text-white">233 pts</div>
+                    <div className="text-2xl font-bold text-white">165 pts</div>
                   </div>
                   <div className="bg-gray-800/50 p-3 rounded-lg border border-blue-400/30">
                     <div className="text-blue-400 font-bold">4th Place</div>
-                    <div className="text-2xl font-bold text-white">377 pts</div>
+                    <div className="text-2xl font-bold text-white">100 pts</div>
                   </div>
                 </div>
               </div>
 
               <div>
                 <h3 className="text-lg font-semibold text-yellow-300 mb-2">Proximity Rewards (Smart Scoring)</h3>
-                <p className="text-gray-300 mb-3">Don't worry if you're not exactly right! The system rewards "close calls":</p>
+                <p className="text-gray-300 mb-3">Don’t worry if you’re not exactly right! The system rewards “close calls” too:</p>
                 <ul className="space-y-2 text-gray-300">
                   <li className="flex items-center gap-2">
                     <span className="text-green-400">✓</span>
-                    <span><strong className="text-white">Exact position</strong>: Full points</span>
+                    <span><strong className="text-white">Exact pick:</strong> If you predict a player in the correct position (for example, you pick Player A for 1st place and they actually win 1st), you earn <strong>100% of the points</strong> for that slot.</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-green-300">✓</span>
-                    <span><strong className="text-white">1 position off</strong>: 61% of points (still pretty good!)</span>
+                    <span><strong className="text-white">1 position off:</strong> If your pick is just one spot away (e.g., you pick Player A for 1st, but they finish 2nd), you get <strong>61% of the points</strong> for that slot.</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-yellow-400">~</span>
-                    <span><strong className="text-white">2 positions off</strong>: 41% of points</span>
+                    <span><strong className="text-white">2 positions off:</strong> If your pick is two spots away, you get <strong>41% of the points</strong>.</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-orange-400">~</span>
-                    <span><strong className="text-white">3 positions off</strong>: 17% of points</span>
+                    <span><strong className="text-white">3 positions off:</strong> If your pick is three spots away, you get <strong>17% of the points</strong>.</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-red-400">✗</span>
-                    <span><strong className="text-white">Doesn't make top 4</strong>: 0 points</span>
+                    <span><strong className="text-white">Not in top 4:</strong> If your pick doesn’t make the top 4, you get <strong>0 points</strong> for that slot.</span>
                   </li>
                 </ul>
-                
                 <div className="mt-4 p-3 bg-blue-900/20 border border-blue-800/30 rounded-lg">
                   <p className="text-blue-200 text-sm">
-                    <strong>Example:</strong> If you predict Player A for 1st place (89 points) but they finish 2nd, you still earn 54 points (89 × 0.61).
+                    <strong>Example:</strong> If you predict Player A for 1st place (worth 431 points) but they finish 2nd, you still earn 263 points (431 × 0.61).
                   </p>
                 </div>
               </div>
@@ -150,11 +149,11 @@ export default function RulesPage() {
                 <h3 className="text-lg font-semibold text-yellow-300 mb-2">Bonus Points</h3>
                 <ul className="space-y-2 text-gray-300">
                   <li className="flex items-center gap-2">
-                    <span className="text-purple-400">+21</span>
+                    <span className="text-purple-400">+24</span>
                     <span><strong className="text-white">Correct bracket reset prediction</strong></span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <span className="text-purple-400">+11</span>
+                    <span className="text-purple-400">+13</span>
                     <span><strong className="text-white">Correct grand finals score</strong></span>
                   </li>
                 </ul>
@@ -162,7 +161,7 @@ export default function RulesPage() {
 
               <div className="mt-4 p-4 bg-green-900/20 border border-green-800/30 rounded-lg">
                 <p className="text-green-200 text-center">
-                  <strong>Perfect Score: 875 points</strong> (extremely rare - requires predicting everything perfectly!)
+                  <strong>Perfect Score: 999 points</strong> (requires predicting everything perfectly!)
                 </p>
               </div>
             </div>

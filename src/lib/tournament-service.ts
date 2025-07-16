@@ -173,14 +173,15 @@ export async function getUserPrediction(tournamentId: string, userId: string): P
 }
 
 /**
- * Fetches all tournaments
+ * Fetches tournaments with optional filtering by active status
  * Uses backend API if enabled, falls back to Supabase
+ * @param onlyActive - When true, only returns active tournaments. When false, returns all tournaments.
  */
-export async function getTournaments(): Promise<Tournament[]> {
+export async function getTournaments(onlyActive: boolean = true): Promise<Tournament[]> {
   if (USE_BACKEND_API) {
     try {
       console.log('🚀 Using Backend API for tournaments');
-      return await backendService.getTournaments();
+      return await backendService.getTournaments(onlyActive);
     } catch (error) {
       console.error('Backend API failed, falling back to Supabase:', error);
     }
@@ -188,10 +189,17 @@ export async function getTournaments(): Promise<Tournament[]> {
 
   // Fallback to Supabase
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('tournaments')
       .select('*')
       .order('created_at', { ascending: true });
+
+    // Filter by active status if onlyActive is true
+    if (onlyActive) {
+      query = query.eq('active', true);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching tournaments:', error);
