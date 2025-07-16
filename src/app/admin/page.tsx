@@ -35,6 +35,7 @@ function LockToggle({ locked, onToggle }: { locked: boolean; onToggle: () => voi
       justifyContent: "flex-start"
     }}>
       <button
+        type="button"
         onClick={e => { e.stopPropagation(); onToggle(); }}
         style={{
           position: "relative",
@@ -1123,6 +1124,38 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Add: Handler to update cutoff time for locking/unlocking predictions
+  const handleLockToggle = async (tournament: Tournament) => {
+    // Determine new cutoff time
+    let newCutoff: string;
+    if (arePredictionsLocked(tournament)) {
+      // Currently locked, so unlock: set cutoff 1 month in the future
+      const future = new Date();
+      future.setMonth(future.getMonth() + 1);
+      newCutoff = future.toISOString();
+    } else {
+      // Currently unlocked, so lock: set cutoff to now
+      newCutoff = new Date().toISOString();
+    }
+    try {
+      const response = await fetch(`/api/tournaments/${tournament.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cutoff_time: newCutoff })
+      });
+      if (response.ok) {
+        const updated = await response.json();
+        // Update local state
+        setTournaments(prev => prev.map(t => t.id === tournament.id ? { ...t, cutoff_time: newCutoff } : t));
+      } else {
+        // Optionally show error
+        console.error('Failed to update cutoff time');
+      }
+    } catch (err) {
+      console.error('Error updating cutoff time:', err);
+    }
+  };
+
   if (loading) {
     return (
       <div style={{
@@ -1323,7 +1356,7 @@ export default function AdminDashboardPage() {
             participants={participants[tournaments[selectedTab].id] || []}
             isExpanded={true}
             onExpand={() => {}}
-            onLockToggle={() => {}}
+            onLockToggle={() => handleLockToggle(tournaments[selectedTab])}
             onSaveResults={(cutoff, results) => {}}
             onRefreshParticipants={() => fetchParticipants(tournaments[selectedTab].id, true)}
             loading={loadingParticipants[tournaments[selectedTab].id]}
