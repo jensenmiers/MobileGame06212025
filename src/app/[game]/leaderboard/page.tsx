@@ -424,7 +424,7 @@ export default function LeaderboardPage() {
                         key={userId || username}
                         className={
                           isExpanded
-                            ? `grid grid-cols-[1fr_auto] items-center w-full pl-1 pr-1 py-3 mb-2 transition-all duration-200 rounded-lg border-2 border-yellow-400 bg-yellow-900/10 shadow-lg cursor-pointer border-l-8 ${player.rank === 1 ? 'border-l-yellow-400' : player.rank === 2 ? 'border-l-gray-300' : player.rank === 3 ? 'border-l-amber-600' : 'border-l-gray-700'}`
+                            ? `grid grid-cols-[1fr_auto] items-center w-full pl-1 pr-1 py-3 mb-2 transition-all duration-200 rounded-lg shadow-lg cursor-pointer border-l-8 ${player.rank === 1 ? 'border-l-yellow-400 border-t-yellow-400 border-r-yellow-400 border-b-yellow-400 border-2' : player.rank === 2 ? 'border-l-gray-300 border-t-gray-300 border-r-gray-300 border-b-gray-300 border-2' : player.rank === 3 ? 'border-l-amber-600 border-t-amber-600 border-r-amber-600 border-b-amber-600 border-2' : 'border-l-gray-700 border-t-gray-700 border-r-gray-700 border-b-gray-700 border-2'} bg-yellow-900/10`
                             : `grid grid-cols-[1fr_auto] items-center w-full pl-1 pr-1 py-2 transition-all duration-200 rounded-lg ${getRankColor(player.rank)} hover:bg-gray-800/70 border-l-8 ${player.rank === 1 ? 'border-l-yellow-400' : player.rank === 2 ? 'border-l-gray-300' : player.rank === 3 ? 'border-l-amber-600' : 'border-l-gray-700'} cursor-pointer`
                         }
                         onClick={() => toggleExpand(player.rank, userId, username)}
