@@ -1,12 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { database, DbTournament } from '@/lib/database'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const { data: tournaments, error } = await database
+    const { searchParams } = new URL(request.url)
+    const onlyActive = searchParams.get('onlyActive') !== 'false' // Default to true unless explicitly set to false
+
+    let query = database
       .from('tournaments')
       .select('*')
       .order('created_at', { ascending: false })
+
+    // Filter by active status if onlyActive is true
+    if (onlyActive) {
+      query = query.eq('active', true)
+    }
+
+    const { data: tournaments, error } = await query
 
     if (error) {
       console.error('Error fetching tournaments:', error)

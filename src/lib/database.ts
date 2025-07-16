@@ -21,6 +21,7 @@ export interface DbTournament {
   cutoff_time: string
   end_time: string
   max_participants: number
+  active: boolean
   created_at: string
   updated_at: string
 }
