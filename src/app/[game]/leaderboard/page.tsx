@@ -157,19 +157,23 @@ export default function LeaderboardPage() {
         // Fetch all predictions for predictors list
         const predictions = await tournamentService.getPredictionsForTournament(currentTournament.id);
         setAllPredictions(predictions);
-        // Fetch the winner's prediction (first place)
-        if (leaderboardData.length > 0) {
-          const winner = leaderboardData[0];
-          let winnerPred = null;
-          if (winner.userId) {
-            winnerPred = await tournamentService.getUserPrediction(currentTournament.id, winner.userId);
+        // Populate userPredictions for all leaderboard users (including 1st place)
+        const userPreds: Record<string, Prediction | null> = {};
+        for (const entry of leaderboardData) {
+          let pred: Prediction | null = null;
+          if (entry.userId) {
+            pred = await tournamentService.getUserPrediction(currentTournament.id, entry.userId);
           }
-          // Fallback: match by username if userId is missing or fetch failed
-          if (!winnerPred && allPredictions.length > 0) {
-            winnerPred = allPredictions.find((p: Prediction) => p.profiles && p.profiles.display_name && p.profiles.display_name === winner.username);
+          if (!pred && predictions.length > 0) {
+            pred = predictions.find((p: Prediction) => p.profiles && p.profiles.display_name && p.profiles.display_name === entry.username) || null;
           }
-          setWinnerPrediction(winnerPred || null);
+          if (entry.userId) {
+            userPreds[entry.userId] = pred;
+          } else if (entry.username) {
+            userPreds[entry.username] = pred;
+          }
         }
+        setUserPredictions(userPreds);
 
         // If tournament is pending, fetch community favorites
         if (isTournamentPending(currentTournament, tournamentHasResults)) {
@@ -410,47 +414,7 @@ export default function LeaderboardPage() {
                 <div className="text-center py-10 text-lg text-gray-400">Loading Leaderboard...</div>
               ) : leaderboard.length > 0 ? (
                 <ol className="space-y-2">
-                  {/* Winner's expanded card */}
-                  {leaderboard[0] && (
-                    <li
-                      key={leaderboard[0].userId || leaderboard[0].username}
-                      className={`grid grid-cols-[1fr_auto] items-center pl-2 pr-3 py-3 mb-2 transition-all duration-200 rounded-lg border-2 border-yellow-400 bg-yellow-900/10 shadow-lg`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 text-center flex items-center justify-center flex-shrink-0">
-                          {getRankIcon(1)}
-                        </div>
-                        <div className="w-[120px] sm:w-[150px] md:w-[200px] flex-shrink-0">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-bold text-xl sm:text-2xl md:text-3xl truncate text-yellow-400">
-                              {formatNameShort(leaderboard[0].username)}
-                            </h3>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right min-w-[80px] flex items-center justify-end">
-                        <span className="text-2xl font-bold text-yellow-400">{leaderboard[0].points}</span>
-                        <span className="text-sm text-yellow-200 ml-1">pts</span>
-                      </div>
-                      <div className="col-span-2 flex-1 flex-col">
-                        {winnerPrediction ? (
-                          <div className="text-base md:text-lg mt-1 text-white flex flex-wrap items-center gap-x-1 gap-y-1">
-                            <span className="whitespace-nowrap">{getParticipantName(winnerPrediction.slot_1_participant_id)}</span>
-                            <span className="text-yellow-400 mx-1">&gt;</span>
-                            <span className="whitespace-nowrap">{getParticipantName(winnerPrediction.slot_2_participant_id)}</span>
-                            <span className="text-yellow-400 mx-1">&gt;</span>
-                            <span className="whitespace-nowrap">{getParticipantName(winnerPrediction.slot_3_participant_id)}</span>
-                            <span className="text-yellow-400 mx-1">&gt;</span>
-                            <span className="whitespace-nowrap">{getParticipantName(winnerPrediction.slot_4_participant_id)}</span>
-                          </div>
-                        ) : (
-                          <div className="text-yellow-200 text-xs mt-1">Picks unavailable</div>
-                        )}
-                      </div>
-                    </li>
-                  )}
-                  {/* The rest of the leaderboard */}
-                  {leaderboard.slice(1).map((player) => {
+                  {leaderboard.map((player) => {
                     const isExpanded = expandedRanks.includes(player.rank);
                     const userId = player.userId;
                     const username = player.username;
@@ -460,8 +424,8 @@ export default function LeaderboardPage() {
                         key={userId || username}
                         className={
                           isExpanded
-                            ? `grid grid-cols-[1fr_auto] items-center w-full pl-1 pr-1 py-3 mb-2 transition-all duration-200 rounded-lg border-2 border-yellow-400 bg-yellow-900/10 shadow-lg cursor-pointer`
-                            : `grid grid-cols-[1fr_auto] items-center w-full pl-1 pr-1 py-2 transition-all duration-200 rounded-lg ${getRankColor(player.rank)} hover:bg-gray-800/70 border-l-4 ${player.rank === 1 ? 'border-l-yellow-400' : player.rank === 2 ? 'border-l-gray-300' : player.rank === 3 ? 'border-l-amber-600' : 'border-l-gray-700'} cursor-pointer`
+                            ? `grid grid-cols-[1fr_auto] items-center w-full pl-1 pr-1 py-3 mb-2 transition-all duration-200 rounded-lg border-2 border-yellow-400 bg-yellow-900/10 shadow-lg cursor-pointer border-l-8 ${player.rank === 1 ? 'border-l-yellow-400' : player.rank === 2 ? 'border-l-gray-300' : player.rank === 3 ? 'border-l-amber-600' : 'border-l-gray-700'}`
+                            : `grid grid-cols-[1fr_auto] items-center w-full pl-1 pr-1 py-2 transition-all duration-200 rounded-lg ${getRankColor(player.rank)} hover:bg-gray-800/70 border-l-8 ${player.rank === 1 ? 'border-l-yellow-400' : player.rank === 2 ? 'border-l-gray-300' : player.rank === 3 ? 'border-l-amber-600' : 'border-l-gray-700'} cursor-pointer`
                         }
                         onClick={() => toggleExpand(player.rank, userId, username)}
                       >
