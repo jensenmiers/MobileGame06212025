@@ -403,13 +403,14 @@ export default function Home() {
                       Admin Dashboard
                     </Button>
                   )}
-                  {/* Only the bottom Rules Button remains, now with white text and a thinner border */}
-                  <Link
-                    href="/rules"
-                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 mb-2 bg-gray-900/60 border border-gray-600 text-white hover:bg-gray-800/80 hover:text-green-200 font-normal rounded-lg shadow-none transition-colors text-sm px-8 py-3 w-full max-w-xs"
+                  {/* Rules button - same size as admin button */}
+                  <Button
+                    onClick={() => router.push("/rules")}
+                    variant="default"
+                    className="bg-gray-700 hover:bg-gray-800 text-white font-bold px-8 py-3 rounded-lg shadow-md transition-colors"
                   >
                     Rules
-                  </Link>
+                  </Button>
                   <div className="flex items-center justify-between w-full max-w-sm">
                     <span className="text-sm text-gray-400">{user.email}</span>
                     <Button 
@@ -426,15 +427,16 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Only the bottom Rules Button remains for logged-out users, now with white text and a thinner border */}
+              {/* Rules button for logged-out users - same size as admin button */}
               {!user && (
                 <div className="flex flex-col items-center mt-16 mb-2">
-                  <Link
-                    href="/rules"
-                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 mb-2 bg-gray-900/60 border border-gray-600 text-white hover:bg-gray-800/80 hover:text-green-200 font-normal rounded-lg shadow-none transition-colors text-sm px-8 py-3 w-full max-w-xs"
+                  <Button
+                    onClick={() => router.push("/rules")}
+                    variant="default"
+                    className="bg-gray-700 hover:bg-gray-800 text-white font-bold px-8 py-3 rounded-lg shadow-md transition-colors"
                   >
                     Rules
-                  </Link>
+                  </Button>
                 </div>
               )}
             </CardContent>
