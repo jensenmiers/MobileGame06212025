@@ -12,6 +12,7 @@ import { tournamentService, syncUserProfile } from "@/lib/tournament-service";
 import { Tournament } from "@/types/tournament";
 import { gameUiDetailsMap } from "@/lib/game-utils";
 import { supabase } from "@/lib/supabase";
+import Head from 'next/head';
 
 export default function Home() {
   const searchParams = useSearchParams();
@@ -185,214 +186,224 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white flex items-center justify-center">
-        <div className="text-xl">Loading...</div>
-      </div>
+      <>
+        <Head>
+          <meta name="google-site-verification" content="RlD0Bd3IKA_z8_VYI2sSU9CS-rydQ9BOgC8jnpYynSE" />
+        </Head>
+        <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white flex items-center justify-center">
+          <div className="text-xl">Loading...</div>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white flex flex-col items-center justify-start p-3 pt-3 relative overflow-hidden">
-      {/* Simplified background elements */}
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute -right-40 -bottom-40 w-96 h-96 bg-green-500/10 filter blur-3xl animate-pulse"></div>
-      </div>
+    <>
+      <Head>
+        <meta name="google-site-verification" content="RlD0Bd3IKA_z8_VYI2sSU9CS-rydQ9BOgC8jnpYynSE" />
+      </Head>
+      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white flex flex-col items-center justify-start p-3 pt-3 relative overflow-hidden">
+        {/* Simplified background elements */}
+        <div className="fixed inset-0 -z-10">
+          <div className="absolute -right-40 -bottom-40 w-96 h-96 bg-green-500/10 filter blur-3xl animate-pulse"></div>
+        </div>
 
-      <div className="w-full max-w-6xl mx-auto">
-        <Card className="bg-black/70 border-gray-800 backdrop-blur-sm rounded-lg">
-          <CardHeader className="space-y-1 pb-2">
-            <div className="flex flex-col items-center justify-center text-center">
-              <div className="flex justify-center mb-1 w-full px-1">
-                <div className="flex flex-row items-center gap-2 sm:gap-3 w-full max-w-6xl">
-                  <div className="flex-shrink-0 h-10 sm:h-12 md:h-14 lg:h-14 xl:h-16 w-auto aspect-square relative">
-                    <div className="animate-slow-rotate w-full h-full flex items-center">
-                      <div className="relative w-full h-10 sm:h-12 md:h-14 lg:h-14 xl:h-16">
-                        <Image
-                          src="/images/fullComboLogo.png"
-                          alt="Full Combo Logo"
-                          fill
-                          className="object-contain"
-                          priority
-                        />
+        <div className="w-full max-w-6xl mx-auto">
+          <Card className="bg-black/70 border-gray-800 backdrop-blur-sm rounded-lg">
+            <CardHeader className="space-y-1 pb-2">
+              <div className="flex flex-col items-center justify-center text-center">
+                <div className="flex justify-center mb-1 w-full px-1">
+                  <div className="flex flex-row items-center gap-2 sm:gap-3 w-full max-w-6xl">
+                    <div className="flex-shrink-0 h-10 sm:h-12 md:h-14 lg:h-14 xl:h-16 w-auto aspect-square relative">
+                      <div className="animate-slow-rotate w-full h-full flex items-center">
+                        <div className="relative w-full h-10 sm:h-12 md:h-14 lg:h-14 xl:h-16">
+                          <Image
+                            src="/images/fullComboLogo.png"
+                            alt="Full Combo Logo"
+                            fill
+                            className="object-contain"
+                            priority
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="text-center flex-1">
-                    <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold font-chakra gradient-rotate gradient-text-fix leading-normal">
-                      Full Combo{' '}
-                      <span className="inline-block">Bracket Challenge</span>
-                    </h1>
+                    <div className="text-center flex-1">
+                      <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold font-chakra gradient-rotate gradient-text-fix leading-normal">
+                        Full Combo{' '}
+                        <span className="inline-block">Bracket Challenge</span>
+                      </h1>
+                    </div>
                   </div>
                 </div>
+                
+                {/* Welcome message for logged in users */}
+                {user && (
+                  <div className="w-full text-center mb-1">
+                    <h2 className="text-xl sm:text-2xl font-semibold text-white mb-0">
+                      Welcome, {getDisplayName()}!
+                    </h2>
+                    <p className="text-xs text-gray-300">Ready to make your predictions?</p>
+                  </div>
+                )}
               </div>
-              
-              {/* Welcome message for logged in users */}
-              {user && (
-                <div className="w-full text-center mb-1">
-                  <h2 className="text-xl sm:text-2xl font-semibold text-white mb-0">
-                    Welcome, {getDisplayName()}!
-                  </h2>
-                  <p className="text-xs text-gray-300">Ready to make your predictions?</p>
+            </CardHeader>
+            <CardContent className="space-y-2 px-3 pt-0 pb-2">
+              {/* Social Login Section - only show if not logged in */}
+              {!user && (
+                <div className="flex flex-col items-center space-y-2 mb-6">
+                  <div className="text-center">
+                    <h2 className="text-lg sm:text-2xl font-bold text-white mb-2">
+                      Sign in to create predictions
+                    </h2>
+                  </div>
+                  <SocialLogin />
                 </div>
               )}
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-2 px-3 pt-0 pb-2">
-            {/* Social Login Section - only show if not logged in */}
-            {!user && (
-              <div className="flex flex-col items-center space-y-2 mb-6">
-                <div className="text-center">
-                  <h2 className="text-lg sm:text-2xl font-bold text-white mb-2">
-                    Sign in to create predictions
-                  </h2>
-                </div>
-                <SocialLogin />
-              </div>
-            )}
-            
-            {/* Game Selection */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-2xl mx-auto">
-              {tournaments.map((tournament) => {
-                const uiDetails = gameUiDetailsMap[tournament.name];
-                if (!uiDetails) return null; // Don't render if no UI details are mapped
+              
+              {/* Game Selection */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-2xl mx-auto">
+                {tournaments.map((tournament) => {
+                  const uiDetails = gameUiDetailsMap[tournament.name];
+                  if (!uiDetails) return null; // Don't render if no UI details are mapped
 
-                const predictionsOpen = arePredictionsOpen(tournament);
-                const hasResults = tournamentsWithResults.has(tournament.id);
-                const cutoffTime = new Date(tournament.cutoff_time);
-                const now = new Date();
-                const cutoffPassed = cutoffTime <= now;
+                  const predictionsOpen = arePredictionsOpen(tournament);
+                  const hasResults = tournamentsWithResults.has(tournament.id);
+                  const cutoffTime = new Date(tournament.cutoff_time);
+                  const now = new Date();
+                  const cutoffPassed = cutoffTime <= now;
 
-                // Determine tournament status for banner
-                let bannerText = '';
-                let statusColors = { border: '', background: '' };
-                
-                if (hasResults) {
-                  // Tournament completed - has results
-                  bannerText = 'VIEW RESULTS';
-                  statusColors = getStatusColors('results');
-                } else if (predictionsOpen) {
-                  // Predictions still open
-                  bannerText = 'MAKE\nPREDICTIONS';
-                  statusColors = getStatusColors('predictions');
-                } else {
-                  // Active tournament - no results, cutoff passed
-                  bannerText = 'RESULTS\nPENDING';
-                  statusColors = getStatusColors('pending');
-                }
+                  // Determine tournament status for banner
+                  let bannerText = '';
+                  let statusColors = { border: '', background: '' };
+                  
+                  if (hasResults) {
+                    // Tournament completed - has results
+                    bannerText = 'VIEW RESULTS';
+                    statusColors = getStatusColors('results');
+                  } else if (predictionsOpen) {
+                    // Predictions still open
+                    bannerText = 'MAKE\nPREDICTIONS';
+                    statusColors = getStatusColors('predictions');
+                  } else {
+                    // Active tournament - no results, cutoff passed
+                    bannerText = 'RESULTS\nPENDING';
+                    statusColors = getStatusColors('pending');
+                  }
 
-                return (
-                  <div key={tournament.id} className="flex flex-col items-center">
-                    <button
-                      onClick={() => handleGameSelect(uiDetails.slug)}
-                      className={`relative transition-all duration-300 cursor-pointer hover:scale-105 hover:shadow-lg hover:shadow-black/50 group ${statusColors.border} ${CORNER_RADIUS} overflow-hidden ${SHOW_TITLES ? 'mb-2' : ''}`}
-                      style={{ 
-                        transition: 'all 0.3s ease-in-out, border-color 0.3s ease-in-out',
-                        backfaceVisibility: 'hidden',
-                        WebkitBackfaceVisibility: 'hidden',
-                        willChange: 'transform',
-                        WebkitFontSmoothing: 'antialiased'
-                      }}
-                    >
-                      <div className="relative w-[8.4rem] h-[8.4rem]">
-                        <Image
-                          src={uiDetails.imageUrl}
-                          alt={tournament.name}
-                          fill
-                          className={`${CORNER_RADIUS_TOP} transition-all duration-300 group-hover:brightness-110 ${
-                            tournament.name === 'Dragon Ball FighterZ' || tournament.name === 'Tekken 8' || tournament.name === 'Mortal Kombat 1' || tournament.name === 'Guilty Gear Strive'
-                              ? 'object-cover' 
-                              : 'object-contain'
-                          }`}
-                          style={
-                            tournament.name === 'Dragon Ball FighterZ' 
-                              ? { objectPosition: 'center 12.5%' }
-                              : tournament.name === 'Tekken 8'
-                              ? { objectPosition: 'center 20.45%' }
-                              : tournament.name === 'Mortal Kombat 1'
-                              ? { objectPosition: 'center 50%' }
-                              : tournament.name === 'Guilty Gear Strive'
-                              ? { objectPosition: 'center 5.68%' }
-                              : undefined
-                          }
-                          priority
-                        />
-                      </div>
+                  return (
+                    <div key={tournament.id} className="flex flex-col items-center">
+                      <button
+                        onClick={() => handleGameSelect(uiDetails.slug)}
+                        className={`relative transition-all duration-300 cursor-pointer hover:scale-105 hover:shadow-lg hover:shadow-black/50 group ${statusColors.border} ${CORNER_RADIUS} overflow-hidden ${SHOW_TITLES ? 'mb-2' : ''}`}
+                        style={{ 
+                          transition: 'all 0.3s ease-in-out, border-color 0.3s ease-in-out',
+                          backfaceVisibility: 'hidden',
+                          WebkitBackfaceVisibility: 'hidden',
+                          willChange: 'transform',
+                          WebkitFontSmoothing: 'antialiased'
+                        }}
+                      >
+                        <div className="relative w-[8.4rem] h-[8.4rem]">
+                          <Image
+                            src={uiDetails.imageUrl}
+                            alt={tournament.name}
+                            fill
+                            className={`${CORNER_RADIUS_TOP} transition-all duration-300 group-hover:brightness-110 ${
+                              tournament.name === 'Dragon Ball FighterZ' || tournament.name === 'Tekken 8' || tournament.name === 'Mortal Kombat 1' || tournament.name === 'Guilty Gear Strive'
+                                ? 'object-cover' 
+                                : 'object-contain'
+                            }`}
+                            style={
+                              tournament.name === 'Dragon Ball FighterZ' 
+                                ? { objectPosition: 'center 12.5%' }
+                                : tournament.name === 'Tekken 8'
+                                ? { objectPosition: 'center 20.45%' }
+                                : tournament.name === 'Mortal Kombat 1'
+                                ? { objectPosition: 'center 50%' }
+                                : tournament.name === 'Guilty Gear Strive'
+                                ? { objectPosition: 'center 5.68%' }
+                                : undefined
+                            }
+                            priority
+                          />
+                        </div>
+                        
+                        {/* Status banner positioned below the image within the same button */}
+                        <span className={`text-white text-xs font-bold text-center py-2 w-full block transition-all duration-300 group-hover:brightness-125 ${statusColors.background}`}>
+                          {bannerText}
+                        </span>
+                      </button>
                       
-                      {/* Status banner positioned below the image within the same button */}
-                      <span className={`text-white text-xs font-bold text-center py-2 w-full block transition-all duration-300 group-hover:brightness-125 ${statusColors.background}`}>
-                        {bannerText}
-                      </span>
-                    </button>
-                    
-                    {SHOW_TITLES && (<span className="text-white text-sm">{uiDetails.title}</span>)}
+                      {SHOW_TITLES && (<span className="text-white text-sm">{uiDetails.title}</span>)}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {user && (
+                <div className="flex flex-col items-center pt-8 mt-8 space-y-4">
+                  {/* Admin Dashboard button for admins only */}
+                  {role === "admin" && (
+                    <Button
+                      onClick={() => router.push("/admin")}
+                      variant="default"
+                      className="bg-green-700 hover:bg-green-800 text-white font-bold px-8 py-3 rounded-lg shadow-md transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7M16 3v4M8 3v4M4 11h16" />
+                      </svg>
+                      Admin Dashboard
+                    </Button>
+                  )}
+                  {/* Only the bottom Rules Button remains, now with white text and a thinner border */}
+                  <Link
+                    href="/rules"
+                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 mb-2 bg-gray-900/60 border border-gray-600 text-white hover:bg-gray-800/80 hover:text-green-200 font-normal rounded-lg shadow-none transition-colors text-sm px-8 py-3 w-full max-w-xs"
+                  >
+                    Rules
+                  </Link>
+                  <div className="flex items-center justify-between w-full max-w-sm">
+                    <span className="text-sm text-gray-400">{user.email}</span>
+                    <Button 
+                      onClick={handleLogout}
+                      variant="ghost"
+                      className="text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors rounded-lg"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      Log Out
+                    </Button>
                   </div>
-                );
-              })}
-            </div>
-
-            {user && (
-              <div className="flex flex-col items-center pt-8 mt-8 space-y-4">
-                {/* Admin Dashboard button for admins only */}
-                {role === "admin" && (
-                  <Button
-                    onClick={() => router.push("/admin")}
-                    variant="default"
-                    className="bg-green-700 hover:bg-green-800 text-white font-bold px-8 py-3 rounded-lg shadow-md transition-colors"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7M16 3v4M8 3v4M4 11h16" />
-                    </svg>
-                    Admin Dashboard
-                  </Button>
-                )}
-                {/* Only the bottom Rules Button remains, now with white text and a thinner border */}
-                <Link
-                  href="/rules"
-                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 mb-2 bg-gray-900/60 border border-gray-600 text-white hover:bg-gray-800/80 hover:text-green-200 font-normal rounded-lg shadow-none transition-colors text-sm px-8 py-3 w-full max-w-xs"
-                >
-                  Rules
-                </Link>
-                <div className="flex items-center justify-between w-full max-w-sm">
-                  <span className="text-sm text-gray-400">{user.email}</span>
-                  <Button 
-                    onClick={handleLogout}
-                    variant="ghost"
-                    className="text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors rounded-lg"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    Log Out
-                  </Button>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Only the bottom Rules Button remains for logged-out users, now with white text and a thinner border */}
-            {!user && (
-              <div className="flex flex-col items-center mt-16 mb-2">
-                <Link
-                  href="/rules"
-                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 mb-2 bg-gray-900/60 border border-gray-600 text-white hover:bg-gray-800/80 hover:text-green-200 font-normal rounded-lg shadow-none transition-colors text-sm px-8 py-3 w-full max-w-xs"
-                >
-                  Rules
-                </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-      {/* Privacy Policy link for logged-out users at the very bottom */}
-      {!user && (
-        <div className="w-full flex justify-center mt-2 mb-2">
-          <Link
-            href="/privacy"
-            className="text-xs text-gray-400 underline hover:text-white transition-colors"
-          >
-            Privacy Policy
-          </Link>
+              {/* Only the bottom Rules Button remains for logged-out users, now with white text and a thinner border */}
+              {!user && (
+                <div className="flex flex-col items-center mt-16 mb-2">
+                  <Link
+                    href="/rules"
+                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 mb-2 bg-gray-900/60 border border-gray-600 text-white hover:bg-gray-800/80 hover:text-green-200 font-normal rounded-lg shadow-none transition-colors text-sm px-8 py-3 w-full max-w-xs"
+                  >
+                    Rules
+                  </Link>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
-      )}
-    </div>
+        {/* Privacy Policy link for logged-out users at the very bottom */}
+        {!user && (
+          <div className="w-full flex justify-center mt-2 mb-2">
+            <Link
+              href="/privacy"
+              className="text-xs text-gray-400 underline hover:text-white transition-colors"
+            >
+              Privacy Policy
+            </Link>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
