@@ -333,8 +333,6 @@ export default function Home() {
                           {bannerText}
                         </span>
                       </button>
-                      
-                      {SHOW_TITLES && (<span className="text-white text-sm">{uiDetails.title}</span>)}
                     </div>
                   );
                 })}

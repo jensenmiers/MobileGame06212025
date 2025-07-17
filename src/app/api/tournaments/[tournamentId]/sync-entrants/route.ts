@@ -16,6 +16,7 @@ const STARTGG_GAME_IDS: Record<string, number> = {
   'Mortal Kombat 1': 48599,            // ✅ DISCOVERED: Found correct ID
   'Guilty Gear Strive': 33945,         // ✅ DISCOVERED: Found correct ID
   'Fatal Fury: City of the Wolves': 73221, // ✅ DISCOVERED: Found correct ID
+  'Under Night In Birth II': 74072,    // ✅ DISCOVERED: Sys:Celes (latest version)
 };
 
 // GraphQL query to fetch tournament participants
@@ -144,151 +145,66 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Fetch participants from Start.gg
-    const startggParticipants = await fetchStartGGParticipants(tournamentSlug, gameId);
+    const participants = await fetchStartGGParticipants(tournamentSlug, gameId);
 
-    if (startggParticipants.length === 0) {
-      return NextResponse.json({
-        success: true,
-        message: 'No entrants found in this tournament',
-        participants_added: 0,
-        participants_removed: 0,
-      });
-    }
+    // Insert or update participants in the database
+    for (const participant of participants) {
+      const { data: existingParticipant, error: existingParticipantError } = await database
+        .from('participants')
+        .select('id')
+        .eq('startgg_entrant_id', participant.startgg_entrant_id)
+        .single();
 
-    console.log(`🔄 [API DEBUG] Starting database operations for tournament ${tournamentId}`);
-    console.log(`🔄 [API DEBUG] Using UPSERT approach (no more deletes!)`);
-    
-    // NEW APPROACH: UPSERT instead of DELETE/INSERT
-    // This preserves existing participants and their foreign key relationships
-    const upsertStartTime = Date.now();
-    
-    // Prepare participant data for upsert
-    const participantData = startggParticipants.map(p => ({
-      tournament_id: tournamentId,
-      startgg_entrant_id: p.startgg_entrant_id, // ✅ NEW: Use stable Start.gg ID
-      name: p.name,
-      seed: p.seed,
-      created_at: new Date().toISOString(),
-    }));
+      if (existingParticipantError && existingParticipantError.code === 'PGRST116') { // PGRST116 means no rows found
+        // New entrant, insert into database
+        const { data: insertedParticipant, error: insertError } = await database
+          .from('participants')
+          .insert({
+            tournament_id: tournamentId,
+            startgg_entrant_id: participant.startgg_entrant_id,
+            name: participant.name,
+            seed: participant.seed,
+            created_at: new Date(),
+            updated_at: new Date(),
+          })
+          .select()
+          .single();
 
-    console.log(`🔄 [API DEBUG] Prepared ${participantData.length} participants for upsert`);
-
-    // UPSERT participants in batches using Start.gg entrant ID
-    const batchSize = 50;
-    let totalUpdated = 0;
-    let totalCreated = 0;
-    
-    for (let i = 0; i < participantData.length; i += batchSize) {
-      const batch = participantData.slice(i, i + batchSize);
-      console.log(`🔄 [API DEBUG] Upserting batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(participantData.length/batchSize)} (${batch.length} participants)`);
-      
-      // Use individual upserts to get proper conflict resolution
-      for (const participant of batch) {
-        // Check for existing participant by startgg_entrant_id first
-        let existingParticipant = null;
-        
-        if (participant.startgg_entrant_id) {
-          const { data, error: selectError } = await database
-            .from('participants')
-            .select('id')
-            .eq('tournament_id', tournamentId)
-            .eq('startgg_entrant_id', participant.startgg_entrant_id)
-            .single();
-
-          if (selectError && selectError.code !== 'PGRST116') {
-            console.error(`❌ [API DEBUG] Error checking existing participant by startgg_entrant_id:`, selectError);
-            throw new Error(`Failed to check existing participant: ${selectError.message}`);
-          }
-          existingParticipant = data;
+        if (insertError) {
+          console.error('Error inserting entrant:', insertError);
+          continue;
         }
+        console.log('Inserted entrant:', insertedParticipant);
+      } else if (existingParticipantError) {
+        console.error('Error checking existing entrant:', existingParticipantError);
+        continue;
+      } else {
+        // Existing entrant, update in database
+        const { data: updatedParticipant, error: updateError } = await database
+          .from('participants')
+          .update({
+            name: participant.name,
+            seed: participant.seed,
+            updated_at: new Date(),
+          })
+          .eq('id', existingParticipant.id)
+          .select()
+          .single();
 
-        // If not found by startgg_entrant_id, check by (tournament_id, name) due to unique constraint
-        if (!existingParticipant) {
-          const { data, error: selectError } = await database
-            .from('participants')
-            .select('id')
-            .eq('tournament_id', tournamentId)
-            .eq('name', participant.name)
-            .single();
-
-          if (selectError && selectError.code !== 'PGRST116') {
-            console.error(`❌ [API DEBUG] Error checking existing participant by name:`, selectError);
-            throw new Error(`Failed to check existing participant by name: ${selectError.message}`);
-          }
-          existingParticipant = data;
+        if (updateError) {
+          console.error('Error updating entrant:', updateError);
+          continue;
         }
-
-        if (existingParticipant) {
-          // Update existing participant with new data including startgg_entrant_id
-          const { error: updateError } = await database
-            .from('participants')
-            .update({
-              startgg_entrant_id: participant.startgg_entrant_id, // ✅ NEW: Populate the stable ID
-              name: participant.name,
-              seed: participant.seed,
-            })
-            .eq('id', existingParticipant.id);
-
-          if (updateError) {
-            console.error(`❌ [API DEBUG] Update failed:`, updateError);
-            throw new Error(`Failed to update participant: ${updateError.message}`);
-          }
-          totalUpdated++;
-          console.log(`🔄 [API DEBUG] Updated participant: ${participant.name} with startgg_entrant_id: ${participant.startgg_entrant_id}`);
-        } else {
-          // Insert new participant
-          const { error: insertError } = await database
-            .from('participants')
-            .insert(participant);
-
-          if (insertError) {
-            console.error(`❌ [API DEBUG] Insert failed:`, insertError);
-            throw new Error(`Failed to insert participant: ${insertError.message}`);
-          }
-          totalCreated++;
-          console.log(`🔄 [API DEBUG] Created new participant: ${participant.name} with startgg_entrant_id: ${participant.startgg_entrant_id}`);
-        }
+        console.log('Updated entrant:', updatedParticipant);
       }
     }
-    
-    const upsertDuration = Date.now() - upsertStartTime;
-    console.log(`✅ [API DEBUG] Upsert completed in ${upsertDuration}ms: ${totalUpdated} updated, ${totalCreated} created`);
-    
-    // Add a small delay to ensure database consistency
-    console.log(`🔄 [API DEBUG] Adding 500ms delay for database consistency...`);
-    await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Update tournament with Start.gg URL
-    const { error: updateError } = await database
-      .from('tournaments')
-      .update({ startgg_tournament_url: startgg_url })
-      .eq('id', tournamentId);
-
-    if (updateError) {
-      console.error('Failed to update tournament URL:', updateError);
-      // Don't fail the whole operation for this
-    }
-
-    console.log(`✅ [API DEBUG] Sync operation completed successfully - returning response`);
-
-    return NextResponse.json({
-      success: true,
-      message: `Successfully synced ${startggParticipants.length} entrants from Start.gg`,
-      participants_updated: totalUpdated,
-      participants_created: totalCreated,
-      total_participants: startggParticipants.length,
-      tournament_slug: tournamentSlug,
-      migration_note: "✅ Using stable Start.gg IDs - no more foreign key conflicts!",
-    });
-
+    return NextResponse.json({ message: 'Entrants synced successfully' });
   } catch (error) {
-    console.error('Start.gg sync error:', error);
+    console.error('Sync error:', error);
     return NextResponse.json(
-      { 
-        error: error instanceof Error ? error.message : 'Failed to sync entrants from Start.gg',
-        success: false 
-      },
+      { error: 'Failed to sync entrants' },
       { status: 500 }
     );
   }
-} 
+}
