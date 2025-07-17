@@ -51,7 +51,7 @@ export default function RulesPage() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-green-400 mt-1">•</span>
-                    <span><strong className="text-white">Edit freely until cutoff</strong> - change your mind as much as you want before the deadline</span>
+                    <span><strong className="text-white">Edit freely until the Top 8 starts</strong> - change your mind as much as you want before the Top 8 starts.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-green-400 mt-1">•</span>
