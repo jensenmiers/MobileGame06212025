@@ -105,7 +105,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     if (!startgg_url) {
       return NextResponse.json(
-        { error: 'Start.gg tournament URL is required' },
+        { 
+          success: false,
+          error: 'Start.gg tournament URL is required' 
+        },
         { status: 400 }
       );
     }
@@ -113,7 +116,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Check if API key is configured
     if (!process.env.START_GG_API_KEY) {
       return NextResponse.json(
-        { error: 'Start.gg API key not configured' },
+        { 
+          success: false,
+          error: 'Start.gg API key not configured' 
+        },
         { status: 500 }
       );
     }
@@ -127,7 +133,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     if (tournamentError || !tournament) {
       return NextResponse.json(
-        { error: 'Tournament not found' },
+        { 
+          success: false,
+          error: 'Tournament not found' 
+        },
         { status: 404 }
       );
     }
@@ -139,7 +148,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const gameId = STARTGG_GAME_IDS[tournament.name];
     if (!gameId) {
       return NextResponse.json(
-        { error: `No Start.gg game ID configured for "${tournament.name}"` },
+        { 
+          success: false,
+          error: `No Start.gg game ID configured for "${tournament.name}"` 
+        },
         { status: 400 }
       );
     }
@@ -165,7 +177,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             name: participant.name,
             seed: participant.seed,
             created_at: new Date(),
-            updated_at: new Date(),
           })
           .select()
           .single();
@@ -185,7 +196,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           .update({
             name: participant.name,
             seed: participant.seed,
-            updated_at: new Date(),
           })
           .eq('id', existingParticipant.id)
           .select()
@@ -199,11 +209,18 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     }
 
-    return NextResponse.json({ message: 'Entrants synced successfully' });
+    return NextResponse.json({ 
+      success: true,
+      message: 'Entrants synced successfully',
+      participants_added: participants.length
+    });
   } catch (error) {
     console.error('Sync error:', error);
     return NextResponse.json(
-      { error: 'Failed to sync entrants' },
+      { 
+        success: false,
+        error: 'Failed to sync entrants' 
+      },
       { status: 500 }
     );
   }
