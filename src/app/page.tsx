@@ -12,7 +12,6 @@ import { tournamentService, syncUserProfile } from "@/lib/tournament-service";
 import { Tournament } from "@/types/tournament";
 import { gameUiDetailsMap } from "@/lib/game-utils";
 import { supabase } from "@/lib/supabase";
-import Head from 'next/head';
 
 export default function Home() {
   const searchParams = useSearchParams();
@@ -186,23 +185,14 @@ export default function Home() {
 
   if (loading) {
     return (
-      <>
-        <Head>
-          <meta name="google-site-verification" content="RlD0Bd3IKA_z8_VYI2sSU9CS-rydQ9BOgC8jnpYynSE" />
-        </Head>
-        <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white flex items-center justify-center">
-          <div className="text-xl">Loading...</div>
-        </div>
-      </>
+      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white flex items-center justify-center">
+        <div className="text-xl">Loading...</div>
+      </div>
     );
   }
 
   return (
-    <>
-      <Head>
-        <meta name="google-site-verification" content="RlD0Bd3IKA_z8_VYI2sSU9CS-rydQ9BOgC8jnpYynSE" />
-      </Head>
-      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white flex flex-col items-center justify-start p-3 pt-3 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white flex flex-col items-center justify-start p-3 pt-3 relative overflow-hidden">
         {/* Simplified background elements */}
         <div className="fixed inset-0 -z-10">
           <div className="absolute -right-40 -bottom-40 w-96 h-96 bg-green-500/10 filter blur-3xl animate-pulse"></div>
