@@ -1175,6 +1175,12 @@ export default function AdminDashboardPage() {
   if (!user || role !== "admin") return null;
 
   // Tabbed navigation UI
+  // Sort tournaments: active first, then inactive
+  const sortedTournaments = [...tournaments].sort((a, b) => {
+    if (a.active === b.active) return 0;
+    return a.active ? -1 : 1;
+  });
+
   return (
     <div
       style={{
@@ -1205,7 +1211,7 @@ export default function AdminDashboardPage() {
             scrollbarWidth: 'thin',
             scrollbarColor: '#228B22 #181818',
           }}>
-          {tournaments.map((tournament, idx) => {
+          {sortedTournaments.map((tournament, idx) => {
             const isSelected = selectedTab === idx;
             const isActive = tournament.active;
             return (
@@ -1351,15 +1357,15 @@ export default function AdminDashboardPage() {
           </div>
         ) : (
           <TournamentCard
-            key={tournaments[selectedTab].id}
-            tournament={tournaments[selectedTab]}
-            participants={participants[tournaments[selectedTab].id] || []}
+            key={sortedTournaments[selectedTab]?.id}
+            tournament={sortedTournaments[selectedTab]}
+            participants={participants[sortedTournaments[selectedTab]?.id] || []}
             isExpanded={true}
             onExpand={() => {}}
-            onLockToggle={() => handleLockToggle(tournaments[selectedTab])}
+            onLockToggle={() => handleLockToggle(sortedTournaments[selectedTab])}
             onSaveResults={(cutoff, results) => {}}
-            onRefreshParticipants={() => fetchParticipants(tournaments[selectedTab].id, true)}
-            loading={loadingParticipants[tournaments[selectedTab].id]}
+            onRefreshParticipants={() => fetchParticipants(sortedTournaments[selectedTab]?.id, true)}
+            loading={loadingParticipants[sortedTournaments[selectedTab]?.id]}
             currentUserId={user?.id}
           />
         )}
