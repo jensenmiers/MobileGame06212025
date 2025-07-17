@@ -86,11 +86,66 @@ export default function Home() {
     return tournaments.find(t => t.name === tournamentName);
   };
 
+  // Helper function to sort tournaments by priority and status
+  const sortTournamentsByPriority = (tournaments: Tournament[], tournamentsWithResultsSet: Set<string>): Tournament[] => {
+    // Priority tournaments that should always appear first
+    const priorityTournaments = ['Street Fighter 6', 'Tekken 8'];
+    
+    // Separate priority tournaments from others
+    const priority: Tournament[] = [];
+    const others: Tournament[] = [];
+    
+    tournaments.forEach(tournament => {
+      if (priorityTournaments.includes(tournament.name)) {
+        priority.push(tournament);
+      } else {
+        others.push(tournament);
+      }
+    });
+    
+    // Sort priority tournaments: Street Fighter first, Tekken second
+    priority.sort((a, b) => {
+      if (a.name === 'Street Fighter 6') return -1;
+      if (b.name === 'Street Fighter 6') return 1;
+      if (a.name === 'Tekken 8') return -1;
+      if (b.name === 'Tekken 8') return 1;
+      return 0;
+    });
+    
+    // Group other tournaments by status
+    const predictionsOpen: Tournament[] = [];
+    const resultsPosted: Tournament[] = [];
+    const resultsPending: Tournament[] = [];
+    
+    others.forEach(tournament => {
+      const hasResults = tournamentsWithResultsSet.has(tournament.id);
+      const isPredictionsOpen = arePredictionsOpen(tournament);
+      
+      if (hasResults) {
+        resultsPosted.push(tournament);
+      } else if (isPredictionsOpen) {
+        predictionsOpen.push(tournament);
+      } else {
+        resultsPending.push(tournament);
+      }
+    });
+    
+    // Sort each group by created_at (oldest first)
+    const sortByCreatedAt = (a: Tournament, b: Tournament) => 
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    
+    predictionsOpen.sort(sortByCreatedAt);
+    resultsPosted.sort(sortByCreatedAt);
+    resultsPending.sort(sortByCreatedAt);
+    
+    // Concatenate in priority order
+    return [...priority, ...predictionsOpen, ...resultsPosted, ...resultsPending];
+  };
+
   useEffect(() => {
     async function fetchTournaments() {
       console.log('🔄 Fetching active tournaments and checking results...');
       const data = await tournamentService.getTournaments(true); // Only fetch active tournaments
-      setTournaments(data);
       
       // Check which tournaments have results (PRIORITY: Results override cutoff time)
       const tournamentsWithResultsSet = new Set<string>();
@@ -131,6 +186,11 @@ export default function Home() {
       
       setTournamentsWithResults(tournamentsWithResultsSet);
       console.log('🏁 Final tournaments with results:', Array.from(tournamentsWithResultsSet));
+      
+      // Sort tournaments by priority and status
+      const sortedTournaments = sortTournamentsByPriority(data, tournamentsWithResultsSet);
+      setTournaments(sortedTournaments);
+      console.log('🎯 Sorted tournament order:', sortedTournaments.map(t => t.name));
     }
     fetchTournaments();
   }, []);
