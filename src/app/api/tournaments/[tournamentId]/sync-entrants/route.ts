@@ -16,7 +16,7 @@ const STARTGG_GAME_IDS: Record<string, number> = {
   'Mortal Kombat 1': 48599,            // ✅ DISCOVERED: Found correct ID
   'Guilty Gear Strive': 33945,         // ✅ DISCOVERED: Found correct ID
   'Fatal Fury: City of the Wolves': 73221, // ✅ DISCOVERED: Found correct ID
-  'Under Night In Birth II': 74072,    // ✅ DISCOVERED: Sys:Celes (latest version)
+  'Under Night In Birth II': 50203,    // ✅ FIXED: Correct ID for Sys:Celes (July 2025)
 };
 
 // GraphQL query to fetch tournament participants
@@ -28,6 +28,10 @@ const GET_PARTICIPANTS_QUERY = `
       events(filter: {videogameId: $videogameId}) {
         id
         name
+        videogame {
+          id
+          name
+        }
         entrants(query: {perPage: 100}) {
           nodes {
             id
@@ -36,6 +40,24 @@ const GET_PARTICIPANTS_QUERY = `
               seedNum
             }
           }
+        }
+      }
+    }
+  }
+`;
+
+// GraphQL query to fetch all events in a tournament
+const GET_ALL_EVENTS_QUERY = `
+  query TournamentEvents($slug: String!) {
+    tournament(slug: $slug) {
+      id
+      name
+      events {
+        id
+        name
+        videogame {
+          id
+          name
         }
       }
     }
@@ -55,6 +77,8 @@ function extractTournamentSlug(url: string): string {
 
 async function fetchStartGGParticipants(tournamentSlug: string, gameId: number) {
   const START_GG_API_URL = 'https://api.start.gg/gql/alpha';
+  
+  console.log(`🔍 [DEBUG] Fetching participants for tournament: ${tournamentSlug}, game ID: ${gameId}`);
   
   const response = await fetch(START_GG_API_URL, {
     method: 'POST',
@@ -82,9 +106,12 @@ async function fetchStartGGParticipants(tournamentSlug: string, gameId: number) 
     throw new Error('Failed to fetch participants from Start.gg');
   }
 
+  console.log(`🔍 [DEBUG] Tournament data received:`, JSON.stringify(data.tournament, null, 2));
+
   // Extract and flatten participants from all events
   const participants = [];
   for (const event of data.tournament.events || []) {
+    console.log(`🔍 [DEBUG] Processing event: ${event.name} (Game: ${event.videogame?.name || 'Unknown'}) with ${event.entrants?.nodes?.length || 0} entrants`);
     for (const entrant of event.entrants.nodes || []) {
       participants.push({
         startgg_entrant_id: entrant.id, // ✅ NEW: Capture Start.gg entrant ID
@@ -94,6 +121,33 @@ async function fetchStartGGParticipants(tournamentSlug: string, gameId: number) 
     }
   }
 
+  console.log(`🔍 [DEBUG] Total participants found: ${participants.length}`);
+  
+  // If no participants found, let's check what events are available
+  if (participants.length === 0) {
+    console.log(`🔍 [DEBUG] No participants found for game ID ${gameId}, checking all available events...`);
+    
+    const allEventsResponse = await fetch(START_GG_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.START_GG_API_KEY}`,
+      },
+      body: JSON.stringify({
+        query: GET_ALL_EVENTS_QUERY,
+        variables: { slug: tournamentSlug },
+      }),
+    });
+    
+    const allEventsData = await allEventsResponse.json();
+    if (allEventsData.data?.tournament?.events) {
+      console.log(`🔍 [DEBUG] Available events in tournament:`);
+      allEventsData.data.tournament.events.forEach((event: any, index: number) => {
+        console.log(`  ${index + 1}. ${event.name} (Game: ${event.videogame?.name || 'Unknown'} - ID: ${event.videogame?.id || 'N/A'})`);
+      });
+    }
+  }
+  
   return participants;
 }
 
