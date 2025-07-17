@@ -330,9 +330,8 @@ export default function Home() {
               })}
             </div>
 
-            {/* Logout button for logged in users - positioned at bottom */}
             {user && (
-              <div className="flex flex-col items-center pt-8 border-t border-gray-800 mt-8 space-y-4">
+              <div className="flex flex-col items-center pt-8 mt-8 space-y-4">
                 {/* Admin Dashboard button for admins only */}
                 {role === "admin" && (
                   <Button
@@ -346,34 +345,54 @@ export default function Home() {
                     Admin Dashboard
                   </Button>
                 )}
-                {/* Rules Button - muted, below Admin button if visible */}
-                <Button
-                  asChild
-                  variant="ghost"
-                  className="mb-2 bg-gray-900/60 border border-gray-700 text-gray-400 hover:bg-gray-800/80 hover:text-green-200 font-normal rounded-lg shadow-none transition-colors text-sm px-8 py-3"
+                {/* Only the bottom Rules Button remains, now with white text and a thinner border */}
+                <Link
+                  href="/rules"
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 mb-2 bg-gray-900/60 border border-gray-600 text-white hover:bg-gray-800/80 hover:text-green-200 font-normal rounded-lg shadow-none transition-colors text-sm px-8 py-3 w-full max-w-xs"
                 >
-                  <Link href="/rules">
-                    Rules
-                  </Link>
-                </Button>
+                  Rules
+                </Link>
                 <div className="flex items-center justify-between w-full max-w-sm">
                   <span className="text-sm text-gray-400">{user.email}</span>
-                <Button 
-                  onClick={handleLogout}
-                  variant="ghost"
-                  className="text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors rounded-lg"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  Log Out
-                </Button>
+                  <Button 
+                    onClick={handleLogout}
+                    variant="ghost"
+                    className="text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors rounded-lg"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Log Out
+                  </Button>
                 </div>
+              </div>
+            )}
+
+            {/* Only the bottom Rules Button remains for logged-out users, now with white text and a thinner border */}
+            {!user && (
+              <div className="flex flex-col items-center mt-16 mb-2">
+                <Link
+                  href="/rules"
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 mb-2 bg-gray-900/60 border border-gray-600 text-white hover:bg-gray-800/80 hover:text-green-200 font-normal rounded-lg shadow-none transition-colors text-sm px-8 py-3 w-full max-w-xs"
+                >
+                  Rules
+                </Link>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
+      {/* Privacy Policy link for logged-out users at the very bottom */}
+      {!user && (
+        <div className="w-full flex justify-center mt-2 mb-2">
+          <Link
+            href="/privacy"
+            className="text-xs text-gray-400 underline hover:text-white transition-colors"
+          >
+            Privacy Policy
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
