@@ -116,7 +116,8 @@ function TournamentCard({
   onSaveResults,
   onRefreshParticipants,
   loading = false,
-  currentUserId
+  currentUserId,
+  onToggleVisibility
 }: {
   tournament: Tournament;
   participants: Participant[];
@@ -127,6 +128,7 @@ function TournamentCard({
   onRefreshParticipants: () => void;
   loading?: boolean;
   currentUserId?: string;
+  onToggleVisibility: (tournamentId: string, currentActive: boolean) => void;
 }) {
   // Helper function to convert ISO datetime to datetime-local format
   const formatDateTimeLocal = (isoDateTime: string): string => {
@@ -584,19 +586,88 @@ function TournamentCard({
         }}>
           {tournament.name}
         </span>
-        <span style={{
+        <div style={{
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 16,
+  margin: '8px 0 0 0',
+  gridColumn: '1 / span 3',
+}}>
+  <span style={{ color: '#b5e0b5', fontWeight: 500, fontSize: '1.2rem', lineHeight: 1.0 }}>
+    {tournament.active ? `(${getTournamentStatusText(tournament, hasResults)})` : '(INACTIVE)'}
+  </span>
+  {/* Visibility toggle (icons + switch) */}
+  <span style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 12 }}>
+    {/* Visible emoji (left) */}
+    <span
+      title="Visible"
+      style={{
+        fontSize: 18,
+        opacity: tournament.active ? 1 : 0.4,
+        filter: tournament.active ? 'none' : 'grayscale(1)',
+        transition: 'opacity 0.2s',
+        cursor: 'pointer',
+      }}
+      onClick={e => {
+        e.stopPropagation();
+        if (!tournament.active && !loading) onToggleVisibility(tournament.id, false);
+      }}
+    >👁️</span>
+    {/* Toggle switch */}
+    <span
+      title={tournament.active ? 'Click to hide tournament' : 'Click to show tournament'}
+      style={{
+        display: 'inline-block',
+        width: 28,
+        height: 16,
+        borderRadius: 10,
+        background: tournament.active ? '#22c55e' : '#666',
+        border: '2px solid #228B22',
+        margin: '0 2px',
+        position: 'relative',
+        verticalAlign: 'middle',
+        cursor: loading ? 'not-allowed' : 'pointer',
+        transition: 'background 0.2s, border 0.2s',
+        boxShadow: '0 0 4px #228B22',
+      }}
+      onClick={e => {
+        e.stopPropagation();
+        if (!loading) onToggleVisibility(tournament.id, tournament.active);
+      }}
+    >
+      <span
+        style={{
           display: 'block',
-          color: '#b5e0b5',
-          fontWeight: 500,
-          fontSize: '1.2rem',
-          textAlign: 'center',
-          gridColumn: '1 / span 3',
-          marginTop: 0,
-          marginBottom: 0,
-          lineHeight: 1.0
-        }}>
-          ({getTournamentStatusText(tournament, hasResults)})
-        </span>
+          width: 12,
+          height: 12,
+          borderRadius: '50%',
+          background: '#fff',
+          position: 'absolute',
+          top: 1.5,
+          left: tournament.active ? 12 : 2,
+          transition: 'left 0.2s',
+          boxShadow: '0 1px 4px #0006',
+        }}
+      />
+    </span>
+    {/* Hidden emoji (right) */}
+    <span
+      title="Hidden"
+      style={{
+        fontSize: 18,
+        opacity: tournament.active ? 0.4 : 1,
+        filter: tournament.active ? 'grayscale(1)' : 'none',
+        transition: 'opacity 0.2s',
+        cursor: 'pointer',
+      }}
+      onClick={e => {
+        e.stopPropagation();
+        if (tournament.active && !loading) onToggleVisibility(tournament.id, true);
+      }}
+    >🙈</span>
+  </span>
+</div>
         {/* Removed LockToggle from header */}
       </div>
       {isExpanded && (
@@ -1020,6 +1091,8 @@ const TOURNAMENT_ABBREVIATIONS: Record<string, string> = {
   'Mortal Kombat 1': 'MK1',
   'Street Fighter 6': 'SF6',
   'Guilty Gear Strive': 'GGS',
+  'Under Night In Birth II': 'UNIB',
+  'Fatal Fury: City of the Wolves': 'FFCW',
   // Add more as needed
 };
 
@@ -1175,6 +1248,12 @@ export default function AdminDashboardPage() {
   if (!user || role !== "admin") return null;
 
   // Tabbed navigation UI
+  // Sort tournaments: active first, then inactive
+  const sortedTournaments = [...tournaments].sort((a, b) => {
+    if (a.active === b.active) return 0;
+    return a.active ? -1 : 1;
+  });
+
   return (
     <div
       style={{
@@ -1205,11 +1284,11 @@ export default function AdminDashboardPage() {
             scrollbarWidth: 'thin',
             scrollbarColor: '#228B22 #181818',
           }}>
-          {tournaments.map((tournament, idx) => {
+          {sortedTournaments.map((tournament, idx) => {
             const isSelected = selectedTab === idx;
             const isActive = tournament.active;
             return (
-              <div key={tournament.id} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '1 1 0' }}>
+              <div key={tournament.id} style={{ position: 'relative' }}>
                 <button
                   onMouseEnter={() => setHoveredTab(idx)}
                   onMouseLeave={() => setHoveredTab(null)}
@@ -1219,22 +1298,19 @@ export default function AdminDashboardPage() {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '10px',
                     background: isSelected ? (isActive ? '#003300' : '#333') : '#181818',
                     color: isSelected ? '#fff' : '#ccc',
                     border: 'none',
                     borderBottom: isSelected ? '4px solid #228B22' : '4px solid transparent',
                     fontWeight: 700,
-                    fontSize: 16, // Slightly smaller font
-                    padding: '4px 10px', // More compact
+                    fontSize: 16,
+                    padding: '2px 6px',
                     cursor: 'pointer',
                     outline: 'none',
                     transition: 'background 0.2s, color 0.2s, border-bottom 0.2s',
                     borderTopLeftRadius: 6,
                     borderTopRightRadius: 6,
                     opacity: isActive ? 1 : 0.5,
-                    minWidth: 70, // More compact
-                    flex: '1 1 0', // Allow tabs to shrink/grow
                     position: 'relative',
                     whiteSpace: 'nowrap',
                   }}
@@ -1242,76 +1318,6 @@ export default function AdminDashboardPage() {
                 >
                   {/* Tournament abbreviation */}
                   <span style={{ fontWeight: 900, letterSpacing: 1 }}>{TOURNAMENT_ABBREVIATIONS[tournament.name] || tournament.name.slice(0, 4).toUpperCase()}</span>
-                  {/* Visibility toggle with emojis */}
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 4 }}>
-                    {/* Visible emoji (left) */}
-                    <span
-                      title="Visible"
-                      style={{
-                        fontSize: 18,
-                        opacity: isActive ? 1 : 0.4,
-                        filter: isActive ? 'none' : 'grayscale(1)',
-                        transition: 'opacity 0.2s',
-                        cursor: 'pointer',
-                      }}
-                      onClick={e => {
-                        e.stopPropagation();
-                        if (!isActive && !updatingVisibility[tournament.id]) toggleTournamentVisibility(tournament.id, false);
-                      }}
-                    >👁️</span>
-                    {/* Toggle switch */}
-                    <span
-                      title={isActive ? 'Click to hide tournament' : 'Click to show tournament'}
-                      style={{
-                        display: 'inline-block',
-                        width: 28,
-                        height: 16,
-                        borderRadius: 10,
-                        background: isActive ? '#22c55e' : '#666',
-                        border: isSelected ? '2px solid #228B22' : '2px solid #444',
-                        margin: '0 2px',
-                        position: 'relative',
-                        verticalAlign: 'middle',
-                        cursor: updatingVisibility[tournament.id] ? 'not-allowed' : 'pointer',
-                        transition: 'background 0.2s, border 0.2s',
-                        boxShadow: isSelected ? '0 0 4px #228B22' : undefined,
-                      }}
-                      onClick={e => {
-                        e.stopPropagation();
-                        if (!updatingVisibility[tournament.id]) toggleTournamentVisibility(tournament.id, isActive);
-                      }}
-                    >
-                      <span
-                        style={{
-                          display: 'block',
-                          width: 12,
-                          height: 12,
-                          borderRadius: '50%',
-                          background: '#fff',
-                          position: 'absolute',
-                          top: 1.5,
-                          left: isActive ? 12 : 2,
-                          transition: 'left 0.2s',
-                          boxShadow: '0 1px 4px #0006',
-                        }}
-                      />
-                    </span>
-                    {/* Hidden emoji (right) */}
-                    <span
-                      title="Hidden"
-                      style={{
-                        fontSize: 18,
-                        opacity: isActive ? 0.4 : 1,
-                        filter: isActive ? 'grayscale(1)' : 'none',
-                        transition: 'opacity 0.2s',
-                        cursor: 'pointer',
-                      }}
-                      onClick={e => {
-                        e.stopPropagation();
-                        if (isActive && !updatingVisibility[tournament.id]) toggleTournamentVisibility(tournament.id, true);
-                      }}
-                    >🙈</span>
-                  </span>
                 </button>
                 {/* Floating tooltip for full name */}
                 <div
@@ -1351,16 +1357,17 @@ export default function AdminDashboardPage() {
           </div>
         ) : (
           <TournamentCard
-            key={tournaments[selectedTab].id}
-            tournament={tournaments[selectedTab]}
-            participants={participants[tournaments[selectedTab].id] || []}
+            key={sortedTournaments[selectedTab]?.id}
+            tournament={sortedTournaments[selectedTab]}
+            participants={participants[sortedTournaments[selectedTab]?.id] || []}
             isExpanded={true}
             onExpand={() => {}}
-            onLockToggle={() => handleLockToggle(tournaments[selectedTab])}
+            onLockToggle={() => handleLockToggle(sortedTournaments[selectedTab])}
             onSaveResults={(cutoff, results) => {}}
-            onRefreshParticipants={() => fetchParticipants(tournaments[selectedTab].id, true)}
-            loading={loadingParticipants[tournaments[selectedTab].id]}
+            onRefreshParticipants={() => fetchParticipants(sortedTournaments[selectedTab]?.id, true)}
+            loading={loadingParticipants[sortedTournaments[selectedTab]?.id]}
             currentUserId={user?.id}
+            onToggleVisibility={(tournamentId, currentActive) => toggleTournamentVisibility(tournamentId, currentActive)}
           />
         )}
       </div>
