@@ -1162,11 +1162,22 @@ export default function AdminDashboardPage() {
     if (tournaments.length > 0) {
       const selectedTournament = tournaments[selectedTab];
       if (selectedTournament) {
-        fetchParticipants(selectedTournament.id, false);
+        fetchParticipants(selectedTournament.id, true); // Always force refresh on tab change
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTab, tournaments.length]);
+
+  // Initial data load for first tab when tournaments are first loaded
+  useEffect(() => {
+    if (tournaments.length > 0 && selectedTab === 0) {
+      const selectedTournament = tournaments[selectedTab];
+      if (selectedTournament) {
+        fetchParticipants(selectedTournament.id, true);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tournaments.length]);
 
   // Toggle tournament visibility
   const toggleTournamentVisibility = async (tournamentId: string, currentActive: boolean) => {
@@ -1294,7 +1305,18 @@ export default function AdminDashboardPage() {
                   onMouseLeave={() => setHoveredTab(null)}
                   onFocus={() => setHoveredTab(idx)}
                   onBlur={() => setHoveredTab(null)}
-                  onClick={() => setSelectedTab(idx)}
+                  onClick={() => {
+                    if (selectedTab === idx) {
+                      // If clicking the same tab, force refresh the data
+                      const tournament = sortedTournaments[idx];
+                      if (tournament) {
+                        fetchParticipants(tournament.id, true);
+                      }
+                    } else {
+                      // If clicking a different tab, switch to it
+                      setSelectedTab(idx);
+                    }
+                  }}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -1317,7 +1339,34 @@ export default function AdminDashboardPage() {
                   aria-label={tournament.name + (isActive ? ' (Visible)' : ' (Hidden)')}
                 >
                   {/* Tournament abbreviation */}
-                  <span style={{ fontWeight: 900, letterSpacing: 1 }}>{TOURNAMENT_ABBREVIATIONS[tournament.name] || tournament.name.slice(0, 4).toUpperCase()}</span>
+                  <span style={{ fontWeight: 900, letterSpacing: 1 }}>
+                    {TOURNAMENT_ABBREVIATIONS[tournament.name] || tournament.name.slice(0, 4).toUpperCase()}
+                    {loadingParticipants[tournament.id] && (
+                      <span style={{ marginLeft: 4, fontSize: 12 }}>⟳</span>
+                    )}
+                  </span>
+                  {isSelected && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '-2.5em',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      background: '#228B22',
+                      color: '#fff',
+                      padding: '4px 8px',
+                      borderRadius: 4,
+                      fontSize: 10,
+                      fontWeight: 600,
+                      whiteSpace: 'nowrap',
+                      boxShadow: '0 2px 8px #0008',
+                      opacity: hoveredTab === idx ? 1 : 0,
+                      pointerEvents: 'none',
+                      zIndex: 11,
+                      transition: 'opacity 0.2s',
+                    }}>
+                      Click to refresh data
+                    </div>
+                  )}
                 </button>
                 {/* Floating tooltip for full name */}
                 <div
