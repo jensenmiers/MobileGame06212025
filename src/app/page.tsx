@@ -191,29 +191,7 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [fetchTournamentsData]);
 
-  // Page visibility API - refresh when user returns to tab
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        console.log('👁️ Page became visible, refreshing data...');
-        fetchTournamentsData();
-      }
-    };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [fetchTournamentsData]);
-
-  // Refresh on window focus (when user switches back to tab)
-  useEffect(() => {
-    const handleFocus = () => {
-      console.log('🎯 Window focused, refreshing data...');
-      fetchTournamentsData();
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [fetchTournamentsData]);
 
 
 
