@@ -22,6 +22,7 @@ export default function Home() {
   const [tournamentsWithResults, setTournamentsWithResults] = useState<Set<string>>(new Set());
   const [lastRefreshTime, setLastRefreshTime] = useState<number | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
   // Toggle to show/hide the text labels under each game icon
   const SHOW_TITLES = false;
 
@@ -176,6 +177,7 @@ export default function Home() {
       const sortedTournaments = sortTournamentsByPriority(data, tournamentsWithResultsSet);
       setTournaments(sortedTournaments);
       setLastRefreshTime(Date.now());
+      setHasInitialized(true);
       console.log('🎯 Sorted tournament order:', sortedTournaments.map(t => t.name));
     } catch (error) {
       console.error('❌ Error fetching tournaments data:', error);
@@ -331,7 +333,7 @@ export default function Home() {
                 {/* Data refresh indicator */}
                 <div className="w-full text-center mt-2">
                   <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
-                    {isRefreshing && (
+                    {isRefreshing && hasInitialized && (
                       <div className="flex items-center gap-1">
                         <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
                         <span>Updating...</span>
