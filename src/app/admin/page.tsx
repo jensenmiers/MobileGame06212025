@@ -683,14 +683,13 @@ function TournamentCard({
           }}
         >
           {/* Entrants Count and Tournament Name */}
-          {(participants.length > 0 || currentTournamentName) && (
-            <div style={{ marginBottom: 12, color: "#ccc", fontSize: 16 }}>
-              <span style={{ color: '#fff', fontWeight: 700, background: '#003300', borderRadius: 6, padding: '2px 8px', marginRight: 4 }}>
-                {participants.length} entrants
-              </span>
-              {currentTournamentName ? `currently added from ${currentTournamentName}` : 'currently added'}
-            </div>
-          )}
+          <div style={{ marginBottom: 12, color: "#ccc", fontSize: 16 }}>
+            <span style={{ color: '#fff', fontWeight: 700, background: '#003300', borderRadius: 6, padding: '2px 8px', marginRight: 4 }}>
+              {loading ? 'Loading...' : `${participants.length} entrants`}
+              {loading && <span style={{ marginLeft: 4 }}>⟳</span>}
+            </span>
+            {currentTournamentName ? `currently added from ${currentTournamentName}` : 'currently added'}
+          </div>
           
           {/* Start.gg Tournament URL Section */}
           <div style={{ display: "flex", alignItems: "center", marginBottom: 16, gap: "12px" }}>
