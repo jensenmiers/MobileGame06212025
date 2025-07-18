@@ -20,7 +20,7 @@ export default function Home() {
 
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [tournamentsWithResults, setTournamentsWithResults] = useState<Set<string>>(new Set());
-  const [lastRefreshTime, setLastRefreshTime] = useState<number>(Date.now());
+  const [lastRefreshTime, setLastRefreshTime] = useState<number | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   // Toggle to show/hide the text labels under each game icon
   const SHOW_TITLES = false;
@@ -337,7 +337,7 @@ export default function Home() {
                         <span>Updating...</span>
                       </div>
                     )}
-                    <span>Last updated: {new Date(lastRefreshTime).toLocaleTimeString()}</span>
+                    <span>Last updated: {lastRefreshTime ? new Date(lastRefreshTime).toLocaleTimeString() : 'Never'}</span>
                     {process.env.NODE_ENV === 'development' && (
                       <button
                         onClick={handleManualRefresh}
