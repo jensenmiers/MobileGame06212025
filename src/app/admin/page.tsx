@@ -1107,7 +1107,7 @@ export default function AdminDashboardPage() {
   const router = useRouter();
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [participants, setParticipants] = useState<Record<string, Participant[]>>({});
-  const [selectedTab, setSelectedTab] = useState<number>(0); // index of selected tournament
+  const [selectedTournamentId, setSelectedTournamentId] = useState<string | null>(null); // ID of selected tournament
   const [hoveredTab, setHoveredTab] = useState<number | null>(null);
   const [loadingTournaments, setLoadingTournaments] = useState(true);
   const [loadingParticipants, setLoadingParticipants] = useState<Record<string, boolean>>({});
@@ -1156,27 +1156,20 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // Fetch participants for selected tournament when tab changes
+  // Set initial selected tournament when tournaments are first loaded
   useEffect(() => {
-    if (tournaments.length > 0) {
-      const selectedTournament = tournaments[selectedTab];
-      if (selectedTournament) {
-        fetchParticipants(selectedTournament.id, true); // Always force refresh on tab change
+    if (tournaments.length > 0 && !selectedTournamentId) {
+      const sortedTournaments = [...tournaments].sort((a, b) => {
+        if (a.active === b.active) return 0;
+        return a.active ? -1 : 1;
+      });
+      if (sortedTournaments.length > 0) {
+        setSelectedTournamentId(sortedTournaments[0].id);
+        fetchParticipants(sortedTournaments[0].id, true);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTab, tournaments.length]);
-
-  // Initial data load for first tab when tournaments are first loaded
-  useEffect(() => {
-    if (tournaments.length > 0 && selectedTab === 0) {
-      const selectedTournament = tournaments[selectedTab];
-      if (selectedTournament) {
-        fetchParticipants(selectedTournament.id, true);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tournaments.length]);
+  }, [tournaments.length, selectedTournamentId]);
 
   // Toggle tournament visibility
   const toggleTournamentVisibility = async (tournamentId: string, currentActive: boolean) => {
@@ -1295,7 +1288,7 @@ export default function AdminDashboardPage() {
             scrollbarColor: '#228B22 #181818',
           }}>
           {sortedTournaments.map((tournament, idx) => {
-            const isSelected = selectedTab === idx;
+            const isSelected = selectedTournamentId === tournament.id;
             const isActive = tournament.active;
             return (
               <div key={tournament.id} style={{ position: 'relative' }}>
@@ -1305,15 +1298,13 @@ export default function AdminDashboardPage() {
                   onFocus={() => setHoveredTab(idx)}
                   onBlur={() => setHoveredTab(null)}
                   onClick={() => {
-                    if (selectedTab === idx) {
+                    if (selectedTournamentId === tournament.id) {
                       // If clicking the same tab, force refresh the data
-                      const tournament = sortedTournaments[idx];
-                      if (tournament) {
-                        fetchParticipants(tournament.id, true);
-                      }
+                      fetchParticipants(tournament.id, true);
                     } else {
-                      // If clicking a different tab, switch to it
-                      setSelectedTab(idx);
+                      // If clicking a different tab, switch to it and fetch data immediately
+                      setSelectedTournamentId(tournament.id);
+                      fetchParticipants(tournament.id, true);
                     }
                   }}
                   style={{
@@ -1405,15 +1396,15 @@ export default function AdminDashboardPage() {
           </div>
         ) : (
           <TournamentCard
-            key={sortedTournaments[selectedTab]?.id}
-            tournament={sortedTournaments[selectedTab]}
-            participants={participants[sortedTournaments[selectedTab]?.id] || []}
+            key={selectedTournamentId}
+            tournament={sortedTournaments.find(t => t.id === selectedTournamentId) || sortedTournaments[0]}
+            participants={selectedTournamentId ? participants[selectedTournamentId] || [] : []}
             isExpanded={true}
             onExpand={() => {}}
-            onLockToggle={() => handleLockToggle(sortedTournaments[selectedTab])}
+            onLockToggle={() => handleLockToggle(sortedTournaments.find(t => t.id === selectedTournamentId) || sortedTournaments[0])}
             onSaveResults={(cutoff, results) => {}}
-            onRefreshParticipants={() => fetchParticipants(sortedTournaments[selectedTab]?.id, true)}
-            loading={loadingParticipants[sortedTournaments[selectedTab]?.id]}
+            onRefreshParticipants={() => selectedTournamentId && fetchParticipants(selectedTournamentId, true)}
+            loading={selectedTournamentId ? loadingParticipants[selectedTournamentId] : false}
             currentUserId={user?.id}
             onToggleVisibility={(tournamentId, currentActive) => toggleTournamentVisibility(tournamentId, currentActive)}
           />
