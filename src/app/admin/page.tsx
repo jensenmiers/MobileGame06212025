@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { tournamentService } from "@/lib/tournament-service";
 import { Tournament, Participant } from "@/types/tournament";
+import { formatBonusPredictions } from "@/lib/utils";
 
 // Remove mock data and replace with real state
 // const mockTournaments = [...] // REMOVED
@@ -893,7 +894,7 @@ function TournamentCard({
                                 getParticipantName(participants, prediction.slot_2_participant_id),
                                 getParticipantName(participants, prediction.slot_3_participant_id),
                                 getParticipantName(participants, prediction.slot_4_participant_id)
-                              ].filter(Boolean).join(" > ")}</td>
+                              ].filter(Boolean).join(" > ") + formatBonusPredictions(prediction.bracket_reset, prediction.grand_finals_score)}</td>
                             </tr>
                           ))
                         )}

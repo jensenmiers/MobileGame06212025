@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { gameUiDetailsMap } from "@/lib/game-utils";
 import { tournamentService } from "@/lib/tournament-service";
 import type { Participant, Prediction, Tournament, LeaderboardEntry, CommunityFavorite } from "@/types/tournament";
+import { formatBonusPredictions } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 
 const getRankIcon = (rank: number) => {
@@ -352,6 +353,9 @@ export default function LeaderboardPage() {
                               <span className="whitespace-nowrap">{getParticipantName(prediction.slot_3_participant_id)}</span>
                               <span className="text-green-400 mx-1">&gt;</span>
                               <span className="whitespace-nowrap">{getParticipantName(prediction.slot_4_participant_id)}</span>
+                              {formatBonusPredictions(prediction.bracket_reset, prediction.grand_finals_score) && (
+                                <span className="text-green-400">{formatBonusPredictions(prediction.bracket_reset, prediction.grand_finals_score)}</span>
+                              )}
                             </div>
                           </div>
                         )}
@@ -399,12 +403,24 @@ export default function LeaderboardPage() {
                       tournamentResult?.position_3_participant_id,
                       tournamentResult?.position_4_participant_id,
                     ].filter(Boolean);
-                    return ids.map((id, idx) => (
+                    const resultString = ids.map((id, idx) => (
                       <>
                         <span className="whitespace-nowrap" key={"result-"+id}>{getName(id as string)}</span>
                         {idx < ids.length - 1 && <span className="text-yellow-400 mx-1">&gt;</span>}
                       </>
                     ));
+                    
+                    // Add bonus information if available
+                    const bonusString = formatBonusPredictions(tournamentResult?.bracket_reset, tournamentResult?.grand_finals_score);
+                    
+                    return (
+                      <>
+                        {resultString}
+                        {bonusString && (
+                          <span className="text-yellow-400">{bonusString}</span>
+                        )}
+                      </>
+                    );
                   })()}
                 </div>
               )}
@@ -456,6 +472,9 @@ export default function LeaderboardPage() {
                                 <span className="whitespace-nowrap">{getParticipantName(prediction.slot_3_participant_id)}</span>
                                 <span className="text-yellow-400 mx-1">&gt;</span>
                                 <span className="whitespace-nowrap">{getParticipantName(prediction.slot_4_participant_id)}</span>
+                                {formatBonusPredictions(prediction.bracket_reset, prediction.grand_finals_score) && (
+                                  <span className="text-yellow-400">{formatBonusPredictions(prediction.bracket_reset, prediction.grand_finals_score)}</span>
+                                )}
                               </div>
                             ) : (
                               <div className="text-yellow-200 text-xs mt-1">Picks unavailable</div>
