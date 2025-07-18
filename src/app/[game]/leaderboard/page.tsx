@@ -58,7 +58,7 @@ export default function LeaderboardPage() {
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
   const [winnerPrediction, setWinnerPrediction] = useState<Prediction | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
-  const [expandedRanks, setExpandedRanks] = useState<number[]>([1]);
+  const [expandedRanks, setExpandedRanks] = useState<number[]>([]);
   const [userPredictions, setUserPredictions] = useState<Record<string, Prediction | null>>({});
   const [tournamentResult, setTournamentResult] = useState<any>(null);
   const [showResults, setShowResults] = useState(false);
