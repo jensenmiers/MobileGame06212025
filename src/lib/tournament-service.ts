@@ -361,6 +361,43 @@ export const tournamentService = {
     }
 
     // Fallback to existing Supabase logic
+    // SERVER-SIDE VALIDATION: Check if predictions are allowed
+    // 1. Check if tournament exists and get cutoff time
+    const { data: tournament, error: tournamentError } = await supabase
+      .from('tournaments')
+      .select('cutoff_time')
+      .eq('id', predictionData.tournament_id)
+      .single();
+
+    if (tournamentError || !tournament) {
+      throw new Error('Tournament not found');
+    }
+
+    // 2. Check if results exist (overrides cutoff time)
+    const { data: results, error: resultsError } = await supabase
+      .from('results')
+      .select('id')
+      .eq('tournament_id', predictionData.tournament_id)
+      .single();
+
+    if (resultsError && resultsError.code !== 'PGRST116') {
+      // PGRST116 means no rows found, which is fine
+      console.error('Error checking results:', resultsError);
+      throw new Error('Failed to validate tournament status');
+    }
+
+    if (results) {
+      throw new Error('Tournament has results - predictions are closed');
+    }
+
+    // 3. Check cutoff time
+    const now = new Date();
+    const cutoffTime = new Date(tournament.cutoff_time);
+    
+    if (now >= cutoffTime) {
+      throw new Error('Prediction cutoff time has passed');
+    }
+
     // Check if a prediction already exists for this user and tournament
     const { data: existingPrediction, error: selectError } = await supabase
       .from('predictions')

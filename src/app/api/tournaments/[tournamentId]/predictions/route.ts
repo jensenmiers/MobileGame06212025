@@ -81,6 +81,55 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     }
 
+    // SERVER-SIDE VALIDATION: Check if predictions are allowed
+    // 1. Check if tournament exists and get cutoff time
+    const { data: tournament, error: tournamentError } = await database
+      .from('tournaments')
+      .select('cutoff_time')
+      .eq('id', tournamentId)
+      .single()
+
+    if (tournamentError || !tournament) {
+      return NextResponse.json(
+        { error: 'Tournament not found' },
+        { status: 404 }
+      )
+    }
+
+    // 2. Check if results exist (overrides cutoff time)
+    const { data: results, error: resultsError } = await database
+      .from('results')
+      .select('id')
+      .eq('tournament_id', tournamentId)
+      .single()
+
+    if (resultsError && resultsError.code !== 'PGRST116') {
+      // PGRST116 means no rows found, which is fine
+      console.error('Error checking results:', resultsError)
+      return NextResponse.json(
+        { error: 'Failed to validate tournament status' },
+        { status: 500 }
+      )
+    }
+
+    if (results) {
+      return NextResponse.json(
+        { error: 'Tournament has results - predictions are closed' },
+        { status: 403 }
+      )
+    }
+
+    // 3. Check cutoff time
+    const now = new Date()
+    const cutoffTime = new Date(tournament.cutoff_time)
+    
+    if (now >= cutoffTime) {
+      return NextResponse.json(
+        { error: 'Prediction cutoff time has passed' },
+        { status: 403 }
+      )
+    }
+
     // Check if prediction already exists for this user and tournament
     const { data: existingPrediction, error: selectError } = await database
       .from('predictions')
@@ -89,7 +138,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       .eq('tournament_id', tournamentId)
       .single()
 
-    const now = new Date().toISOString()
+    const nowISO = now.toISOString()
 
     if (existingPrediction) {
       // Update existing prediction
@@ -102,7 +151,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           slot_4_participant_id: body.slot_4_participant_id,
           bracket_reset: body.bracket_reset || null,
           grand_finals_score: body.grand_finals_score || null,
-          last_updated_at: now,
+          last_updated_at: nowISO,
           submission_count: (existingPrediction.submission_count || 0) + 1,
           // Note: We'll calculate score in the backend logic, not with triggers
           score: -1, // Temporarily set to -1, will be calculated later
@@ -131,8 +180,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         slot_4_participant_id: body.slot_4_participant_id,
         bracket_reset: body.bracket_reset || null,
         grand_finals_score: body.grand_finals_score || null,
-        first_submitted_at: now,
-        last_updated_at: now,
+        first_submitted_at: nowISO,
+        last_updated_at: nowISO,
         submission_count: 1,
         score: -1, // Will be calculated later
       }
