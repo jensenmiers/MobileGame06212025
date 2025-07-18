@@ -85,6 +85,7 @@ export interface LeaderboardEntry {
   username: string;
   points: number;
   userId?: string; // Optional since we may not always need to expose user IDs
+  firstSubmittedAt?: string; // Submission time for tie-breaking
 }
 
 // Represents a participant's community ranking based on prediction aggregation

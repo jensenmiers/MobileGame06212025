@@ -303,12 +303,21 @@ export async function getLeaderboard(tournamentId: string): Promise<LeaderboardE
         rank: 0, // Will be set after sorting
         username,
         points: prediction.score,
+        userId: userId,
+        firstSubmittedAt: prediction.first_submitted_at, // Add submission time for tie-breaking
       });
     }
   });
 
-  // Sort by score (highest first) and assign ranks
-  leaderboard.sort((a, b) => b.points - a.points);
+  // Sort by score (highest first), then by submission time (earlier first) for ties
+  leaderboard.sort((a, b) => {
+    if (b.points !== a.points) {
+      return b.points - a.points; // Higher points first
+    }
+    // If points are equal, sort by submission time (earlier first)
+    return new Date(a.firstSubmittedAt).getTime() - new Date(b.firstSubmittedAt).getTime();
+  });
+  
   leaderboard.forEach((entry, index) => {
     entry.rank = index + 1;
   });
