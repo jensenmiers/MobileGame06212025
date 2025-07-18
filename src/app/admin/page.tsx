@@ -837,7 +837,7 @@ function TournamentCard({
                     <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 24 }}>
                       <thead>
                         <tr style={{ borderBottom: '2px solid #228B22' }}>
-                          {['Name', 'Email', 'Top 4 Slots', 'Bonus'].map((label, idx) => (
+                          {['Name', 'Email', 'Predictions'].map((label, idx) => (
                             <th
                               key={label}
                               style={{
@@ -870,7 +870,7 @@ function TournamentCard({
                       </thead>
                       <tbody>
                         {predictions.length === 0 ? (
-                          <tr><td colSpan={4} style={{ textAlign: 'center' }}>No predictions submitted yet</td></tr>
+                          <tr><td colSpan={3} style={{ textAlign: 'center' }}>No predictions submitted yet</td></tr>
                         ) : (
                           predictions.map((prediction, idx) => (
                             <tr key={prediction.id || idx} style={{ background: idx % 2 === 0 ? '#333333' : '#181818' }}>
@@ -893,8 +893,7 @@ function TournamentCard({
                                 getParticipantName(participants, prediction.slot_2_participant_id),
                                 getParticipantName(participants, prediction.slot_3_participant_id),
                                 getParticipantName(participants, prediction.slot_4_participant_id)
-                              ].filter(Boolean).join(", ")}</td>
-                              <td style={{ width: colWidths[3], minWidth: 60 }}>—</td>
+                              ].filter(Boolean).join(" > ")}</td>
                             </tr>
                           ))
                         )}
