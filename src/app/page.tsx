@@ -20,9 +20,6 @@ export default function Home() {
 
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [tournamentsWithResults, setTournamentsWithResults] = useState<Set<string>>(new Set());
-  const [lastRefreshTime, setLastRefreshTime] = useState<number | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [hasInitialized, setHasInitialized] = useState(false);
   // Toggle to show/hide the text labels under each game icon
   const SHOW_TITLES = false;
 
@@ -125,9 +122,6 @@ export default function Home() {
 
   // Function to fetch tournaments and results status
   const fetchTournamentsData = useCallback(async () => {
-    if (isRefreshing) return; // Prevent concurrent refreshes
-    
-    setIsRefreshing(true);
     console.log('🔄 Fetching active tournaments and checking results...');
     
     try {
@@ -176,15 +170,11 @@ export default function Home() {
       // Sort tournaments by priority and status
       const sortedTournaments = sortTournamentsByPriority(data, tournamentsWithResultsSet);
       setTournaments(sortedTournaments);
-      setLastRefreshTime(Date.now());
-      setHasInitialized(true);
       console.log('🎯 Sorted tournament order:', sortedTournaments.map(t => t.name));
     } catch (error) {
       console.error('❌ Error fetching tournaments data:', error);
-    } finally {
-      setIsRefreshing(false);
     }
-  }, [isRefreshing]);
+  }, []);
 
   // Initial data fetch
   useEffect(() => {
@@ -225,11 +215,7 @@ export default function Home() {
     return () => window.removeEventListener('focus', handleFocus);
   }, [fetchTournamentsData]);
 
-  // Manual refresh function for debugging
-  const handleManualRefresh = () => {
-    console.log('🔄 Manual refresh triggered');
-    fetchTournamentsData();
-  };
+
 
   const handleGameSelect = (gameSlug: string) => {
     const tournament = getTournamentBySlug(gameSlug);
@@ -330,28 +316,7 @@ export default function Home() {
                   </div>
                 )}
                 
-                {/* Data refresh indicator */}
-                <div className="w-full text-center mt-2">
-                  <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
-                    {isRefreshing && hasInitialized && (
-                      <div className="flex items-center gap-1">
-                        <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                        <span>Updating...</span>
-                      </div>
-                    )}
-                    <span>Last updated: {lastRefreshTime ? new Date(lastRefreshTime).toLocaleTimeString() : 'Never'}</span>
-                    {process.env.NODE_ENV === 'development' && (
-                      <button
-                        onClick={handleManualRefresh}
-                        disabled={isRefreshing}
-                        className="ml-2 px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 disabled:opacity-50 rounded transition-colors"
-                        title="Manual refresh (dev only)"
-                      >
-                        🔄
-                      </button>
-                    )}
-                  </div>
-                </div>
+
               </div>
             </CardHeader>
             <CardContent className="space-y-2 px-3 pt-0 pb-2">
