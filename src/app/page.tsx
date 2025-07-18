@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +20,8 @@ export default function Home() {
 
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [tournamentsWithResults, setTournamentsWithResults] = useState<Set<string>>(new Set());
+  const [lastRefreshTime, setLastRefreshTime] = useState<number>(Date.now());
+  const [isRefreshing, setIsRefreshing] = useState(false);
   // Toggle to show/hide the text labels under each game icon
   const SHOW_TITLES = false;
 
@@ -88,63 +90,46 @@ export default function Home() {
 
   // Helper function to sort tournaments by priority and status
   const sortTournamentsByPriority = (tournaments: Tournament[], tournamentsWithResultsSet: Set<string>): Tournament[] => {
-    // Priority tournaments that should always appear first
-    const priorityTournaments = ['Street Fighter 6', 'Tekken 8'];
-    
-    // Separate priority tournaments from others
-    const priority: Tournament[] = [];
-    const others: Tournament[] = [];
-    
-    tournaments.forEach(tournament => {
-      if (priorityTournaments.includes(tournament.name)) {
-        priority.push(tournament);
-      } else {
-        others.push(tournament);
+    return tournaments.sort((a, b) => {
+      // First, sort by active status (active tournaments first)
+      if (a.active !== b.active) {
+        return a.active ? -1 : 1;
       }
-    });
-    
-    // Sort priority tournaments: Street Fighter first, Tekken second
-    priority.sort((a, b) => {
-      if (a.name === 'Street Fighter 6') return -1;
-      if (b.name === 'Street Fighter 6') return 1;
-      if (a.name === 'Tekken 8') return -1;
-      if (b.name === 'Tekken 8') return 1;
-      return 0;
-    });
-    
-    // Group other tournaments by status
-    const predictionsOpen: Tournament[] = [];
-    const resultsPosted: Tournament[] = [];
-    const resultsPending: Tournament[] = [];
-    
-    others.forEach(tournament => {
-      const hasResults = tournamentsWithResultsSet.has(tournament.id);
-      const isPredictionsOpen = arePredictionsOpen(tournament);
       
-      if (hasResults) {
-        resultsPosted.push(tournament);
-      } else if (isPredictionsOpen) {
-        predictionsOpen.push(tournament);
-      } else {
-        resultsPending.push(tournament);
+      // Then, sort by status priority: results > predictions > pending
+      const aHasResults = tournamentsWithResultsSet.has(a.id);
+      const bHasResults = tournamentsWithResultsSet.has(b.id);
+      
+      if (aHasResults !== bHasResults) {
+        return aHasResults ? -1 : 1; // Results first
       }
+      
+      if (!aHasResults && !bHasResults) {
+        // Both don't have results, check prediction status
+        const aPredictionsOpen = arePredictionsOpen(a);
+        const bPredictionsOpen = arePredictionsOpen(b);
+        
+        if (aPredictionsOpen !== bPredictionsOpen) {
+          return aPredictionsOpen ? -1 : 1; // Predictions open first
+        }
+      }
+      
+      // Finally, sort by creation date (newest first)
+      const sortByCreatedAt = (a: Tournament, b: Tournament) => 
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      
+      return sortByCreatedAt(a, b);
     });
-    
-    // Sort each group by created_at (oldest first)
-    const sortByCreatedAt = (a: Tournament, b: Tournament) => 
-      new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-    
-    predictionsOpen.sort(sortByCreatedAt);
-    resultsPosted.sort(sortByCreatedAt);
-    resultsPending.sort(sortByCreatedAt);
-    
-    // Concatenate in priority order
-    return [...priority, ...predictionsOpen, ...resultsPosted, ...resultsPending];
   };
 
-  useEffect(() => {
-    async function fetchTournaments() {
-      console.log('🔄 Fetching active tournaments and checking results...');
+  // Function to fetch tournaments and results status
+  const fetchTournamentsData = useCallback(async () => {
+    if (isRefreshing) return; // Prevent concurrent refreshes
+    
+    setIsRefreshing(true);
+    console.log('🔄 Fetching active tournaments and checking results...');
+    
+    try {
       const data = await tournamentService.getTournaments(true); // Only fetch active tournaments
       
       // Check which tournaments have results (PRIORITY: Results override cutoff time)
@@ -190,12 +175,59 @@ export default function Home() {
       // Sort tournaments by priority and status
       const sortedTournaments = sortTournamentsByPriority(data, tournamentsWithResultsSet);
       setTournaments(sortedTournaments);
+      setLastRefreshTime(Date.now());
       console.log('🎯 Sorted tournament order:', sortedTournaments.map(t => t.name));
+    } catch (error) {
+      console.error('❌ Error fetching tournaments data:', error);
+    } finally {
+      setIsRefreshing(false);
     }
-    fetchTournaments();
-  }, []);
+  }, [isRefreshing]);
 
+  // Initial data fetch
+  useEffect(() => {
+    fetchTournamentsData();
+  }, [fetchTournamentsData]);
 
+  // Periodic refresh every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log('⏰ Periodic refresh triggered');
+      fetchTournamentsData();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [fetchTournamentsData]);
+
+  // Page visibility API - refresh when user returns to tab
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('👁️ Page became visible, refreshing data...');
+        fetchTournamentsData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [fetchTournamentsData]);
+
+  // Refresh on window focus (when user switches back to tab)
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log('🎯 Window focused, refreshing data...');
+      fetchTournamentsData();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [fetchTournamentsData]);
+
+  // Manual refresh function for debugging
+  const handleManualRefresh = () => {
+    console.log('🔄 Manual refresh triggered');
+    fetchTournamentsData();
+  };
 
   const handleGameSelect = (gameSlug: string) => {
     const tournament = getTournamentBySlug(gameSlug);
@@ -295,6 +327,29 @@ export default function Home() {
                     <p className="text-xs text-gray-300">Ready to make your predictions?</p>
                   </div>
                 )}
+                
+                {/* Data refresh indicator */}
+                <div className="w-full text-center mt-2">
+                  <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
+                    {isRefreshing && (
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                        <span>Updating...</span>
+                      </div>
+                    )}
+                    <span>Last updated: {new Date(lastRefreshTime).toLocaleTimeString()}</span>
+                    {process.env.NODE_ENV === 'development' && (
+                      <button
+                        onClick={handleManualRefresh}
+                        disabled={isRefreshing}
+                        className="ml-2 px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 disabled:opacity-50 rounded transition-colors"
+                        title="Manual refresh (dev only)"
+                      >
+                        🔄
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-2 px-3 pt-0 pb-2">
