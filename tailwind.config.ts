@@ -59,6 +59,10 @@ const config: Config = {
   			chakra: [
   				'"Chakra Petch"',
   				'sans-serif'
+  			],
+  			orbitron: [
+  				'"Orbitron"',
+  				'sans-serif'
   			]
   		},
   		borderRadius: {

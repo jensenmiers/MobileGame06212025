@@ -258,13 +258,13 @@ export default function Home() {
 
         <div className="w-full max-w-6xl mx-auto">
           <Card className="bg-black/70 border-gray-800 backdrop-blur-sm rounded-lg">
-            <CardHeader className="space-y-1 pb-2">
+            <CardHeader className="space-y-0 pb-1">
               <div className="flex flex-col items-center justify-center text-center">
-                <div className="flex justify-center mb-1 w-full px-1">
-                  <div className="flex flex-row items-center gap-2 sm:gap-3 w-full max-w-6xl">
-                    <div className="flex-shrink-0 h-10 sm:h-12 md:h-14 lg:h-14 xl:h-16 w-auto aspect-square relative">
+                <div className="flex justify-center mb-0 w-full px-0">
+                  <div className="flex flex-row items-center gap-1 sm:gap-2 w-full max-w-none">
+                    <div className="flex-shrink-0 h-10 sm:h-12 md:h-14 lg:h-16 xl:h-18 w-auto aspect-square relative">
                       <div className="animate-slow-rotate w-full h-full flex items-center">
-                        <div className="relative w-full h-10 sm:h-12 md:h-14 lg:h-14 xl:h-16">
+                        <div className="relative w-full h-10 sm:h-12 md:h-14 lg:h-16 xl:h-18">
                           <Image
                             src="/images/fullComboLogo.png"
                             alt="Full Combo Logo"
@@ -276,7 +276,7 @@ export default function Home() {
                       </div>
                     </div>
                     <div className="text-center flex-1">
-                      <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold font-chakra gradient-rotate gradient-text-fix leading-normal">
+                      <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] font-black font-chakra gradient-rotate gradient-text-fix leading-tight whitespace-nowrap drop-shadow-[0_0_10px_rgba(0,172,78,0.8)]">
                         Full Combo
                       </h1>
                     </div>
