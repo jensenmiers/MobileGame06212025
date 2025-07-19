@@ -285,7 +285,7 @@ export default function Home() {
                 
                 {/* Welcome message for logged in users */}
                 {user && (
-                  <div className="w-full text-center mb-1">
+                  <div className="w-full text-center -mt-2">
                     <h2 className="text-xl sm:text-2xl font-semibold text-white mb-0">
                       Welcome, {getDisplayName()}!
                     </h2>
@@ -295,7 +295,7 @@ export default function Home() {
 
               </div>
             </CardHeader>
-            <CardContent className="space-y-2 px-3 pt-0 pb-2">
+            <CardContent className="space-y-2 px-3 pt-4 pb-2">
               {/* Social Login Section - only show if not logged in */}
               {!user && (
                 <div className="flex flex-col items-center space-y-2 mb-6">
