@@ -373,7 +373,7 @@ export default function LeaderboardPage() {
         ) : (
           /* Default Leaderboard Section (after results) */
           <Card className="bg-black/70 border-gray-800 rounded-lg shadow-xl overflow-hidden">
-            <CardHeader className="border-b border-gray-700/50">
+            <CardHeader className="border-b border-gray-700/50 py-3">
               <CardTitle className="text-white w-full flex justify-center items-center">
                 <span className="text-green-400 text-xl font-bold text-center w-full block">🏆 Top Predictors</span>
               </CardTitle>
