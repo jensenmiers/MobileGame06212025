@@ -433,7 +433,7 @@ export default function Home() {
 
               {/* Rules button for logged-out users - same size as admin button */}
               {!user && (
-                <div className="flex flex-col items-center mt-16 mb-2">
+                <div className="flex flex-col items-center pt-4 pb-4">
                   <Button
                     onClick={() => router.push("/rules")}
                     variant="default"
