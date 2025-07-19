@@ -24,7 +24,7 @@ export default function Home() {
               className="h-12 w-auto"
             />
             <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500">
-              Bracket Challenge
+              Full Combo
             </h1>
           </div>
           <p className="text-lg text-gray-300">

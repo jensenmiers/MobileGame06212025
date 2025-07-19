@@ -293,7 +293,7 @@ export default function PredictionPage() {
               WebkitTextFillColor: 'transparent',
               display: 'inline-block'
             }}>
-            Bracket Challenge
+            Full Combo
           </h1>
         </div>
         <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-4 w-full text-white">

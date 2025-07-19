@@ -277,8 +277,7 @@ export default function Home() {
                     </div>
                     <div className="text-center flex-1">
                       <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold font-chakra gradient-rotate gradient-text-fix leading-normal">
-                        Full Combo{' '}
-                        <span className="inline-block">Bracket Challenge</span>
+                        Full Combo
                       </h1>
                     </div>
                   </div>
