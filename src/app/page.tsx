@@ -291,6 +291,15 @@ export default function Home() {
                     </h2>
                   </div>
                 )}
+
+                {/* Sign in message for non-logged in users */}
+                {!user && (
+                  <div className="w-full text-center -mt-2">
+                    <h2 className="text-lg sm:text-2xl font-bold text-white mb-0">
+                      Sign in to create predictions
+                    </h2>
+                  </div>
+                )}
                 
 
               </div>
@@ -299,11 +308,6 @@ export default function Home() {
               {/* Social Login Section - only show if not logged in */}
               {!user && (
                 <div className="flex flex-col items-center space-y-2 mb-6">
-                  <div className="text-center">
-                    <h2 className="text-lg sm:text-2xl font-bold text-white mb-2">
-                      Sign in to create predictions
-                    </h2>
-                  </div>
                   <SocialLogin />
                 </div>
               )}
