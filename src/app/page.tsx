@@ -290,7 +290,6 @@ export default function Home() {
                     <h2 className="text-xl sm:text-2xl font-semibold text-white mb-0">
                       Welcome, {getDisplayName()}!
                     </h2>
-                    <p className="text-xs text-gray-300">Ready to make your predictions?</p>
                   </div>
                 )}
                 
