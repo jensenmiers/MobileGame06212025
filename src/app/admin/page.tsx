@@ -1315,8 +1315,8 @@ export default function AdminDashboardPage() {
                     border: 'none',
                     borderBottom: isSelected ? '4px solid #228B22' : '4px solid transparent',
                     fontWeight: 700,
-                    fontSize: 16,
-                    padding: '2px 6px',
+                    fontSize: 20,
+                    padding: '8px 12px',
                     cursor: 'pointer',
                     outline: 'none',
                     transition: 'background 0.2s, color 0.2s, border-bottom 0.2s',
@@ -1329,10 +1329,10 @@ export default function AdminDashboardPage() {
                   aria-label={tournament.name + (isActive ? ' (Visible)' : ' (Hidden)')}
                 >
                   {/* Tournament abbreviation */}
-                  <span style={{ fontWeight: 900, letterSpacing: 1 }}>
+                  <span style={{ fontWeight: 900, letterSpacing: 1, fontSize: 18 }}>
                     {TOURNAMENT_ABBREVIATIONS[tournament.name] || tournament.name.slice(0, 4).toUpperCase()}
                     {loadingParticipants[tournament.id] && (
-                      <span style={{ marginLeft: 4, fontSize: 12 }}>⟳</span>
+                      <span style={{ marginLeft: 4, fontSize: 14 }}>⟳</span>
                     )}
                   </span>
                   {isSelected && (
