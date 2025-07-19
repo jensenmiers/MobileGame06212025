@@ -1331,9 +1331,17 @@ export default function AdminDashboardPage() {
                   {/* Tournament abbreviation */}
                   <span style={{ fontWeight: 900, letterSpacing: 1, fontSize: 18 }}>
                     {TOURNAMENT_ABBREVIATIONS[tournament.name] || tournament.name.slice(0, 4).toUpperCase()}
-                    {loadingParticipants[tournament.id] && (
-                      <span style={{ marginLeft: 4, fontSize: 14 }}>⟳</span>
-                    )}
+                    <span style={{ 
+                      marginLeft: 4, 
+                      fontSize: 14, 
+                      width: '14px',
+                      display: 'inline-block',
+                      textAlign: 'center',
+                      opacity: loadingParticipants[tournament.id] ? 1 : 0,
+                      transition: 'opacity 0.2s'
+                    }}>
+                      ⟳
+                    </span>
                   </span>
                   {isSelected && (
                     <div style={{
