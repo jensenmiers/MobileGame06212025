@@ -309,7 +309,7 @@ export default function Home() {
               )}
               
               {/* Game Selection */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-2xl mx-auto">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full max-w-2xl mx-auto">
                 {tournaments.map((tournament) => {
                   const uiDetails = gameUiDetailsMap[tournament.name];
                   if (!uiDetails) return null; // Don't render if no UI details are mapped
@@ -351,7 +351,7 @@ export default function Home() {
                           WebkitFontSmoothing: 'antialiased'
                         }}
                       >
-                        <div className="relative w-[8.4rem] h-[8.4rem]">
+                        <div className="relative w-[10rem] h-[10rem]">
                           <Image
                             src={uiDetails.imageUrl}
                             alt={tournament.name}
