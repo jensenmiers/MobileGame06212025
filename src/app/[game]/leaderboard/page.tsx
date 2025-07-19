@@ -247,7 +247,7 @@ export default function LeaderboardPage() {
         {/* Community Favorites Section (Pending Phase Only) */}
         {showCommunityFavorites && (
           <Card className="bg-black/70 border-yellow-600/50 rounded-lg shadow-xl overflow-hidden mb-6">
-            <CardHeader className="border-b border-yellow-700/50">
+            <CardHeader className="border-b border-yellow-700/50 py-3">
                              <CardTitle className="text-white flex items-center gap-2">
                  <span className="text-yellow-400">⭐ Community Favorites</span>
                  <span className="text-sm text-yellow-200 font-normal">
@@ -310,7 +310,7 @@ export default function LeaderboardPage() {
         {/* Predictors List for Results Pending State */}
         {tournament && isTournamentPending(tournament, hasResults) ? (
           <Card className="bg-black/70 border-gray-800 rounded-lg shadow-xl overflow-hidden">
-            <CardHeader className="border-b border-gray-700/50">
+            <CardHeader className="border-b border-gray-700/50 py-3">
               <CardTitle className="text-white w-full flex justify-center items-center">
                 <span className="text-green-400 text-xl font-bold text-center w-full block">Predictors</span>
               </CardTitle>
