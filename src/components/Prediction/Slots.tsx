@@ -36,7 +36,7 @@ const positionIcons = [
 ];
 
 export default function Slots({ predictions, onSlotFill, onSlotClear, availablePlayers, bracketReset, onBracketResetChange, grandFinalsScore, onGrandFinalsScoreChange, readonly = false }: SlotsProps) {
-  const [bonusExpanded, setBonusExpanded] = useState(false);
+  const [bonusExpanded, setBonusExpanded] = useState(true);
 
   const handleValueChange = (value: string, index: number) => {
     if (readonly) return; // Prevent changes in read-only mode
