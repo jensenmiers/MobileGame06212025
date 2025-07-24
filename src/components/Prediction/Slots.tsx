@@ -238,7 +238,7 @@ export default function Slots({ predictions, onSlotFill, onSlotClear, availableP
                   </button>
                 )}
               </div>
-              <div className="space-y-1">
+              <div className="flex gap-2">
                 <label className={`flex items-center gap-2 py-1 px-2 rounded transition-colors ${
                   readonly ? 'cursor-default opacity-70' : 'hover:bg-purple-900/20 cursor-pointer'
                 }`}>
@@ -251,8 +251,7 @@ export default function Slots({ predictions, onSlotFill, onSlotClear, availableP
                     disabled={readonly}
                     className="w-4 h-4 text-purple-500 bg-gray-700 border-gray-600 focus:ring-purple-500"
                   />
-                  <span className="text-base">🧹</span>
-                  <span className="text-sm text-white">3-0 (sweep)</span>
+                  <span className="text-sm text-white">3-0</span>
                 </label>
 
                 <label className={`flex items-center gap-2 py-1 px-2 rounded transition-colors ${
@@ -267,8 +266,7 @@ export default function Slots({ predictions, onSlotFill, onSlotClear, availableP
                     disabled={readonly}
                     className="w-4 h-4 text-purple-500 bg-gray-700 border-gray-600 focus:ring-purple-500"
                   />
-                  <span className="text-base">🎯</span>
-                  <span className="text-sm text-white">3-1 (close series)</span>
+                  <span className="text-sm text-white">3-1</span>
                 </label>
 
                 <label className={`flex items-center gap-2 py-1 px-2 rounded transition-colors ${
@@ -283,8 +281,7 @@ export default function Slots({ predictions, onSlotFill, onSlotClear, availableP
                     disabled={readonly}
                     className="w-4 h-4 text-purple-500 bg-gray-700 border-gray-600 focus:ring-purple-500"
                   />
-                  <span className="text-base">🔥</span>
-                  <span className="text-sm text-white">3-2 (very close series)</span>
+                  <span className="text-sm text-white">3-2</span>
                 </label>
               </div>
             </div>
