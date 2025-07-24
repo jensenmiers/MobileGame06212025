@@ -60,8 +60,8 @@ export function calculatePredictionScore(
     // Calculate points based on how close the prediction was
     let pointsEarned = 0;
     if (positionOff <= 3) {
-      // Use proximity multiplier based on how many positions off
-      pointsEarned = POSITION_POINTS[predictedPosition - 1] * PROXIMITY_MULTIPLIERS[positionOff];
+      // Use actual position's base points, then apply proximity multiplier based on how many positions off
+      pointsEarned = POSITION_POINTS[actualPosition - 1] * PROXIMITY_MULTIPLIERS[positionOff];
     }
     // More than 3 positions off - 0 points (shouldn't happen with 4 positions)
 
