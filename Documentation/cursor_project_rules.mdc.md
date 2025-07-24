@@ -94,6 +94,36 @@ alwaysApply: true
     *   Use Environment Variables for Supabase keys; never commit secrets.
     *   Enable Analytics to monitor edge function performance.
 
+## Start.gg API Integration Rules
+
+### Efficient Participant Filtering
+
+*   **Large Tournament Optimization:** For tournaments with 1000+ entrants, use set-based filtering instead of participant queries.
+*   **Set State Filtering:** Query only sets with `state: [1, 2]` (waiting/in-progress) to get active participants.
+*   **Phase-Based Strategy:** Use phase names to determine query strategy:
+    *   Early rounds ("Round 1", "Round 2"): Use traditional `entrants` query
+    *   Later rounds ("Top 24", "Top 8"): Use `sets(query: {state: [1, 2]})` filtering
+*   **Performance Benefits:** 99%+ data reduction for large tournaments (e.g., EVO 2025: 4,230 → 8 participants at Top 8).
+
+### API Field Understanding
+
+*   **Set State Values:**
+    *   `state: 1` = Waiting (not started)
+    *   `state: 2` = In Progress (currently being played)
+    *   `state: 3` = Completed (finished)
+*   **Standing Placement Values:**
+    *   `placement: null` = Still active in tournament
+    *   `placement: 1` = Winner (still active)
+    *   `placement: 2+` = Eliminated (final placement)
+*   **Phase Field Options:** "Round 1", "Round 2", "Round 3", "Round 4", "Top 24", "Top 8", "Pools", "Bracket", "Winners", "Losers", "Finals"
+
+### Implementation Guidelines
+
+*   **Sync-Entrants API:** Modify to use hybrid approach based on tournament phase.
+*   **Fallback Strategy:** Try set-based filtering first, fall back to traditional query if API timeout.
+*   **Caching:** Cache participant lists for 5-10 minutes to reduce API calls.
+*   **Progressive Loading:** Load Top 8 participants first, additional phases as needed.
+
 ## Rules
 
 *   Derive folder/file patterns directly from `techStackDoc` versions.
