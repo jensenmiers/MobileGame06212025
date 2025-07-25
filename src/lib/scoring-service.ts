@@ -1,23 +1,26 @@
 import { Prediction, TournamentResult } from '@/types/tournament';
 import { database } from '@/lib/database';
 
-// Base points for each position (1st to 4th) - Scaled for 999 max: 431, 266, 165, 100
-const POSITION_POINTS = [431, 266, 165, 100] as const;
+// Base points for each position (1st to 4th) - Updated values: 300, 220, 160, 100
+const POSITION_POINTS = [300, 220, 160, 100] as const;
 
 // Proximity multipliers for different position accuracy
-const PROXIMITY_MULTIPLIERS = [1.0, 0.61, 0.41, 0.17] as const; // 100%, 61%, 41%, 17%
+const PROXIMITY_MULTIPLIERS = [1.0, 0.85, 0.55, 0.25] as const; // 100%, 85%, 55%, 25%
+
+// Base points awarded to all predictions
+const BASE_POINTS = 100;
 
 // Points for correct bracket reset prediction
-const BRACKET_RESET_POINTS = 24;
+const BRACKET_RESET_POINTS = 48;
 
 // Points for correct grand finals score prediction  
-const GRAND_FINALS_SCORE_POINTS = 13;
+const GRAND_FINALS_SCORE_POINTS = 42;
 
 // Points for correct winners final score prediction
-const WINNERS_FINAL_SCORE_POINTS = 7;
+const WINNERS_FINAL_SCORE_POINTS = 16;
 
 // Points for correct losers final score prediction
-const LOSERS_FINAL_SCORE_POINTS = 6;
+const LOSERS_FINAL_SCORE_POINTS = 14;
 
 /**
  * Calculates the score for a single prediction based on actual results
@@ -48,7 +51,7 @@ export function calculatePredictionScore(
     [results.position_4_participant_id, 4]
   ].filter(([id]) => id !== null) as [string, number][]);
 
-  let totalScore = 0;
+  let totalScore = BASE_POINTS; // Start with base points
 
   // Check each prediction slot (1-4)
   for (let predictedPosition = 1; predictedPosition <= 4; predictedPosition++) {
@@ -284,6 +287,7 @@ export function getScoringConfig() {
   return {
     positionPoints: [...POSITION_POINTS],
     positionOffPoints: PROXIMITY_MULTIPLIERS, // 0, 1, 2, 3 positions off
+    basePoints: BASE_POINTS,
     bracketResetPoints: BRACKET_RESET_POINTS,
     grandFinalsScorePoints: GRAND_FINALS_SCORE_POINTS,
     winnersFinalScorePoints: WINNERS_FINAL_SCORE_POINTS,
