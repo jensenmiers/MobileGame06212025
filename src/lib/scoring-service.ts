@@ -13,6 +13,12 @@ const BRACKET_RESET_POINTS = 24;
 // Points for correct grand finals score prediction  
 const GRAND_FINALS_SCORE_POINTS = 13;
 
+// Points for correct winners final score prediction
+const WINNERS_FINAL_SCORE_POINTS = 7;
+
+// Points for correct losers final score prediction
+const LOSERS_FINAL_SCORE_POINTS = 6;
+
 /**
  * Calculates the score for a single prediction based on actual results
  * @param prediction The prediction to score
@@ -26,7 +32,9 @@ export function calculatePredictionScore(
     'slot_3_participant_id' | 
     'slot_4_participant_id' |
     'bracket_reset' |
-    'grand_finals_score'
+    'grand_finals_score' |
+    'winners_final_score' |
+    'losers_final_score'
   >,
   results: TournamentResult | null
 ): number {
@@ -87,6 +95,26 @@ export function calculatePredictionScore(
     // If prediction.grand_finals_score is null/undefined, 0 points added (no bonus)
   }
   // If results.grand_finals_score is null/undefined, no points for anyone regardless of their prediction
+
+  // Winners final score scoring logic
+  if (results.winners_final_score !== null && results.winners_final_score !== undefined) {
+    // Results have a winners final score value - check if prediction matches
+    if (prediction.winners_final_score === results.winners_final_score) {
+      totalScore += WINNERS_FINAL_SCORE_POINTS;
+    }
+    // If prediction.winners_final_score is null/undefined, 0 points added (no bonus)
+  }
+  // If results.winners_final_score is null/undefined, no points for anyone regardless of their prediction
+
+  // Losers final score scoring logic
+  if (results.losers_final_score !== null && results.losers_final_score !== undefined) {
+    // Results have a losers final score value - check if prediction matches
+    if (prediction.losers_final_score === results.losers_final_score) {
+      totalScore += LOSERS_FINAL_SCORE_POINTS;
+    }
+    // If prediction.losers_final_score is null/undefined, 0 points added (no bonus)
+  }
+  // If results.losers_final_score is null/undefined, no points for anyone regardless of their prediction
 
   // Round to nearest integer
   return Math.round(totalScore);
@@ -258,5 +286,7 @@ export function getScoringConfig() {
     positionOffPoints: PROXIMITY_MULTIPLIERS, // 0, 1, 2, 3 positions off
     bracketResetPoints: BRACKET_RESET_POINTS,
     grandFinalsScorePoints: GRAND_FINALS_SCORE_POINTS,
+    winnersFinalScorePoints: WINNERS_FINAL_SCORE_POINTS,
+    losersFinalScorePoints: LOSERS_FINAL_SCORE_POINTS,
   };
 }

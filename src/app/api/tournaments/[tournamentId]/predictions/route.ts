@@ -151,6 +151,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           slot_4_participant_id: body.slot_4_participant_id,
           bracket_reset: body.bracket_reset || null,
           grand_finals_score: body.grand_finals_score || null,
+          winners_final_score: body.winners_final_score || null,
+          losers_final_score: body.losers_final_score || null,
           last_updated_at: nowISO,
           submission_count: (existingPrediction.submission_count || 0) + 1,
           // Note: We'll calculate score in the backend logic, not with triggers
@@ -180,6 +182,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         slot_4_participant_id: body.slot_4_participant_id,
         bracket_reset: body.bracket_reset || null,
         grand_finals_score: body.grand_finals_score || null,
+        winners_final_score: body.winners_final_score || null,
+        losers_final_score: body.losers_final_score || null,
         first_submitted_at: nowISO,
         last_updated_at: nowISO,
         submission_count: 1,

@@ -156,12 +156,20 @@ export default function RulesPage() {
                     <span className="text-purple-400">+13</span>
                     <span><strong className="text-white">Correct grand finals score</strong></span>
                   </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-purple-400">+7</span>
+                    <span><strong className="text-white">Correct winners final score</strong></span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-purple-400">+6</span>
+                    <span><strong className="text-white">Correct losers final score</strong></span>
+                  </li>
                 </ul>
               </div>
 
               <div className="mt-4 p-4 bg-green-900/20 border border-green-800/30 rounded-lg">
                 <p className="text-green-200 text-center">
-                  <strong>Perfect Score: 999 points</strong> (requires predicting everything perfectly!)
+                  <strong>Perfect Score: 1012 points</strong> (requires predicting everything perfectly!)
                 </p>
               </div>
             </div>

@@ -94,6 +94,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       position_4_participant_id: body.position_4_participant_id,
       bracket_reset: body.bracket_reset || null,
       grand_finals_score: body.grand_finals_score || null,
+      winners_final_score: body.winners_final_score || null,
+      losers_final_score: body.losers_final_score || null,
       entered_by: body.entered_by,
       entered_at: new Date().toISOString(),
     }

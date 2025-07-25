@@ -353,8 +353,8 @@ export default function LeaderboardPage() {
                               <span className="whitespace-nowrap">{getParticipantName(prediction.slot_3_participant_id)}</span>
                               <span className="text-green-400 mx-1">&gt;</span>
                               <span className="whitespace-nowrap">{getParticipantName(prediction.slot_4_participant_id)}</span>
-                              {formatBonusPredictions(prediction.bracket_reset, prediction.grand_finals_score) && (
-                                <span className="text-green-400">{formatBonusPredictions(prediction.bracket_reset, prediction.grand_finals_score)}</span>
+                              {formatBonusPredictions(prediction.bracket_reset, prediction.grand_finals_score, prediction.winners_final_score, prediction.losers_final_score) && (
+                                <span className="text-green-400">{formatBonusPredictions(prediction.bracket_reset, prediction.grand_finals_score, prediction.winners_final_score, prediction.losers_final_score)}</span>
                               )}
                             </div>
                           </div>
@@ -411,7 +411,12 @@ export default function LeaderboardPage() {
                     ));
                     
                     // Add bonus information if available
-                    const bonusString = formatBonusPredictions(tournamentResult?.bracket_reset, tournamentResult?.grand_finals_score);
+                    const bonusString = formatBonusPredictions(
+                      tournamentResult?.bracket_reset,
+                      tournamentResult?.grand_finals_score,
+                      tournamentResult?.winners_final_score,
+                      tournamentResult?.losers_final_score
+                    );
                     
                     return (
                       <>
@@ -472,8 +477,8 @@ export default function LeaderboardPage() {
                                 <span className="whitespace-nowrap">{getParticipantName(prediction.slot_3_participant_id)}</span>
                                 <span className="text-yellow-400 mx-1">&gt;</span>
                                 <span className="whitespace-nowrap">{getParticipantName(prediction.slot_4_participant_id)}</span>
-                                {formatBonusPredictions(prediction.bracket_reset, prediction.grand_finals_score) && (
-                                  <span className="text-yellow-400">{formatBonusPredictions(prediction.bracket_reset, prediction.grand_finals_score)}</span>
+                                {formatBonusPredictions(prediction.bracket_reset, prediction.grand_finals_score, prediction.winners_final_score, prediction.losers_final_score) && (
+                                  <span className="text-yellow-400">{formatBonusPredictions(prediction.bracket_reset, prediction.grand_finals_score, prediction.winners_final_score, prediction.losers_final_score)}</span>
                                 )}
                               </div>
                             ) : (

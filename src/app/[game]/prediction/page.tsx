@@ -17,6 +17,8 @@ export default function PredictionPage() {
   const [predictions, setPredictions] = useState<(Player | null)[]>(Array(4).fill(null));
   const [bracketReset, setBracketReset] = useState<'upper_no_reset' | 'upper_with_reset' | 'lower_bracket' | null>(null);
   const [grandFinalsScore, setGrandFinalsScore] = useState<'score_3_0' | 'score_3_1' | 'score_3_2' | null>(null);
+  const [winnersFinalScore, setWinnersFinalScore] = useState<'score_3_0' | 'score_3_1' | 'score_3_2' | null>(null);
+  const [losersFinalScore, setLosersFinalScore] = useState<'score_3_0' | 'score_3_1' | 'score_3_2' | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [tournamentId, setTournamentId] = useState<string | null>(null);
   const [tournamentTitle, setTournamentTitle] = useState<string>("");
@@ -120,6 +122,8 @@ export default function PredictionPage() {
             setPredictions(mappedPredictions);
             setBracketReset(existingPredictionData.bracket_reset || null);
             setGrandFinalsScore(existingPredictionData.grand_finals_score || null);
+            setWinnersFinalScore(existingPredictionData.winners_final_score || null);
+            setLosersFinalScore(existingPredictionData.losers_final_score || null);
             
             console.log('🔄 Loaded existing prediction:', {
               prediction_id: existingPredictionData.id,
@@ -180,6 +184,16 @@ export default function PredictionPage() {
     setSubmissionMessage(null);
   };
 
+  const handleWinnersFinalScoreChange = (value: 'score_3_0' | 'score_3_1' | 'score_3_2' | null) => {
+    setWinnersFinalScore(value);
+    setSubmissionMessage(null);
+  };
+
+  const handleLosersFinalScoreChange = (value: 'score_3_0' | 'score_3_1' | 'score_3_2' | null) => {
+    setLosersFinalScore(value);
+    setSubmissionMessage(null);
+  };
+
   const handleSubmit = async () => {
     if (!isComplete || !tournamentId || isSubmitting) return;
 
@@ -197,6 +211,8 @@ export default function PredictionPage() {
       slot_4_participant_id: predictions[3]!.id,
       bracket_reset: bracketReset,
       grand_finals_score: grandFinalsScore,
+      winners_final_score: winnersFinalScore,
+      losers_final_score: losersFinalScore,
     };
 
     // Debug logging for production issues
@@ -206,7 +222,9 @@ export default function PredictionPage() {
       session_valid: !!session,
       predictions_selected: predictions.map(p => ({ id: p?.id, name: p?.name })),
       bracket_reset_selected: bracketReset,
-      grand_finals_score_selected: grandFinalsScore
+      grand_finals_score_selected: grandFinalsScore,
+      winners_final_score_selected: winnersFinalScore,
+      losers_final_score_selected: losersFinalScore
     });
 
     setIsSubmitting(true);
@@ -346,6 +364,16 @@ export default function PredictionPage() {
             handleGrandFinalsScoreChange(value);
           }}
           grandFinalsScore={grandFinalsScore}
+          onWinnersFinalScoreChange={(value) => {
+            if (isPredictionsClosed) return; // Prevent changes when closed
+            handleWinnersFinalScoreChange(value);
+          }}
+          winnersFinalScore={winnersFinalScore}
+          onLosersFinalScoreChange={(value) => {
+            if (isPredictionsClosed) return; // Prevent changes when closed
+            handleLosersFinalScoreChange(value);
+          }}
+          losersFinalScore={losersFinalScore}
           readonly={isPredictionsClosed}
         />
       </div>

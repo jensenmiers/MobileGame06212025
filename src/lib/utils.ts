@@ -13,10 +13,12 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function formatBonusPredictions(
   bracketReset?: 'upper_no_reset' | 'upper_with_reset' | 'lower_bracket' | null,
-  grandFinalsScore?: 'score_3_0' | 'score_3_1' | 'score_3_2' | null
+  grandFinalsScore?: 'score_3_0' | 'score_3_1' | 'score_3_2' | null,
+  winnersFinalScore?: 'score_3_0' | 'score_3_1' | 'score_3_2' | null,
+  losersFinalScore?: 'score_3_0' | 'score_3_1' | 'score_3_2' | null
 ): string {
   const bonusParts: string[] = [];
-  
+
   // Format bracket reset
   if (bracketReset) {
     switch (bracketReset) {
@@ -31,22 +33,52 @@ export function formatBonusPredictions(
         break;
     }
   }
-  
+
   // Format grand finals score
   if (grandFinalsScore) {
     switch (grandFinalsScore) {
       case 'score_3_0':
-        bonusParts.push('3-0');
+        bonusParts.push('GF: 3-0');
         break;
       case 'score_3_1':
-        bonusParts.push('3-1');
+        bonusParts.push('GF: 3-1');
         break;
       case 'score_3_2':
-        bonusParts.push('3-2');
+        bonusParts.push('GF: 3-2');
         break;
     }
   }
-  
+
+  // Format winners final score
+  if (winnersFinalScore) {
+    switch (winnersFinalScore) {
+      case 'score_3_0':
+        bonusParts.push('WF: 3-0');
+        break;
+      case 'score_3_1':
+        bonusParts.push('WF: 3-1');
+        break;
+      case 'score_3_2':
+        bonusParts.push('WF: 3-2');
+        break;
+    }
+  }
+
+  // Format losers final score
+  if (losersFinalScore) {
+    switch (losersFinalScore) {
+      case 'score_3_0':
+        bonusParts.push('LF: 3-0');
+        break;
+      case 'score_3_1':
+        bonusParts.push('LF: 3-1');
+        break;
+      case 'score_3_2':
+        bonusParts.push('LF: 3-2');
+        break;
+    }
+  }
+
   // Return formatted string or empty if no bonus predictions
   return bonusParts.length > 0 ? ` [${bonusParts.join(', ')}]` : '';
 }

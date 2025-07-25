@@ -13,6 +13,10 @@ interface SlotsProps {
   onBracketResetChange: (value: 'upper_no_reset' | 'upper_with_reset' | 'lower_bracket' | null) => void;
   grandFinalsScore?: 'score_3_0' | 'score_3_1' | 'score_3_2' | null;
   onGrandFinalsScoreChange: (value: 'score_3_0' | 'score_3_1' | 'score_3_2' | null) => void;
+  winnersFinalScore?: 'score_3_0' | 'score_3_1' | 'score_3_2' | null;
+  onWinnersFinalScoreChange: (value: 'score_3_0' | 'score_3_1' | 'score_3_2' | null) => void;
+  losersFinalScore?: 'score_3_0' | 'score_3_1' | 'score_3_2' | null;
+  onLosersFinalScoreChange: (value: 'score_3_0' | 'score_3_1' | 'score_3_2' | null) => void;
   readonly?: boolean;
 }
 
@@ -35,7 +39,7 @@ const positionIcons = [
   "🏅"  // 4th place
 ];
 
-export default function Slots({ predictions, onSlotFill, onSlotClear, availablePlayers, bracketReset, onBracketResetChange, grandFinalsScore, onGrandFinalsScoreChange, readonly = false }: SlotsProps) {
+export default function Slots({ predictions, onSlotFill, onSlotClear, availablePlayers, bracketReset, onBracketResetChange, grandFinalsScore, onGrandFinalsScoreChange, winnersFinalScore, onWinnersFinalScoreChange, losersFinalScore, onLosersFinalScoreChange, readonly = false }: SlotsProps) {
   const [bonusExpanded, setBonusExpanded] = useState(true);
 
   const handleValueChange = (value: string, index: number) => {
@@ -228,7 +232,7 @@ export default function Slots({ predictions, onSlotFill, onSlotClear, availableP
             {/* Grand Finals Score Section */}
             <div className="mt-6 pt-4 border-t border-purple-500/20">
               <div className="mb-1 flex items-center justify-between gap-2">
-                <h4 className="text-base font-semibold text-white m-0 p-0">Grand Finals Score</h4>
+                <h4 className="text-base font-semibold text-white m-0 p-0">Grand Final Score</h4>
                 {grandFinalsScore && !readonly && (
                   <button
                     onClick={() => onGrandFinalsScoreChange(null)}
@@ -278,6 +282,128 @@ export default function Slots({ predictions, onSlotFill, onSlotClear, availableP
                     value="score_3_2"
                     checked={grandFinalsScore === 'score_3_2'}
                     onChange={(e) => onGrandFinalsScoreChange(e.target.value as 'score_3_2')}
+                    disabled={readonly}
+                    className="w-4 h-4 text-purple-500 bg-gray-700 border-gray-600 focus:ring-purple-500"
+                  />
+                  <span className="text-sm text-white">3-2</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Winners Final Score Section */}
+            <div className="mt-6 pt-4 border-t border-purple-500/20">
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <h4 className="text-base font-semibold text-white m-0 p-0">Winners Final Score</h4>
+                {winnersFinalScore && !readonly && (
+                  <button
+                    onClick={() => onWinnersFinalScoreChange(null)}
+                    className="ml-2 px-2 py-0.5 text-xs text-purple-300 bg-transparent border border-purple-300 rounded hover:bg-purple-900/20 transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <label className={`flex items-center gap-2 py-1 px-2 rounded transition-colors ${
+                  readonly ? 'cursor-default opacity-70' : 'hover:bg-purple-900/20 cursor-pointer'
+                }`}>
+                  <input
+                    type="radio"
+                    name="winners-final-score"
+                    value="score_3_0"
+                    checked={winnersFinalScore === 'score_3_0'}
+                    onChange={(e) => onWinnersFinalScoreChange(e.target.value as 'score_3_0')}
+                    disabled={readonly}
+                    className="w-4 h-4 text-purple-500 bg-gray-700 border-gray-600 focus:ring-purple-500"
+                  />
+                  <span className="text-sm text-white">3-0</span>
+                </label>
+
+                <label className={`flex items-center gap-2 py-1 px-2 rounded transition-colors ${
+                  readonly ? 'cursor-default opacity-70' : 'hover:bg-purple-900/20 cursor-pointer'
+                }`}>
+                  <input
+                    type="radio"
+                    name="winners-final-score"
+                    value="score_3_1"
+                    checked={winnersFinalScore === 'score_3_1'}
+                    onChange={(e) => onWinnersFinalScoreChange(e.target.value as 'score_3_1')}
+                    disabled={readonly}
+                    className="w-4 h-4 text-purple-500 bg-gray-700 border-gray-600 focus:ring-purple-500"
+                  />
+                  <span className="text-sm text-white">3-1</span>
+                </label>
+
+                <label className={`flex items-center gap-2 py-1 px-2 rounded transition-colors ${
+                  readonly ? 'cursor-default opacity-70' : 'hover:bg-purple-900/20 cursor-pointer'
+                }`}>
+                  <input
+                    type="radio"
+                    name="winners-final-score"
+                    value="score_3_2"
+                    checked={winnersFinalScore === 'score_3_2'}
+                    onChange={(e) => onWinnersFinalScoreChange(e.target.value as 'score_3_2')}
+                    disabled={readonly}
+                    className="w-4 h-4 text-purple-500 bg-gray-700 border-gray-600 focus:ring-purple-500"
+                  />
+                  <span className="text-sm text-white">3-2</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Losers Final Score Section */}
+            <div className="mt-6 pt-4 border-t border-purple-500/20">
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <h4 className="text-base font-semibold text-white m-0 p-0">Losers Final Score</h4>
+                {losersFinalScore && !readonly && (
+                  <button
+                    onClick={() => onLosersFinalScoreChange(null)}
+                    className="ml-2 px-2 py-0.5 text-xs text-purple-300 bg-transparent border border-purple-300 rounded hover:bg-purple-900/20 transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <label className={`flex items-center gap-2 py-1 px-2 rounded transition-colors ${
+                  readonly ? 'cursor-default opacity-70' : 'hover:bg-purple-900/20 cursor-pointer'
+                }`}>
+                  <input
+                    type="radio"
+                    name="losers-final-score"
+                    value="score_3_0"
+                    checked={losersFinalScore === 'score_3_0'}
+                    onChange={(e) => onLosersFinalScoreChange(e.target.value as 'score_3_0')}
+                    disabled={readonly}
+                    className="w-4 h-4 text-purple-500 bg-gray-700 border-gray-600 focus:ring-purple-500"
+                  />
+                  <span className="text-sm text-white">3-0</span>
+                </label>
+
+                <label className={`flex items-center gap-2 py-1 px-2 rounded transition-colors ${
+                  readonly ? 'cursor-default opacity-70' : 'hover:bg-purple-900/20 cursor-pointer'
+                }`}>
+                  <input
+                    type="radio"
+                    name="losers-final-score"
+                    value="score_3_1"
+                    checked={losersFinalScore === 'score_3_1'}
+                    onChange={(e) => onLosersFinalScoreChange(e.target.value as 'score_3_1')}
+                    disabled={readonly}
+                    className="w-4 h-4 text-purple-500 bg-gray-700 border-gray-600 focus:ring-purple-500"
+                  />
+                  <span className="text-sm text-white">3-1</span>
+                </label>
+
+                <label className={`flex items-center gap-2 py-1 px-2 rounded transition-colors ${
+                  readonly ? 'cursor-default opacity-70' : 'hover:bg-purple-900/20 cursor-pointer'
+                }`}>
+                  <input
+                    type="radio"
+                    name="losers-final-score"
+                    value="score_3_2"
+                    checked={losersFinalScore === 'score_3_2'}
+                    onChange={(e) => onLosersFinalScoreChange(e.target.value as 'score_3_2')}
                     disabled={readonly}
                     className="w-4 h-4 text-purple-500 bg-gray-700 border-gray-600 focus:ring-purple-500"
                   />
