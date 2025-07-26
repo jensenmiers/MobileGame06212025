@@ -1168,6 +1168,8 @@ const TOURNAMENT_ABBREVIATIONS: Record<string, string> = {
   'Guilty Gear Strive': 'GGS',
   'Under Night In Birth II': 'UNIB',
   'Fatal Fury: City of the Wolves': 'FFCW',
+  'THE KING OF FIGHTERS XV': 'KOF15',
+  'Samurai Shodown': 'SaSh',
   // Add more as needed
 };
 

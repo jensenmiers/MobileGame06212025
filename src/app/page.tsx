@@ -361,7 +361,7 @@ export default function Home() {
                             alt={tournament.name}
                             fill
                             className={`${CORNER_RADIUS_TOP} transition-all duration-300 group-hover:brightness-110 ${
-                              tournament.name === 'Dragon Ball FighterZ' || tournament.name === 'Tekken 8' || tournament.name === 'Mortal Kombat 1' || tournament.name === 'Guilty Gear Strive' || tournament.name === 'Under Night In Birth II' || tournament.name === 'Fatal Fury: City of the Wolves'
+                              tournament.name === 'Dragon Ball FighterZ' || tournament.name === 'Tekken 8' || tournament.name === 'Mortal Kombat 1' || tournament.name === 'Guilty Gear Strive' || tournament.name === 'Under Night In Birth II' || tournament.name === 'Fatal Fury: City of the Wolves' || tournament.name === 'THE KING OF FIGHTERS XV' || tournament.name === 'Samurai Shodown'
                                 ? 'object-cover' 
                                 : 'object-contain'
                             }`}
@@ -378,6 +378,10 @@ export default function Home() {
                                 ? { objectPosition: 'center 73.21%' }
                                 : tournament.name === 'Fatal Fury: City of the Wolves'
                                 ? { objectPosition: 'center 39.73%' }
+                                : tournament.name === 'THE KING OF FIGHTERS XV'
+                                ? { objectPosition: 'center 53%' }
+                                : tournament.name === 'Samurai Shodown'
+                                ? { objectPosition: 'center 10%' }
                                 : undefined
                             }
                             priority

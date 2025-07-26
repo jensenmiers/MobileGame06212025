@@ -9,4 +9,6 @@ export const gameUiDetailsMap: { [key: string]: { slug: string; imageUrl: string
   'Mortal Kombat 1': { slug: 'mk1', imageUrl: '/images/gameIcons/mk1.webp', title: 'Mortal Kombat 1' },
   'Fatal Fury: City of the Wolves': { slug: 'ffcotw', imageUrl: '/images/gameIcons/ffcotw.webp', title: 'Fatal Fury: COTW' },
   'Under Night In Birth II': { slug: 'unib', imageUrl: '/images/gameIcons/unib.webp', title: 'UNIB II' },
+  'THE KING OF FIGHTERS XV': { slug: 'kof15', imageUrl: '/images/gameIcons/kf15.webp', title: 'KOF XV' },
+  'Samurai Shodown': { slug: 'sash', imageUrl: '/images/gameIcons/SaSh.webp', title: 'Samurai Shodown' },
 };

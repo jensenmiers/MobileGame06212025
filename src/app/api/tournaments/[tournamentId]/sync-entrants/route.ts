@@ -17,6 +17,8 @@ const STARTGG_GAME_IDS: Record<string, number> = {
   'Guilty Gear Strive': 33945,         // ✅ DISCOVERED: Found correct ID
   'Fatal Fury: City of the Wolves': 73221, // ✅ DISCOVERED: Found correct ID
   'Under Night In Birth II': 50203,    // ✅ FIXED: Correct ID for Sys:Celes (July 2025)
+  'THE KING OF FIGHTERS XV': 36963,    // ✅ DISCOVERED: Found correct ID
+  'Samurai Shodown': 3568,             // ✅ DISCOVERED: Found correct ID
 };
 
 // GraphQL query to fetch tournament participants
