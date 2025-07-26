@@ -169,7 +169,7 @@ function TournamentCard({
   const [inlineMessage, setInlineMessage] = useState<null | { message: string; type: "success" | "error" }>(null);
   const [loadingResults, setLoadingResults] = useState(false);
   const [lastTournamentId, setLastTournamentId] = useState<string>(tournament.id);
-  const [startggUrl, setStartggUrl] = useState(tournament.startgg_tournament_url || 'https://www.start.gg/tournament/full-combo-fights-at-buffalo-wild-wings-chino-hills-july/events');
+  const [startggUrl, setStartggUrl] = useState(tournament.startgg_tournament_url || 'Enter Start.gg URL Here');
   const [syncingEntrants, setSyncingEntrants] = useState(false);
   // Track the tournament name that corresponds to CURRENT participants (not the URL input)
   const [currentTournamentName, setCurrentTournamentName] = useState(

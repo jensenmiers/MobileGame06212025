@@ -215,6 +215,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Fetch participants from Start.gg
     const participants = await fetchStartGGParticipants(tournamentSlug, gameId);
 
+    // Update the tournament with the Start.gg URL
+    const { error: updateTournamentError } = await database
+      .from('tournaments')
+      .update({ 
+        startgg_tournament_url: startgg_url,
+        updated_at: new Date()
+      })
+      .eq('id', tournamentId);
+
+    if (updateTournamentError) {
+      console.error('Error updating tournament URL:', updateTournamentError);
+    }
+
     // Insert or update participants in the database
     for (const participant of participants) {
       const { data: existingParticipant, error: existingParticipantError } = await database
