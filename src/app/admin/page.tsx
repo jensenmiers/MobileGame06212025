@@ -908,7 +908,12 @@ function TournamentCard({
                                 getParticipantName(participants, prediction.slot_2_participant_id),
                                 getParticipantName(participants, prediction.slot_3_participant_id),
                                 getParticipantName(participants, prediction.slot_4_participant_id)
-                              ].filter(Boolean).join(" > ") + formatBonusPredictions(prediction.bracket_reset, prediction.grand_finals_score)}</td>
+                              ].filter(Boolean).join(" > ") + formatBonusPredictions(
+  prediction.bracket_reset,
+  prediction.grand_finals_score,
+  prediction.winners_final_score,
+  prediction.losers_final_score
+)}</td>
                             </tr>
                           ))
                         )}
