@@ -22,8 +22,8 @@ export default function RulesPage() {
         
         <div className="mb-8 text-center">
           <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-green-400">Rules & Scoring</h1>
-          <h2 className="text-xl sm:text-2xl font-bold mb-2 text-white">Bracket Master Challenge</h2>
-          <p className="text-sm sm:text-base text-gray-300">Everything you need to know about tournament predictions</p>
+          <h2 className="text-xl sm:text-2xl font-bold mb-2 text-white">Bracket Challenge</h2>
+          <p className="text-sm sm:text-base text-gray-300">Everything you need to know about tournament predictions.</p>
         </div>
 
         {/* Basic Rules Section */}
@@ -38,7 +38,7 @@ export default function RulesPage() {
               <div>
                 <h3 className="text-lg font-semibold text-green-300 mb-2">What You're Predicting</h3>
                 <p className="text-gray-300 leading-relaxed">
-                  You're predicting the <strong className="text-white">top 4 finishers of each tournament</strong> – who will place in <strong>1st, 2nd, 3rd, or 4th?</strong> Think of it as calling the final 4 up until the top 8 begins.
+                  You're predicting the <strong className="text-white">Top 4 finishers of each tournament</strong> – who will place in <strong>1st, 2nd, 3rd, or 4th?</strong> Think of it as calling the Final 4 players up until the Top 8 starts.
                 </p>
               </div>
 
@@ -47,7 +47,7 @@ export default function RulesPage() {
                 <ul className="space-y-2 text-gray-300">
                   <li className="flex items-start gap-2">
                     <span className="text-green-400 mt-1">•</span>
-                    <span><strong className="text-white">One prediction per tournament</strong> - choose your top 4 carefully</span>
+                    <span><strong className="text-white">One prediction per tournament</strong> - choose your Top 4 carefully.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-green-400 mt-1">•</span>
@@ -55,11 +55,11 @@ export default function RulesPage() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-green-400 mt-1">•</span>
-                    <span><strong className="text-white">Locked after cutoff</strong> - once predictions close, no more changes allowed</span>
+                    <span><strong className="text-white">Locked after cutoff</strong> - once predictions close, no more changes allowed.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-green-400 mt-1">•</span>
-                    <span><strong className="text-white">Order matters</strong> - predicting someone for 1st place scores differently than predicting them for 4th</span>
+                    <span><strong className="text-white">Order matters</strong> - predicting someone as 1st place scores differently than predicting them as 4th.</span>
                   </li>
                 </ul>
               </div>
@@ -74,6 +74,14 @@ export default function RulesPage() {
                   <li className="flex items-start gap-2">
                     <span className="text-purple-400 mt-1">•</span>
                     <span><strong className="text-white">Grand Finals Score</strong>: How close will the final match be? (3-0 sweep, 3-1, or 3-2 nail-biter)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-400 mt-1">•</span>
+                    <span><strong className="text-white">Winners Final Score</strong>: What will be the score of the winners final match? (3-0, 3-1, or 3-2)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-400 mt-1">•</span>
+                    <span><strong className="text-white">Losers Final Score</strong>: What will be the score of the losers final match? (3-0, 3-1, or 3-2)</span>
                   </li>
                 </ul>
               </div>
@@ -91,20 +99,25 @@ export default function RulesPage() {
           <CardContent className="p-4 sm:p-6">
             <div className="space-y-4 text-sm sm:text-base">
               <div>
+                <h3 className="text-lg font-semibold text-yellow-300 mb-3">Base Points</h3>
+                <p className="text-gray-300 mb-3">Every prediction receives <strong className="text-white">100 base points</strong> regardless of accuracy - just for participating!</p>
+              </div>
+
+              <div>
                 <h3 className="text-lg font-semibold text-yellow-300 mb-3">Position Points (The Big Points)</h3>
                 <p className="text-gray-300 mb-3">Each slot has different base point values - higher placements are worth more:</p>
                 <div className="grid grid-cols-2 gap-2 sm:gap-4">
                   <div className="bg-gray-800/50 p-3 rounded-lg border border-yellow-600/30">
                     <div className="text-yellow-400 font-bold">1st Place</div>
-                    <div className="text-2xl font-bold text-white">431 pts</div>
+                    <div className="text-2xl font-bold text-white">300 pts</div>
                   </div>
                   <div className="bg-gray-800/50 p-3 rounded-lg border border-gray-400/30">
                     <div className="text-gray-300 font-bold">2nd Place</div>
-                    <div className="text-2xl font-bold text-white">266 pts</div>
+                    <div className="text-2xl font-bold text-white">220 pts</div>
                   </div>
                   <div className="bg-gray-800/50 p-3 rounded-lg border border-amber-600/30">
                     <div className="text-amber-400 font-bold">3rd Place</div>
-                    <div className="text-2xl font-bold text-white">165 pts</div>
+                    <div className="text-2xl font-bold text-white">160 pts</div>
                   </div>
                   <div className="bg-gray-800/50 p-3 rounded-lg border border-blue-400/30">
                     <div className="text-blue-400 font-bold">4th Place</div>
@@ -115,7 +128,7 @@ export default function RulesPage() {
 
               <div>
                 <h3 className="text-lg font-semibold text-yellow-300 mb-2">Proximity Rewards (Smart Scoring)</h3>
-                <p className="text-gray-300 mb-3">Don’t worry if you’re not exactly right! The system rewards “close calls” too:</p>
+                <p className="text-gray-300 mb-3">Don't worry if you're not exactly right! The system rewards "close calls" too:</p>
                 <ul className="space-y-2 text-gray-300">
                   <li className="flex items-center gap-2">
                     <span className="text-green-400">✓</span>
@@ -123,24 +136,24 @@ export default function RulesPage() {
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-green-300">✓</span>
-                    <span><strong className="text-white">1 position off:</strong> If your pick is just one spot away (e.g., you pick Player A for 1st, but they finish 2nd), you get <strong>61% of the points</strong> for that slot.</span>
+                    <span><strong className="text-white">1 position off:</strong> If your pick is just one spot away (e.g., you pick Player A for 1st, but they finish 2nd), you get <strong>85% of the points</strong> for that slot.</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-yellow-400">~</span>
-                    <span><strong className="text-white">2 positions off:</strong> If your pick is two spots away, you get <strong>41% of the points</strong>.</span>
+                    <span><strong className="text-white">2 positions off:</strong> If your pick is two spots away, you get <strong>55% of the points</strong>.</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-orange-400">~</span>
-                    <span><strong className="text-white">3 positions off:</strong> If your pick is three spots away, you get <strong>17% of the points</strong>.</span>
+                    <span><strong className="text-white">3 positions off:</strong> If your pick is three spots away, you get <strong>25% of the points</strong>.</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-red-400">✗</span>
-                    <span><strong className="text-white">Not in top 4:</strong> If your pick doesn’t make the top 4, you get <strong>0 points</strong> for that slot.</span>
+                    <span><strong className="text-white">Not in top 4:</strong> If your pick doesn't make the top 4, you get <strong>0 points</strong> for that slot.</span>
                   </li>
                 </ul>
                 <div className="mt-4 p-3 bg-blue-900/20 border border-blue-800/30 rounded-lg">
                   <p className="text-blue-200 text-sm">
-                    <strong>Example:</strong> If you predict Player A for 1st place (worth 431 points) but they finish 2nd, you still earn 263 points (431 × 0.61).
+                    <strong>Example:</strong> If you predict Player A for 1st place (worth 300 points) but they finish 2nd, you still earn 255 points (300 × 0.85).
                   </p>
                 </div>
               </div>
@@ -149,27 +162,31 @@ export default function RulesPage() {
                 <h3 className="text-lg font-semibold text-yellow-300 mb-2">Bonus Points</h3>
                 <ul className="space-y-2 text-gray-300">
                   <li className="flex items-center gap-2">
-                    <span className="text-purple-400">+24</span>
+                    <span className="text-purple-400">+48</span>
                     <span><strong className="text-white">Correct bracket reset prediction</strong></span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <span className="text-purple-400">+13</span>
+                    <span className="text-purple-400">+42</span>
                     <span><strong className="text-white">Correct grand finals score</strong></span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <span className="text-purple-400">+7</span>
+                    <span className="text-purple-400">+16</span>
                     <span><strong className="text-white">Correct winners final score</strong></span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <span className="text-purple-400">+6</span>
+                    <span className="text-purple-400">+14</span>
                     <span><strong className="text-white">Correct losers final score</strong></span>
                   </li>
                 </ul>
+
               </div>
 
               <div className="mt-4 p-4 bg-green-900/20 border border-green-800/30 rounded-lg">
                 <p className="text-green-200 text-center">
-                  <strong>Perfect Score: 1012 points</strong> (requires predicting everything perfectly!)
+                  <strong>Perfect Score: 1,000 points</strong> (requires predicting everything perfectly!)
+                </p>
+                <p className="text-green-300 text-center text-sm mt-1">
+                  Breakdown: 100 base + 300 + 220 + 160 + 100 position + 48 + 42 + 16 + 14 bonus = 1,000
                 </p>
               </div>
             </div>
@@ -198,7 +215,7 @@ export default function RulesPage() {
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-blue-400 font-bold mt-1">3.</span>
-                    <span><strong className="text-white">Add bonus predictions</strong> - make your bracket reset and score calls</span>
+                    <span><strong className="text-white">Add bonus predictions</strong> - make your bracket reset and score calls (optional)</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-blue-400 font-bold mt-1">4.</span>
@@ -282,19 +299,23 @@ export default function RulesPage() {
             <ul className="space-y-3 text-sm sm:text-base text-gray-300">
               <li className="flex items-start gap-2">
                 <span className="text-purple-400 mt-1">💪</span>
-                <span><strong className="text-white">Study the brackets</strong> - tournament seedings give hints about likely performance</span>
+                <span><strong className="text-white">Study the brackets</strong> - tournament seedings give hints about likely performance.</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-purple-400 mt-1">🔥</span>
-                <span><strong className="text-white">Consider recent form</strong> - hot players often outperform their seeding</span>
+                <span><strong className="text-white">Consider recent form</strong> - hot players often outperform their seeding.</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-purple-400 mt-1">🎯</span>
-                <span><strong className="text-white">Don't chase perfect scores</strong> - proximity scoring means "close enough" still earns solid points</span>
+                <span><strong className="text-white">Don't chase perfect scores</strong> - proximity scoring means "close enough" still earns solid points.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-purple-400 mt-1">🎲</span>
+                <span><strong className="text-white">Bonus predictions matter</strong> - up to 120 extra points available for perfect bonus calls.</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-purple-400 mt-1">⏰</span>
-                <span><strong className="text-white">Submit early</strong> - avoid last-minute technical issues and secure better tiebreaker position</span>
+                <span><strong className="text-white">Submit early</strong> - avoid last-minute technical issues and secure a better tiebreaker position.</span>
               </li>
             </ul>
           </CardContent>
