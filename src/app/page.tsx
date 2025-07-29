@@ -24,7 +24,7 @@ export default function Home() {
   const SHOW_TITLES = false;
 
   // Helper function to generate synchronized border and background colors
-  const getStatusColors = (status: 'results' | 'predictions' | 'pending') => {
+  const getStatusColors = (status: 'results' | 'predictions' | 'pending' | 'awaiting') => {
     switch (status) {
       case 'results':
         return {
@@ -41,6 +41,11 @@ export default function Home() {
           border: 'border-yellow-600/80 group-hover:border-yellow-400/90',
           background: 'bg-yellow-600/80 group-hover:bg-yellow-400/90'
         };
+      case 'awaiting':
+        return {
+          border: 'border-[#8e5c66]/80 group-hover:border-[#8e5c66]/90',
+          background: 'bg-[#8e5c66]/80 group-hover:bg-[#8e5c66]/90'
+        };
       default:
         return {
           border: 'border-gray-600/80 group-hover:border-gray-400/90',
@@ -55,16 +60,22 @@ export default function Home() {
   const CORNER_RADIUS_BOTTOM = 'rounded-b-xl'; // Bottom corners only
 
   // Helper function to dynamically calculate if predictions are open
-  // PRIORITY: Results posted overrides cutoff time
+  // PRIORITY: predictions_open flag > Results posted > cutoff time
   const arePredictionsOpen = (tournament: Tournament): boolean => {
-    // PRIORITY 1: Check if tournament has results (overrides everything)
+    // PRIORITY 1: Check predictions_open flag (overrides everything)
+    if (!tournament.predictions_open) {
+      console.log(`🚫 ${tournament.name}: predictions_open = false → predictions CLOSED (awaiting top bracket)`);
+      return false; // predictions_open = false overrides everything
+    }
+    
+    // PRIORITY 2: Check if tournament has results (overrides cutoff time)
     const hasResults = tournamentsWithResults.has(tournament.id);
     if (hasResults) {
       console.log(`🔒 ${tournament.name}: HAS RESULTS → predictions CLOSED (completed)`);
       return false; // Results posted = no more predictions allowed
     }
     
-    // PRIORITY 2: If no results, check cutoff time
+    // PRIORITY 3: If no results, check cutoff time
     const cutoffTime = new Date(tournament.cutoff_time);
     const now = new Date();
     const timeBasedOpen = cutoffTime > now;
@@ -94,7 +105,7 @@ export default function Home() {
         return a.active ? -1 : 1;
       }
       
-      // Then, sort by status priority: results > predictions > pending
+      // Then, sort by status priority: results > predictions > pending > awaiting
       const aHasResults = tournamentsWithResultsSet.has(a.id);
       const bHasResults = tournamentsWithResultsSet.has(b.id);
       
@@ -107,12 +118,28 @@ export default function Home() {
         const aPredictionsOpen = arePredictionsOpen(a);
         const bPredictionsOpen = arePredictionsOpen(b);
         
-        if (aPredictionsOpen !== bPredictionsOpen) {
-          return aPredictionsOpen ? -1 : 1; // Predictions open first
+        // Check if either tournament is awaiting (predictions_open = false)
+        const aIsAwaiting = !a.predictions_open;
+        const bIsAwaiting = !b.predictions_open;
+        
+        if (aIsAwaiting !== bIsAwaiting) {
+          return aIsAwaiting ? 1 : -1; // Awaiting tournaments go last
+        }
+        
+        if (!aIsAwaiting && !bIsAwaiting) {
+          // Both are not awaiting, check if predictions are open
+          if (aPredictionsOpen !== bPredictionsOpen) {
+            return aPredictionsOpen ? -1 : 1; // Predictions open first
+          }
         }
       }
       
-      // Finally, sort by creation date (newest first)
+      // For tournaments with same status, sort alphabetically by name
+      if (a.name !== b.name) {
+        return a.name.localeCompare(b.name);
+      }
+      
+      // Finally, sort by creation date (newest first) as tiebreaker
       const sortByCreatedAt = (a: Tournament, b: Tournament) => 
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
       
@@ -327,8 +354,14 @@ export default function Home() {
                   // Determine tournament status for banner
                   let bannerText = '';
                   let statusColors = { border: '', background: '' };
+                  let isClickable = true;
                   
-                  if (hasResults) {
+                  if (!tournament.predictions_open) {
+                    // Predictions closed by admin - awaiting top bracket
+                    bannerText = 'AWAITING\nTOP BRACKET';
+                    statusColors = getStatusColors('awaiting');
+                    isClickable = false;
+                  } else if (hasResults) {
                     // Tournament completed - has results
                     bannerText = 'VIEW RESULTS';
                     statusColors = getStatusColors('results');
@@ -345,8 +378,8 @@ export default function Home() {
                   return (
                     <div key={tournament.id} className="flex flex-col items-center">
                       <button
-                        onClick={() => handleGameSelect(uiDetails.slug)}
-                        className={`relative transition-all duration-300 cursor-pointer hover:scale-105 hover:shadow-lg hover:shadow-black/50 group ${statusColors.border} ${CORNER_RADIUS} overflow-hidden ${SHOW_TITLES ? 'mb-2' : ''}`}
+                        onClick={isClickable ? () => handleGameSelect(uiDetails.slug) : undefined}
+                        className={`relative transition-all duration-300 ${isClickable ? 'cursor-pointer hover:scale-105 hover:shadow-lg hover:shadow-black/50' : 'cursor-default'} group ${statusColors.border} ${CORNER_RADIUS} overflow-hidden ${SHOW_TITLES ? 'mb-2' : ''}`}
                         style={{ 
                           transition: 'all 0.3s ease-in-out, border-color 0.3s ease-in-out',
                           backfaceVisibility: 'hidden',

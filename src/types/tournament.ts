@@ -15,6 +15,7 @@ export interface Tournament {
   end_time: string;
   max_participants: number;
   active: boolean;
+  predictions_open: boolean; // Controls whether predictions are allowed for this tournament
   created_at: string;
   updated_at: string;
   startgg_tournament_url?: string; // Start.gg tournament URL for entrant sync

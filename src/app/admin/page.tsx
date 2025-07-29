@@ -118,7 +118,8 @@ function TournamentCard({
   onRefreshParticipants,
   loading = false,
   currentUserId,
-  onToggleVisibility
+  onToggleVisibility,
+  onTogglePredictions
 }: {
   tournament: Tournament;
   participants: Participant[];
@@ -130,6 +131,7 @@ function TournamentCard({
   loading?: boolean;
   currentUserId?: string;
   onToggleVisibility: (tournamentId: string, currentActive: boolean) => void;
+  onTogglePredictions: (tournamentId: string, newPredictionsOpen: boolean) => void;
 }) {
   // Helper function to convert ISO datetime to datetime-local format
   const formatDateTimeLocal = (isoDateTime: string): string => {
@@ -676,6 +678,7 @@ function TournamentCard({
   <span style={{ color: '#b5e0b5', fontWeight: 500, fontSize: '1.2rem', lineHeight: 1.0 }}>
     {tournament.active ? `(${getTournamentStatusText(tournament, hasResults)})` : '(INACTIVE)'}
   </span>
+  
   {/* Visibility toggle (single eye icon + switch) */}
   <span style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 12 }}>
     {/* Single eye icon that changes state */}
@@ -746,6 +749,76 @@ function TournamentCard({
       />
     </span>
   </span>
+
+  {/* Predictions toggle */}
+  <span style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 12 }}>
+    <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 500 }}>
+      Ready for Predictions:
+    </span>
+    <span
+      title={tournament.predictions_open ? 'Click to close predictions' : 'Click to open predictions'}
+      style={{
+        display: 'inline-block',
+        width: 28,
+        height: 16,
+        borderRadius: 10,
+        background: tournament.predictions_open ? '#22c55e' : '#666',
+        border: '2px solid #228B22',
+        margin: '0 2px',
+        position: 'relative',
+        verticalAlign: 'middle',
+        cursor: loading ? 'not-allowed' : 'pointer',
+        transition: 'background 0.2s, border 0.2s',
+        boxShadow: '0 0 4px #228B22',
+      }}
+      onClick={async (e) => {
+        e.stopPropagation();
+        if (!loading) {
+          try {
+            const response = await fetch(`/api/admin/tournaments/${tournament.id}/toggle-predictions`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            });
+            
+            if (response.ok) {
+              const result = await response.json();
+              onTogglePredictions(tournament.id, result.predictions_open);
+              setInlineMessage({ 
+                message: `Predictions ${result.predictions_open ? 'opened' : 'closed'} successfully`, 
+                type: "success" 
+              });
+            } else {
+              setInlineMessage({ 
+                message: "Failed to toggle predictions", 
+                type: "error" 
+              });
+            }
+          } catch (error) {
+            console.error('Error toggling predictions:', error);
+            setInlineMessage({ 
+              message: "Network error: Failed to toggle predictions", 
+              type: "error" 
+            });
+          }
+        }
+      }}
+    >
+      <span
+        style={{
+          display: 'block',
+          width: 12,
+          height: 12,
+          borderRadius: '50%',
+          background: '#fff',
+          position: 'absolute',
+          top: 1.5,
+          left: tournament.predictions_open ? 12 : 2,
+          transition: 'left 0.2s',
+          boxShadow: '0 1px 4px #0006',
+        }}
+      />
+    </span>
+  </span>
 </div>
         {/* Removed LockToggle from header */}
       </div>
@@ -806,7 +879,7 @@ function TournamentCard({
                   </div>
                   <div>
                     <strong>Sync Status:</strong> {
-                      phaseStatus.shouldSync 
+                      phaseStatus.shouldSync === true
                         ? "✅ Safe to sync (≤32 active entrants)"
                         : phaseStatus.activeEntrantCount === 0 && phaseStatus.currentPhase.toLowerCase().includes('round 1')
                         ? "🚫 Blocked (tournament not started yet)"
@@ -848,20 +921,20 @@ function TournamentCard({
             <button
               type="button"
               onClick={handleSyncEntrants}
-              disabled={syncingEntrants || !startggUrl.trim() || (phaseStatus && !phaseStatus.shouldSync)}
+              disabled={syncingEntrants || !startggUrl.trim() || (phaseStatus && phaseStatus.shouldSync === false)}
               title={
-                phaseStatus && !phaseStatus.shouldSync 
+                phaseStatus && phaseStatus.shouldSync === false
                   ? `Sync blocked: ${phaseStatus.currentPhase} phase has ${phaseStatus.activeEntrantCount === null ? 'too many' : phaseStatus.activeEntrantCount} active entrants`
                   : ""
               }
               style={{
-                background: syncingEntrants ? "#444" : (phaseStatus && !phaseStatus.shouldSync) ? "#666" : "#003300",
+                background: syncingEntrants ? "#444" : (phaseStatus && phaseStatus.shouldSync === false) ? "#666" : "#003300",
                 color: "#fff",
                 border: "1px solid #228B22",
                 borderRadius: 6,
                 padding: "12px 20px",
                 fontWeight: 600,
-                cursor: (syncingEntrants || !startggUrl.trim() || (phaseStatus && !phaseStatus.shouldSync)) ? "not-allowed" : "pointer",
+                cursor: (syncingEntrants || !startggUrl.trim() || (phaseStatus && phaseStatus.shouldSync === false)) ? "not-allowed" : "pointer",
                 fontSize: 16,
               }}
             >
@@ -893,6 +966,8 @@ function TournamentCard({
               <LockToggle locked={isLocked} onToggle={onLockToggle} />
             </span>
           </div>
+
+
           {/* Prediction count and show predictions button row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
             <span style={{ color: '#fff', fontWeight: 600, fontSize: 20 }}>
@@ -1441,6 +1516,15 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Add: Handler to toggle predictions_open for a tournament
+  const handleTogglePredictions = (tournamentId: string, newPredictionsOpen: boolean) => {
+    setTournaments(prev => prev.map(t => 
+      t.id === tournamentId 
+        ? { ...t, predictions_open: newPredictionsOpen }
+        : t
+    ));
+  };
+
   if (loading) {
     return (
       <div style={{
@@ -1624,6 +1708,7 @@ export default function AdminDashboardPage() {
             loading={selectedTournamentId ? loadingParticipants[selectedTournamentId] : false}
             currentUserId={user?.id}
             onToggleVisibility={(tournamentId, currentActive) => toggleTournamentVisibility(tournamentId, currentActive)}
+            onTogglePredictions={handleTogglePredictions}
           />
         )}
       </div>
