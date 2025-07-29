@@ -180,6 +180,13 @@ function TournamentCard({
   const [predictions, setPredictions] = useState<any[]>([]);
   const [loadingPredictions, setLoadingPredictions] = useState(false);
   const [predictionsError, setPredictionsError] = useState<string | null>(null);
+  const [phaseStatus, setPhaseStatus] = useState<{
+    currentPhase: string;
+    activeEntrantCount: number | null;
+    shouldSync: boolean;
+    phaseLastChecked: string;
+  } | null>(null);
+  const [loadingPhaseStatus, setLoadingPhaseStatus] = useState(false);
 
   // Add state for column widths
   const [colWidths, setColWidths] = useState([
@@ -297,7 +304,7 @@ function TournamentCard({
     }
   }, [participants, tournament.id, lastTournamentId]);
 
-  // Fetch prediction count when expanded
+  // Fetch prediction count and phase status when expanded
   useEffect(() => {
     async function fetchPredictionCount() {
       try {
@@ -315,8 +322,12 @@ function TournamentCard({
     }
     if (isExpanded) {
       fetchPredictionCount();
+      // Also fetch phase status if tournament has a start.gg URL
+      if (tournament.startgg_tournament_url) {
+        fetchPhaseStatus();
+      }
     }
-  }, [isExpanded, tournament.id]);
+  }, [isExpanded, tournament.id, tournament.startgg_tournament_url]);
 
   // Fetch predictions for modal
   const fetchPredictions = async () => {
@@ -426,6 +437,54 @@ function TournamentCard({
     }
   };
 
+  const fetchPhaseStatus = async () => {
+    // Use input box URL if available, otherwise fall back to database URL
+    const urlToCheck = startggUrl.trim() || tournament.startgg_tournament_url;
+    if (!urlToCheck) {
+      setInlineMessage({ message: "No Start.gg URL available to check", type: "error" });
+      return;
+    }
+
+    setLoadingPhaseStatus(true);
+    try {
+      // Pass the URL to check in the request body
+      const response = await fetch(`/api/tournaments/${tournament.id}/phase-status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ startgg_url: urlToCheck })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        setPhaseStatus({
+          currentPhase: data.currentPhase,
+          activeEntrantCount: data.activeEntrantCount,
+          shouldSync: data.shouldSync,
+          phaseLastChecked: data.phaseLastChecked,
+        });
+        // Clear any previous error messages on success
+        setInlineMessage(null);
+      } else {
+        console.error('Phase status check failed:', data.error);
+        setPhaseStatus(null);
+        setInlineMessage({ 
+          message: `❌ Phase status check failed: ${data.error || 'Unknown error'}`, 
+          type: "error" 
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching phase status:', error);
+      setPhaseStatus(null);
+      setInlineMessage({ 
+        message: `❌ Network error while checking phase status: ${error instanceof Error ? error.message : 'Unknown error'}`, 
+        type: "error" 
+      });
+    } finally {
+      setLoadingPhaseStatus(false);
+    }
+  };
+
   const handleSyncEntrants = async () => {
     if (!startggUrl.trim()) {
       setInlineMessage({ message: "Please enter a Start.gg tournament URL", type: "error" });
@@ -456,8 +515,13 @@ function TournamentCard({
       if (response.ok && data.success) {
         console.log(`✅ [SYNC DEBUG] API success - participants_added: ${data.participants_added}`);
         
+        // Update phase status if returned
+        if (data.phaseStatus) {
+          setPhaseStatus(data.phaseStatus);
+        }
+        
         setInlineMessage({ 
-          message: `✅ ${data.message}`, 
+          message: `✅ ${data.message}${data.phaseStatus ? ` (${data.phaseStatus.currentPhase}: ${data.phaseStatus.activeEntrantCount} active)` : ''}`, 
           type: "success" 
         });
         
@@ -706,6 +770,63 @@ function TournamentCard({
             {currentTournamentName ? `currently added from ${currentTournamentName}` : 'currently added'}
           </div>
           
+          {/* Phase Status Section */}
+          {tournament.startgg_tournament_url && (
+            <div style={{ marginBottom: 16, padding: "12px 16px", background: "#222", borderRadius: 6, border: "1px solid #444" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                <span style={{ color: "#fff", fontWeight: 600, fontSize: 16 }}>
+                  Tournament Phase Status
+                </span>
+                <button
+                  type="button"
+                  onClick={fetchPhaseStatus}
+                  disabled={loadingPhaseStatus}
+                  style={{
+                    background: "#444",
+                    color: "#fff",
+                    border: "1px solid #666",
+                    borderRadius: 4,
+                    padding: "6px 12px",
+                    fontSize: 14,
+                    cursor: loadingPhaseStatus ? "not-allowed" : "pointer",
+                  }}
+                >
+                  {loadingPhaseStatus ? "Checking..." : "Refresh Status"}
+                </button>
+              </div>
+              {phaseStatus ? (
+                <div style={{ fontSize: 14, color: "#ccc" }}>
+                  <div><strong>Current Phase:</strong> {phaseStatus.currentPhase}</div>
+                  <div>
+                    <strong>Active Entrants:</strong> {
+                      phaseStatus.activeEntrantCount === null 
+                        ? "Unknown (too many to count safely)"
+                        : phaseStatus.activeEntrantCount
+                    }
+                  </div>
+                  <div>
+                    <strong>Sync Status:</strong> {
+                      phaseStatus.shouldSync 
+                        ? "✅ Safe to sync (≤32 active entrants)"
+                        : phaseStatus.activeEntrantCount === 0 && phaseStatus.currentPhase.toLowerCase().includes('round 1')
+                        ? "🚫 Blocked (tournament not started yet)"
+                        : phaseStatus.activeEntrantCount === null && phaseStatus.currentPhase.toLowerCase().includes('round 1')
+                        ? "🚫 Blocked (too many entrants in early rounds)"
+                        : "🚫 Blocked (>32 active entrants or tournament complete)"
+                    }
+                  </div>
+                  <div style={{ fontSize: 12, opacity: 0.7 }}>
+                    Last checked: {new Date(phaseStatus.phaseLastChecked).toLocaleString()}
+                  </div>
+                </div>
+              ) : (
+                <div style={{ fontSize: 14, color: "#888" }}>
+                  Click "Refresh Status" to check current tournament phase
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Start.gg Tournament URL Section */}
           <div style={{ display: "flex", alignItems: "center", marginBottom: 16, gap: "12px" }}>
             <input
@@ -727,15 +848,20 @@ function TournamentCard({
             <button
               type="button"
               onClick={handleSyncEntrants}
-              disabled={syncingEntrants || !startggUrl.trim()}
+              disabled={syncingEntrants || !startggUrl.trim() || (phaseStatus && !phaseStatus.shouldSync)}
+              title={
+                phaseStatus && !phaseStatus.shouldSync 
+                  ? `Sync blocked: ${phaseStatus.currentPhase} phase has ${phaseStatus.activeEntrantCount === null ? 'too many' : phaseStatus.activeEntrantCount} active entrants`
+                  : ""
+              }
               style={{
-                background: syncingEntrants ? "#444" : "#003300",
+                background: syncingEntrants ? "#444" : (phaseStatus && !phaseStatus.shouldSync) ? "#666" : "#003300",
                 color: "#fff",
                 border: "1px solid #228B22",
                 borderRadius: 6,
                 padding: "12px 20px",
                 fontWeight: 600,
-                cursor: (syncingEntrants || !startggUrl.trim()) ? "not-allowed" : "pointer",
+                cursor: (syncingEntrants || !startggUrl.trim() || (phaseStatus && !phaseStatus.shouldSync)) ? "not-allowed" : "pointer",
                 fontSize: 16,
               }}
             >

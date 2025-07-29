@@ -6,6 +6,370 @@ import { Tournament, Participant, Prediction, TournamentResult, LeaderboardEntry
 // Feature flag to control migration
 const USE_BACKEND_API = process.env.NEXT_PUBLIC_USE_BACKEND_API === 'true';
 
+// Map of game names to Start.gg videogame IDs (copied from sync-entrants route)
+const STARTGG_GAME_IDS: Record<string, number> = {
+  'Street Fighter 6': 43868,
+  'Tekken 8': 49783,
+  'Dragon Ball FighterZ': 287,
+  'Mortal Kombat 1': 48599,
+  'Guilty Gear Strive': 33945,
+  'Fatal Fury: City of the Wolves': 73221,
+  'Under Night In Birth II': 50203,
+  'THE KING OF FIGHTERS XV': 36963,
+  'Samurai Shodown': 3568,
+};
+
+interface PhaseStatus {
+  currentPhase: string;
+  activeEntrantCount: number | null;
+  shouldSync: boolean;
+  phaseLastChecked: string;
+}
+
+interface PhaseData {
+  id: string;
+  name: string;
+  phaseGroups: {
+    nodes: { 
+      id: string;
+      sets?: {
+        nodes: {
+          id: string;
+          state: number;
+        }[];
+      };
+    }[];
+  };
+  state: number; // 1 = waiting, 2 = in-progress, 3 = complete
+}
+
+interface EntrantSlot {
+  entrant: { 
+    id: string;
+    name: string;
+  } | null;
+}
+
+interface SetData {
+  id: string;
+  state: number; // 1 = waiting, 2 = in-progress, 3 = completed
+  slots: EntrantSlot[];
+}
+
+interface PhaseGroupData {
+  id: string;
+  sets: {
+    nodes: SetData[];
+  };
+}
+
+// GraphQL query to fetch phase metadata only (lightweight)
+const GET_PHASE_META_QUERY = `
+  query PhaseMeta($slug: String!, $videogameId: [ID]!) {
+    tournament(slug: $slug) {
+      events(filter: {videogameId: $videogameId}) {
+        phases {
+          id
+          name
+          phaseGroups {
+            nodes {
+              id
+              sets(perPage: 10) {
+                nodes {
+                  id
+                  state
+                }
+              }
+            }
+          }
+          state
+        }
+      }
+    }
+  }
+`;
+
+// GraphQL query to fetch all sets in a phase group for debugging
+const GET_ALL_SETS_QUERY = `
+  query AllSets($groupId: ID!) {
+    phaseGroup(id: $groupId) {
+      id
+      sets(perPage: 512) {
+        nodes {
+          id
+          state
+          slots {
+            entrant { 
+              id 
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+// GraphQL query to get phase group IDs for a specific phase
+const GET_PHASE_GROUPS_QUERY = `
+  query PhaseGroups($phaseId: ID!) {
+    phase(id: $phaseId) {
+      phaseGroups {
+        nodes {
+          id
+        }
+      }
+    }
+  }
+`;
+
+/**
+ * Gets the current phase status and active entrant count for a tournament
+ * Returns shouldSync: true only when there are 32 or fewer active entrants
+ */
+export async function getPhaseStatus(tournamentSlug: string, gameTitle: string): Promise<PhaseStatus> {
+  const START_GG_API_URL = 'https://api.start.gg/gql/alpha';
+  
+  console.log(`🔍 [getPhaseStatus] Checking phase status for tournament: ${tournamentSlug}, game: ${gameTitle}`);
+  
+  // Get game ID for Start.gg API
+  const gameId = STARTGG_GAME_IDS[gameTitle];
+  if (!gameId) {
+    throw new Error(`No Start.gg game ID configured for "${gameTitle}"`);
+  }
+
+  if (!process.env.START_GG_API_KEY) {
+    throw new Error('Start.gg API key not configured');
+  }
+
+  // Step 1: Fetch phase metadata (lightweight)
+  const phaseResponse = await fetch(START_GG_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.START_GG_API_KEY}`,
+    },
+    body: JSON.stringify({
+      query: GET_PHASE_META_QUERY,
+      variables: {
+        slug: tournamentSlug,
+        videogameId: gameId,
+      },
+    }),
+  });
+
+  if (!phaseResponse.ok) {
+    throw new Error(`Start.gg API error: ${phaseResponse.status}`);
+  }
+
+  const { data: phaseData, errors: phaseErrors } = await phaseResponse.json();
+
+  if (phaseErrors) {
+    console.error('GraphQL Errors:', phaseErrors);
+    throw new Error('Failed to fetch phase data from Start.gg');
+  }
+
+  // Find all phases and identify the current one (latest non-complete phase)
+  const allPhases: PhaseData[] = [];
+  for (const event of phaseData.tournament.events || []) {
+    allPhases.push(...(event.phases || []));
+  }
+
+  if (allPhases.length === 0) {
+    throw new Error('No phases found for this tournament');
+  }
+
+  // Enhanced phase selection logic
+  // First, check if tournament has started by looking at set states
+  const allPhaseGroups = allPhases.flatMap(phase => phase.phaseGroups.nodes);
+  const hasStartedSets = allPhaseGroups.some(pg => 
+    pg.sets?.nodes?.some(set => set.state === 2) // In progress sets
+  );
+  const hasWaitingSets = allPhaseGroups.some(pg => 
+    pg.sets?.nodes?.some(set => set.state === 1) // Waiting sets
+  );
+  const hasCompletedSets = allPhaseGroups.some(pg => 
+    pg.sets?.nodes?.some(set => set.state === 3) // Completed sets
+  );
+
+  console.log(`🔍 [getPhaseStatus] Tournament state - Started: ${hasStartedSets}, Waiting: ${hasWaitingSets}, Completed: ${hasCompletedSets}`);
+
+  // If tournament hasn't started yet, select the first phase (typically Round 1)
+  if (!hasStartedSets && !hasCompletedSets) {
+    console.log(`🔍 [getPhaseStatus] Tournament hasn't started yet, selecting first phase`);
+    const currentPhase = allPhases[0]; // First phase is typically Round 1
+    console.log(`🔍 [getPhaseStatus] Current phase: ${currentPhase.name} (${currentPhase.phaseGroups.nodes.length} groups, state: ${currentPhase.state})`);
+    
+    // For unstarted tournaments, we should block sync
+    return {
+      currentPhase: currentPhase.name,
+      activeEntrantCount: 0, // No active entrants in unstarted tournament
+      shouldSync: false,
+      phaseLastChecked: new Date().toISOString(),
+    };
+  }
+
+  // For tournaments in progress, use improved phase selection
+  // Filter out completed phases (state === 3) and phases with no active sets
+  const incompletePhases = allPhases.filter(phase => {
+    // Check if phase has any active sets (waiting or in-progress)
+    const hasActiveSets = phase.phaseGroups.nodes.some(pg => 
+      pg.sets?.nodes?.some(set => set.state === 1 || set.state === 2)
+    );
+    return phase.state !== 3 && hasActiveSets;
+  });
+
+  let currentPhase: PhaseData;
+  
+  if (incompletePhases.length > 0) {
+    // Sort phases by tournament progression order
+    // For EVO-style tournaments: Round 1 -> Round 2 -> Round 3 -> Top 24 -> Top 8
+    const phaseOrder = ['Round 1', 'Round 2', 'Round 3', 'Round 4', 'Top 24', 'Top 16', 'Top 8', 'Top 4', 'Grand Finals'];
+    
+    const sortedPhases = incompletePhases.sort((a, b) => {
+      const aIndex = phaseOrder.findIndex(name => a.name.toLowerCase().includes(name.toLowerCase()));
+      const bIndex = phaseOrder.findIndex(name => b.name.toLowerCase().includes(name.toLowerCase()));
+      
+      // If both phases are in our known order, sort by that
+      if (aIndex !== -1 && bIndex !== -1) {
+        return aIndex - bIndex;
+      }
+      
+      // If only one is in our known order, prioritize it
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
+      
+      // Fallback to phase group count (smaller = later in tournament)
+      return a.phaseGroups.nodes.length - b.phaseGroups.nodes.length;
+    });
+    
+    currentPhase = sortedPhases[0];
+  } else {
+    // Fallback: if no incomplete phases with active sets, pick the one with most phase groups (earliest)
+    currentPhase = allPhases.sort((a, b) => b.phaseGroups.nodes.length - a.phaseGroups.nodes.length)[0];
+  }
+
+  console.log(`🔍 [getPhaseStatus] Current phase: ${currentPhase.name} (${currentPhase.phaseGroups.nodes.length} groups, state: ${currentPhase.state})`);
+
+  // Step 2: Guard by phase name - check if it's a "Top N" phase with N > 32
+  const topNMatch = currentPhase.name.match(/Top\s*(\d+)/i);
+  if (topNMatch) {
+    const topN = parseInt(topNMatch[1], 10);
+    console.log(`🔍 [getPhaseStatus] Detected Top ${topN} phase`);
+    
+    if (topN > 32) {
+      console.log(`🚫 [getPhaseStatus] Top ${topN} exceeds 32-entrant limit, blocking sync`);
+      return {
+        currentPhase: currentPhase.name,
+        activeEntrantCount: null, // We didn't count because it would be too many
+        shouldSync: false,
+        phaseLastChecked: new Date().toISOString(),
+      };
+    }
+  }
+
+  // Step 2.5: Additional guards for tournament state
+  // Check if this is an early round with too many phase groups (likely too many entrants)
+  if (currentPhase.phaseGroups.nodes.length > 32) {
+    console.log(`🚫 [getPhaseStatus] Phase "${currentPhase.name}" has ${currentPhase.phaseGroups.nodes.length} groups, likely too many entrants for safe syncing`);
+    return {
+      currentPhase: currentPhase.name,
+      activeEntrantCount: null, // Too many to count safely
+      shouldSync: false,
+      phaseLastChecked: new Date().toISOString(),
+    };
+  }
+
+  // Step 3: Count active entrants by fetching active sets
+  // First get phase group IDs
+  const groupResponse = await fetch(START_GG_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.START_GG_API_KEY}`,
+    },
+    body: JSON.stringify({
+      query: GET_PHASE_GROUPS_QUERY,
+      variables: {
+        phaseId: currentPhase.id,
+      },
+    }),
+  });
+
+  if (!groupResponse.ok) {
+    throw new Error(`Start.gg API error fetching phase groups: ${groupResponse.status}`);
+  }
+
+  const { data: groupData, errors: groupErrors } = await groupResponse.json();
+
+  if (groupErrors) {
+    console.error('GraphQL Errors:', groupErrors);
+    throw new Error('Failed to fetch phase groups from Start.gg');
+  }
+
+  const phaseGroupIds = groupData.phase.phaseGroups.nodes.map((group: any) => group.id);
+  console.log(`🔍 [getPhaseStatus] Found ${phaseGroupIds.length} phase groups`);
+
+  // Step 4: Count unique active entrants by querying each phase group individually
+  const activeEntrantIds = new Set<string>();
+  
+  for (const groupId of phaseGroupIds) {
+    const entrantsResponse = await fetch(START_GG_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.START_GG_API_KEY}`,
+      },
+              body: JSON.stringify({
+          query: GET_ALL_SETS_QUERY,
+          variables: {
+            groupId: groupId,
+          },
+        }),
+      });
+
+      if (!entrantsResponse.ok) {
+        throw new Error(`Start.gg API error fetching active sets for group ${groupId}: ${entrantsResponse.status}`);
+      }
+
+      const { data: setsData, errors: setsErrors } = await entrantsResponse.json();
+
+      if (setsErrors) {
+        console.error(`GraphQL Errors for group ${groupId}:`, setsErrors);
+        throw new Error(`Failed to fetch active sets for phase group ${groupId}: ${setsErrors[0]?.message || 'Unknown error'}`);
+      }
+
+      // Process all sets from this phase group
+      const phaseGroup = setsData.phaseGroup as PhaseGroupData;
+      if (phaseGroup && phaseGroup.sets && phaseGroup.sets.nodes) {
+        for (const set of phaseGroup.sets.nodes) {
+          // Only look at waiting (1) and in-progress (2) sets
+          if (set.state === 1 || set.state === 2) {
+            for (const slot of set.slots) {
+              // Include all entrants in active sets (they're all still active)
+              if (slot.entrant && slot.entrant.id) {
+                activeEntrantIds.add(slot.entrant.id);
+              }
+            }
+          }
+        }
+      }
+  }
+
+  const activeEntrantCount = activeEntrantIds.size;
+  console.log(`🔍 [getPhaseStatus] Found ${activeEntrantCount} active entrants`);
+
+  // Step 5: Determine if sync should proceed
+  const shouldSync = activeEntrantCount > 0 && activeEntrantCount <= 32;
+
+  return {
+    currentPhase: currentPhase.name,
+    activeEntrantCount,
+    shouldSync,
+    phaseLastChecked: new Date().toISOString(),
+  };
+}
+
 // Sync user profile from auth system to profiles table
 // Call this when user logs in or when you need to ensure profile exists
 export async function syncUserProfile(userId: string): Promise<void> {

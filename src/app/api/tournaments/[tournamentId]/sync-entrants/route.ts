@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { database } from '@/lib/database';
+import { getPhaseStatus } from '@/lib/tournament-service';
 
 interface RouteParams {
   params: {
@@ -212,6 +213,54 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    // SAFETY CHECK: Verify phase status before syncing entrants
+    console.log('🔍 [sync-entrants] Checking phase status before sync...');
+    const phaseStatus = await getPhaseStatus(tournamentSlug, tournament.name);
+    
+    if (!phaseStatus.shouldSync) {
+      let message: string;
+      
+      if (phaseStatus.activeEntrantCount === null) {
+        if (phaseStatus.currentPhase.toLowerCase().includes('round 1')) {
+          message = `Sync blocked - tournament is in "${phaseStatus.currentPhase}" phase with too many entrants (likely 1000+). Wait until the bracket progresses to later rounds with fewer participants.`;
+        } else {
+          message = `Sync blocked - tournament is in "${phaseStatus.currentPhase}" phase which likely has more than 32 active entrants. Wait until the bracket reaches Top 32 or smaller.`;
+        }
+      } else if (phaseStatus.activeEntrantCount === 0) {
+        if (phaseStatus.currentPhase.toLowerCase().includes('round 1')) {
+          message = `Sync blocked - tournament "${phaseStatus.currentPhase}" phase has not started yet. Wait until matches begin and participants are eliminated.`;
+        } else {
+          message = `Sync blocked - tournament "${phaseStatus.currentPhase}" phase is complete with no active entrants remaining.`;
+        }
+      } else {
+        message = `Sync blocked - tournament has ${phaseStatus.activeEntrantCount} active entrants, exceeding the 32-entrant safety limit.`;
+      }
+      
+      console.log(`🚫 [sync-entrants] ${message}`);
+      
+      // Update the tournament with phase status for admin visibility
+      await database
+        .from('tournaments')
+        .update({
+          current_phase: phaseStatus.currentPhase,
+          phase_last_checked: phaseStatus.phaseLastChecked,
+          total_remaining_participants: phaseStatus.activeEntrantCount,
+          updated_at: new Date()
+        })
+        .eq('id', tournamentId);
+      
+      return NextResponse.json(
+        { 
+          success: false,
+          error: message,
+          phaseStatus: phaseStatus
+        },
+        { status: 400 }
+      );
+    }
+
+    console.log(`✅ [sync-entrants] Phase status check passed - "${phaseStatus.currentPhase}" with ${phaseStatus.activeEntrantCount} active entrants`);
+
     // Fetch participants from Start.gg
     const participants = await fetchStartGGParticipants(tournamentSlug, gameId);
 
@@ -278,10 +327,22 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     }
 
+    // Update tournament with phase status after successful sync
+    await database
+      .from('tournaments')
+      .update({
+        current_phase: phaseStatus.currentPhase,
+        phase_last_checked: phaseStatus.phaseLastChecked,
+        total_remaining_participants: phaseStatus.activeEntrantCount,
+        updated_at: new Date()
+      })
+      .eq('id', tournamentId);
+
     return NextResponse.json({ 
       success: true,
       message: 'Entrants synced successfully',
-      participants_added: participants.length
+      participants_added: participants.length,
+      phaseStatus: phaseStatus
     });
   } catch (error) {
     console.error('Sync error:', error);
