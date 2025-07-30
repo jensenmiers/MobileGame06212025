@@ -279,61 +279,68 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white flex flex-col items-center justify-start p-3 pt-3 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white relative">
         {/* Simplified background elements */}
         <div className="fixed inset-0 -z-10">
           <div className="absolute -right-40 -bottom-40 w-96 h-96 bg-green-500/10 filter blur-3xl animate-pulse"></div>
         </div>
 
-        <div className="w-full max-w-6xl mx-auto">
-          <Card className="bg-black/70 border-gray-800 backdrop-blur-sm rounded-lg">
-            <CardHeader className="space-y-0 pb-1">
-              <div className="flex flex-col items-center justify-center text-center">
-                <div className="flex justify-center mb-0 w-full px-0">
-                  <div className="flex flex-row items-center gap-1 sm:gap-2 w-full max-w-none">
-                    <div className="flex-shrink-0 h-10 sm:h-12 md:h-14 lg:h-16 xl:h-18 w-auto aspect-square relative">
-                      <div className="animate-slow-rotate w-full h-full flex items-center">
-                        <div className="relative w-full h-10 sm:h-12 md:h-14 lg:h-16 xl:h-18">
-                          <Image
-                            src="/images/fullComboLogo.png"
-                            alt="Full Combo Logo"
-                            fill
-                            className="object-contain"
-                            priority
-                          />
+        {/* Main Content */}
+        <div className="flex flex-col items-center justify-start p-3 pt-3">
+          <div className="w-full max-w-6xl mx-auto">
+            <Card className="bg-black/70 border-gray-800 backdrop-blur-sm rounded-lg">
+              {/* Sticky Header - Only Logo + FULL COMBO */}
+              <div className="sticky top-0 z-50 bg-black/70 backdrop-blur-sm rounded-t-lg">
+                <div className="flex flex-col items-center justify-center text-center px-3 py-1">
+                  <div className="flex justify-center mb-0 w-full px-0">
+                    <div className="flex flex-row items-center gap-1 sm:gap-2 justify-center">
+                      <div className="flex-shrink-0 h-10 sm:h-12 md:h-14 lg:h-16 xl:h-18 w-auto aspect-square relative">
+                        <div className="animate-slow-rotate w-full h-full flex items-center">
+                          <div className="relative w-full h-10 sm:h-12 md:h-14 lg:h-16 xl:h-18">
+                            <Image
+                              src="/images/fullComboLogo.png"
+                              alt="Full Combo Logo"
+                              fill
+                              className="object-contain"
+                              priority
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="text-center flex-1">
-                      <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] font-black font-quicksand gradient-rotate gradient-text-fix leading-tight whitespace-nowrap drop-shadow-[0_0_10px_rgba(0,172,78,0.8)] tracking-tighter">
-                        FULL COMBO
-                      </h1>
+                      <div className="text-center flex-1">
+                        <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] font-black font-quicksand gradient-rotate gradient-text-fix leading-tight whitespace-nowrap drop-shadow-[0_0_10px_rgba(0,172,78,0.8)] tracking-tighter scale-95">
+                          FULL COMBO
+                        </h1>
+                      </div>
                     </div>
                   </div>
                 </div>
-                
-                {/* Welcome message for logged in users */}
-                {user && (
-                  <div className="w-full text-center -mt-2">
-                    <h2 className="text-xl sm:text-2xl font-semibold text-white mb-0">
-                      Welcome, {getDisplayName()}!
-                    </h2>
-                  </div>
-                )}
-
-                {/* Sign in message for non-logged in users */}
-                {!user && (
-                  <div className="w-full text-center -mt-2">
-                    <h2 className="text-lg sm:text-2xl font-bold text-white mb-0">
-                      Sign in to create predictions
-                    </h2>
-                  </div>
-                )}
-                
-
               </div>
-            </CardHeader>
-            <CardContent className="space-y-2 px-3 pt-4 pb-2">
+              
+              {/* Welcome/Sign-in Section - Not sticky */}
+              <CardHeader className="space-y-0 pb-1 pt-4">
+                <div className="flex flex-col items-center justify-center text-center">
+                  {/* Welcome message for logged in users */}
+                  {user && (
+                    <div className="w-full text-center">
+                      <h2 className="text-xl sm:text-2xl font-semibold text-white mb-0">
+                        Welcome, {getDisplayName()}!
+                      </h2>
+                    </div>
+                  )}
+
+                  {/* Sign in message for non-logged in users */}
+                  {!user && (
+                    <div className="w-full text-center">
+                      <h2 className="text-lg sm:text-2xl font-bold text-white mb-0">
+                        Sign in to create predictions
+                      </h2>
+                    </div>
+                  )}
+                </div>
+              </CardHeader>
+              
+              <CardContent className="space-y-2 px-3 pt-4 pb-2">
               {/* Social Login Section - only show if not logged in */}
               {!user && (
                 <div className="flex flex-col items-center space-y-2 mb-6">
@@ -500,6 +507,7 @@ export default function Home() {
             </Link>
           </div>
         )}
+        </div>
       </div>
   );
 }
