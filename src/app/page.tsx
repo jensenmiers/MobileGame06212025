@@ -10,7 +10,7 @@ import { SocialLogin } from "@/components/Auth/SocialLogin";
 import { useAuth } from "@/context/AuthContext";
 import { tournamentService, syncUserProfile } from "@/lib/tournament-service";
 import { Tournament } from "@/types/tournament";
-import { gameUiDetailsMap } from "@/lib/game-utils";
+import { gameUiDetailsMap, getGamePriority } from "@/lib/game-utils";
 import { supabase } from "@/lib/supabase";
 
 export default function Home() {
@@ -100,12 +100,22 @@ export default function Home() {
   // Helper function to sort tournaments by priority and status
   const sortTournamentsByPriority = (tournaments: Tournament[], tournamentsWithResultsSet: Set<string>): Tournament[] => {
     return tournaments.sort((a, b) => {
-      // First, sort by active status (active tournaments first)
+      // LEVEL 1: Sort by active status (active tournaments first)
       if (a.active !== b.active) {
         return a.active ? -1 : 1;
       }
       
-      // Check if either tournament is awaiting (predictions_open = false) - these go LAST
+      // LEVEL 2: For active tournaments, sort by custom game priority
+      if (a.active && b.active) {
+        const aPriority = getGamePriority(a.name);
+        const bPriority = getGamePriority(b.name);
+        
+        if (aPriority !== bPriority) {
+          return aPriority - bPriority; // Lower priority number = higher display priority
+        }
+      }
+      
+      // LEVEL 3: Check if either tournament is awaiting (predictions_open = false) - these go LAST within same priority
       const aIsAwaiting = !a.predictions_open;
       const bIsAwaiting = !b.predictions_open;
       
@@ -113,12 +123,12 @@ export default function Home() {
         return aIsAwaiting ? 1 : -1; // Awaiting tournaments go last
       }
       
-      // If both are awaiting, sort alphabetically by name
+      // LEVEL 4: If both are awaiting, sort alphabetically by name
       if (aIsAwaiting && bIsAwaiting) {
         return a.name.localeCompare(b.name);
       }
       
-      // For non-awaiting tournaments, sort by status priority: results > predictions > pending
+      // LEVEL 5: For non-awaiting tournaments with same priority, sort by status: results > predictions > pending
       const aHasResults = tournamentsWithResultsSet.has(a.id);
       const bHasResults = tournamentsWithResultsSet.has(b.id);
       
@@ -136,12 +146,12 @@ export default function Home() {
         }
       }
       
-      // For tournaments with same status, sort alphabetically by name
+      // LEVEL 6: For tournaments with same priority and same status, sort alphabetically by name
       if (a.name !== b.name) {
         return a.name.localeCompare(b.name);
       }
       
-      // Finally, sort by creation date (newest first) as tiebreaker
+      // LEVEL 7: Finally, sort by creation date (newest first) as final tiebreaker
       const sortByCreatedAt = (a: Tournament, b: Tournament) => 
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
       
