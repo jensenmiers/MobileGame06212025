@@ -305,8 +305,8 @@ export default function Home() {
                       </div>
                     </div>
                     <div className="text-center flex-1">
-                      <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] font-black font-chakra gradient-rotate gradient-text-fix leading-tight whitespace-nowrap drop-shadow-[0_0_10px_rgba(0,172,78,0.8)]">
-                        Full Combo
+                      <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] font-black font-quicksand gradient-rotate gradient-text-fix leading-tight whitespace-nowrap drop-shadow-[0_0_10px_rgba(0,172,78,0.8)] tracking-tighter">
+                        FULL COMBO
                       </h1>
                     </div>
                   </div>

@@ -240,7 +240,7 @@ export default function LeaderboardPage() {
         </div>
         
         <div className="mb-6 text-center">
-          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] font-black font-chakra gradient-rotate gradient-text-fix leading-tight whitespace-nowrap drop-shadow-[0_0_10px_rgba(0,172,78,0.8)] mb-0 text-green-400">Leaderboard</h1>
+          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] font-black font-quicksand gradient-rotate gradient-text-fix leading-tight whitespace-nowrap drop-shadow-[0_0_10px_rgba(0,172,78,0.8)] mb-0 text-green-400">Leaderboard</h1>
           <h2 className="text-2xl font-bold mb-2 text-white -mt-2">{tournamentTitle}</h2>
         </div>
 

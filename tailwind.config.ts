@@ -56,8 +56,8 @@ const config: Config = {
   				'var(--font-inter)',
   				'sans-serif'
   			],
-  			chakra: [
-  				'"Chakra Petch"',
+  			quicksand: [
+  				'"Quicksand"',
   				'sans-serif'
   			],
   			orbitron: [

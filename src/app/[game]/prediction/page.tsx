@@ -305,8 +305,8 @@ export default function PredictionPage() {
 
       <div className="w-full max-w-2xl mb-8 text-center">
         <div className="w-full">
-          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] font-black font-chakra gradient-rotate gradient-text-fix leading-tight whitespace-nowrap drop-shadow-[0_0_10px_rgba(0,172,78,0.8)] mb-2 mx-auto">
-            Full Combo
+          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] font-black font-quicksand gradient-rotate gradient-text-fix leading-tight whitespace-nowrap drop-shadow-[0_0_10px_rgba(0,172,78,0.8)] mb-2 mx-auto tracking-tighter">
+            FULL COMBO
           </h1>
         </div>
         <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-4 w-full text-white">
