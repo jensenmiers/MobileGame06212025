@@ -41,11 +41,11 @@ export default function Home() {
           border: 'border-yellow-600/80 group-hover:border-yellow-400/90',
           background: 'bg-yellow-600/80 group-hover:bg-yellow-400/90'
         };
-      case 'awaiting':
-        return {
-          border: 'border-[#8e5c66]/80 group-hover:border-[#8e5c66]/90',
-          background: 'bg-[#8e5c66]/80 group-hover:bg-[#8e5c66]/90'
-        };
+                      case 'awaiting':
+                  return {
+                    border: 'border-[#562424]/80 group-hover:border-[#562424]/90',
+                    background: 'bg-[#562424]/80 group-hover:bg-[#562424]/90'
+                  };
       default:
         return {
           border: 'border-gray-600/80 group-hover:border-gray-400/90',
@@ -105,7 +105,20 @@ export default function Home() {
         return a.active ? -1 : 1;
       }
       
-      // Then, sort by status priority: results > predictions > pending > awaiting
+      // Check if either tournament is awaiting (predictions_open = false) - these go LAST
+      const aIsAwaiting = !a.predictions_open;
+      const bIsAwaiting = !b.predictions_open;
+      
+      if (aIsAwaiting !== bIsAwaiting) {
+        return aIsAwaiting ? 1 : -1; // Awaiting tournaments go last
+      }
+      
+      // If both are awaiting, sort alphabetically by name
+      if (aIsAwaiting && bIsAwaiting) {
+        return a.name.localeCompare(b.name);
+      }
+      
+      // For non-awaiting tournaments, sort by status priority: results > predictions > pending
       const aHasResults = tournamentsWithResultsSet.has(a.id);
       const bHasResults = tournamentsWithResultsSet.has(b.id);
       
@@ -114,23 +127,12 @@ export default function Home() {
       }
       
       if (!aHasResults && !bHasResults) {
-        // Both don't have results, check prediction status
+        // Both don't have results, check if predictions are open
         const aPredictionsOpen = arePredictionsOpen(a);
         const bPredictionsOpen = arePredictionsOpen(b);
         
-        // Check if either tournament is awaiting (predictions_open = false)
-        const aIsAwaiting = !a.predictions_open;
-        const bIsAwaiting = !b.predictions_open;
-        
-        if (aIsAwaiting !== bIsAwaiting) {
-          return aIsAwaiting ? 1 : -1; // Awaiting tournaments go last
-        }
-        
-        if (!aIsAwaiting && !bIsAwaiting) {
-          // Both are not awaiting, check if predictions are open
-          if (aPredictionsOpen !== bPredictionsOpen) {
-            return aPredictionsOpen ? -1 : 1; // Predictions open first
-          }
+        if (aPredictionsOpen !== bPredictionsOpen) {
+          return aPredictionsOpen ? -1 : 1; // Predictions open first
         }
       }
       
