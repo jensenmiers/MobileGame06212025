@@ -608,11 +608,19 @@ function TournamentCard({
 
   const isLocked = arePredictionsLocked(tournament);
 
-  // Helper to determine tournament status banner text (copied from main page)
+  // Helper to determine tournament status banner text (updated to match main page logic)
   const getTournamentStatusText = (tournament: Tournament, hasResults: boolean): string => {
+    // Check predictions_open flag first (overrides everything)
+    if (!tournament.predictions_open) {
+      return 'AWAITING TOP BRACKET';
+    }
+    
+    // Check if tournament has results (overrides cutoff time)
     if (hasResults) {
       return 'VIEW RESULTS';
     }
+    
+    // Check cutoff time
     const cutoffTime = new Date(tournament.cutoff_time);
     const now = new Date();
     if (cutoffTime > now) {
