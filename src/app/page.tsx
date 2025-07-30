@@ -305,7 +305,7 @@ export default function Home() {
                   <div className="flex justify-center mb-0 w-full px-0">
                     <div className="flex flex-row items-center gap-1 sm:gap-2 justify-center">
                       <div className="flex-shrink-0 h-10 sm:h-12 md:h-14 lg:h-16 xl:h-18 w-auto aspect-square relative">
-                        <div className="animate-slow-rotate w-full h-full flex items-center">
+                        <div className="w-full h-full flex items-center">
                           <div className="relative w-full h-10 sm:h-12 md:h-14 lg:h-16 xl:h-18">
                             <Image
                               src="/images/fullComboLogo.png"
