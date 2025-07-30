@@ -367,7 +367,9 @@ export default function Home() {
                   
                   if (!tournament.predictions_open) {
                     // Predictions closed by admin - awaiting top bracket
-                    bannerText = 'AWAITING\nTOP BRACKET';
+                    const uiDetails = gameUiDetailsMap[tournament.name];
+                    const topBracketText = uiDetails?.topBracketPhase || 'TOP BRACKET';
+                    bannerText = `AWAITING\n${topBracketText}`;
                     statusColors = getStatusColors('awaiting');
                     isClickable = false;
                   } else if (hasResults) {

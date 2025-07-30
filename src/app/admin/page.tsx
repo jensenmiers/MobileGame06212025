@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { tournamentService } from "@/lib/tournament-service";
 import { Tournament, Participant } from "@/types/tournament";
 import { formatBonusPredictions } from "@/lib/utils";
+import { gameUiDetailsMap } from "@/lib/game-utils";
 
 // Remove mock data and replace with real state
 // const mockTournaments = [...] // REMOVED
@@ -612,7 +613,9 @@ function TournamentCard({
   const getTournamentStatusText = (tournament: Tournament, hasResults: boolean): string => {
     // Check predictions_open flag first (overrides everything)
     if (!tournament.predictions_open) {
-      return 'AWAITING TOP BRACKET';
+      const uiDetails = gameUiDetailsMap[tournament.name];
+      const topBracketText = uiDetails?.topBracketPhase || 'TOP BRACKET';
+      return `AWAITING ${topBracketText}`;
     }
     
     // Check if tournament has results (overrides cutoff time)
