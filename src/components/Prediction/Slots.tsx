@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import ParticipantModal from "./ParticipantModal";
+import { Player } from "@/types/tournament";
 
 interface SlotsProps {
   predictions: string[];
   onSlotFill: (slotIndex: number, player: string) => void;
+  onSlotSwap: (fromSlotIndex: number, toSlotIndex: number, player: string) => void;
   onSlotClear: (slotIndex: number) => void;
   availablePlayers: string[];
   bracketReset?: 'upper_no_reset' | 'upper_with_reset' | 'lower_bracket' | null;
@@ -18,6 +20,7 @@ interface SlotsProps {
   losersFinalScore?: 'score_3_0' | 'score_3_1' | 'score_3_2' | null;
   onLosersFinalScoreChange: (value: 'score_3_0' | 'score_3_1' | 'score_3_2' | null) => void;
   readonly?: boolean;
+  players?: Player[]; // Add players prop for modal
 }
 
 const slotLabels = ["1st", "2nd", "3rd", "4th"];
@@ -39,15 +42,33 @@ const positionIcons = [
   "🏅"  // 4th place
 ];
 
-export default function Slots({ predictions, onSlotFill, onSlotClear, availablePlayers, bracketReset, onBracketResetChange, grandFinalsScore, onGrandFinalsScoreChange, winnersFinalScore, onWinnersFinalScoreChange, losersFinalScore, onLosersFinalScoreChange, readonly = false }: SlotsProps) {
+export default function Slots({ predictions, onSlotFill, onSlotSwap, onSlotClear, availablePlayers, bracketReset, onBracketResetChange, grandFinalsScore, onGrandFinalsScoreChange, winnersFinalScore, onWinnersFinalScoreChange, losersFinalScore, onLosersFinalScoreChange, readonly = false, players = [] }: SlotsProps) {
   const [bonusExpanded, setBonusExpanded] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [activeSlotIndex, setActiveSlotIndex] = useState<number | null>(null);
 
-  const handleValueChange = (value: string, index: number) => {
-    if (readonly) return; // Prevent changes in read-only mode
-    if (value === "clear") {
-      onSlotClear(index);
-    } else {
-      onSlotFill(index, value);
+  const handleSlotClick = (index: number) => {
+    if (readonly) return;
+    setActiveSlotIndex(index);
+    setModalOpen(true);
+  };
+
+  const handleParticipantSelect = (participant: Player) => {
+    if (activeSlotIndex !== null) {
+      onSlotFill(activeSlotIndex, participant.name);
+    }
+  };
+
+  const handleParticipantSwap = (participant: Player, fromPosition: string, toPosition: string) => {
+    if (activeSlotIndex === null) return;
+    
+    // Find the slot indices for both positions
+    const fromSlotIndex = slotLabels.findIndex(label => label === fromPosition);
+    const toSlotIndex = slotLabels.findIndex(label => label === toPosition);
+    
+    if (fromSlotIndex !== -1 && toSlotIndex !== -1) {
+      // Use the dedicated swap function
+      onSlotSwap(fromSlotIndex, toSlotIndex, participant.name);
     }
   };
 
@@ -71,57 +92,30 @@ export default function Slots({ predictions, onSlotFill, onSlotClear, availableP
               </div>
             </div>
             
-            <Select
-              value={predictions[index] || ""}
-              onValueChange={(value: string) => value && value !== "clear" ? onSlotFill(index, value) : onSlotClear(index)}
+            <button
+              onClick={() => handleSlotClick(index)}
               disabled={readonly}
+              className={`w-full min-w-[160px] bg-gray-800/80 border-2 text-white h-14 transition-all duration-300 rounded-lg flex items-center justify-between px-4 ${
+                readonly ? 'cursor-not-allowed opacity-70' : 'hover:bg-gray-700/90 cursor-pointer'
+              }`}
             >
-              <SelectTrigger 
-                className={`w-full min-w-[160px] bg-gray-800/80 border-2 text-white h-14 transition-all duration-300 rounded-lg ${
-                  readonly ? 'cursor-not-allowed opacity-70' : 'hover:bg-gray-700/90'
-                }`}
-              >
-                <SelectValue 
-                  placeholder={
-                    <span className="text-gray-300 text-base truncate block w-full">
-                      {readonly ? 'No prediction made' : 'Select a player...'}
-                    </span>
-                  } 
-                >
-                  {predictions[index] && (
-                    <div className="flex items-center gap-3 w-full truncate">
-                      <span className="text-lg font-bold text-white truncate block w-full">
-                        {predictions[index]}
-                      </span>
-                    </div>
-                  )}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent className="bg-gray-800 border-gray-700 text-base rounded-lg">
-                {availablePlayers.map((player) => (
-                  <SelectItem 
-                    key={player} 
-                    value={player}
-                    disabled={!predictions[index] && predictions.includes(player)}
-                    className={`text-base ${
-                      predictions.includes(player) && player !== predictions[index] 
-                        ? 'text-gray-500 cursor-not-allowed' 
-                        : 'text-white hover:bg-gray-700 hover:text-white'
-                    }`}
-                  >
-                    {player}
-                  </SelectItem>
-                ))}
-                {predictions[index] && (
-                  <SelectItem 
-                    value="clear"
-                    className="text-red-400 hover:bg-red-900/20"
-                  >
-                    Clear selection
-                  </SelectItem>
+              <span className="text-base truncate block w-full text-left">
+                {predictions[index] ? (
+                  <span className="text-lg font-bold text-white truncate block w-full">
+                    {predictions[index]}
+                  </span>
+                ) : (
+                  <span className="text-gray-300 text-base truncate block w-full">
+                    {readonly ? 'No prediction made' : 'Select a player...'}
+                  </span>
                 )}
-              </SelectContent>
-            </Select>
+              </span>
+              {!readonly && (
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              )}
+            </button>
             
           </div>
         </div>
@@ -414,6 +408,35 @@ export default function Slots({ predictions, onSlotFill, onSlotClear, availableP
           </div>
         )}
       </div>
+
+      {/* Participant Selection Modal */}
+      {modalOpen && activeSlotIndex !== null && players.length > 0 && (
+        <ParticipantModal
+          isOpen={modalOpen}
+          onClose={() => {
+            setModalOpen(false);
+            setActiveSlotIndex(null);
+          }}
+          participants={players}
+          onSelect={handleParticipantSelect}
+          onSwap={handleParticipantSwap}
+          title={`Select ${slotLabels[activeSlotIndex]} Place`}
+          selectedParticipant={predictions[activeSlotIndex] ? players.find(p => p.name === predictions[activeSlotIndex]) || null : null}
+          usedParticipants={predictions.map((pred, idx) => {
+            if (idx === activeSlotIndex || !pred) return null;
+            return players.find(p => p.name === pred) || null;
+          }).filter(Boolean) as Player[]}
+          usedParticipantPositions={predictions.reduce((acc, pred, idx) => {
+            if (idx === activeSlotIndex || !pred) return acc;
+            const player = players.find(p => p.name === pred);
+            if (player) {
+              acc[player.id] = slotLabels[idx];
+            }
+            return acc;
+          }, {} as { [participantId: string]: string })}
+          currentPosition={slotLabels[activeSlotIndex]}
+        />
+      )}
     </div>
   );
 }

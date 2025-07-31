@@ -167,6 +167,28 @@ export default function PredictionPage() {
     setSubmissionMessage(null);
   };
 
+  const handleSlotSwap = (fromSlotIndex: number, toSlotIndex: number, player: Player) => {
+    const newPredictions = [...predictions];
+    const fromPlayer = newPredictions[fromSlotIndex];
+    const toPlayer = newPredictions[toSlotIndex];
+    
+    // Clear both positions first
+    newPredictions[fromSlotIndex] = null;
+    newPredictions[toSlotIndex] = null;
+    
+    // Set the swapped players
+    // The player being swapped (player) goes to the target position (toSlotIndex)
+    newPredictions[toSlotIndex] = player;
+    
+    // The player that was in the target position (toPlayer) goes to the source position (fromSlotIndex)
+    if (toPlayer) {
+      newPredictions[fromSlotIndex] = toPlayer;
+    }
+    
+    setPredictions(newPredictions);
+    setSubmissionMessage(null);
+  };
+
   const handleSlotClear = (slotIndex: number) => {
     const newPredictions = [...predictions];
     newPredictions[slotIndex] = null;
@@ -349,6 +371,11 @@ export default function PredictionPage() {
             const player = players.find(p => p.name === playerName);
             if (player) handleSlotFill(slotIndex, player);
           }}
+          onSlotSwap={(fromSlotIndex, toSlotIndex, playerName) => {
+            if (isPredictionsClosed) return; // Prevent changes when closed
+            const player = players.find(p => p.name === playerName);
+            if (player) handleSlotSwap(fromSlotIndex, toSlotIndex, player);
+          }}
           onSlotClear={(slotIndex) => {
             if (isPredictionsClosed) return; // Prevent changes when closed
             handleSlotClear(slotIndex);
@@ -375,6 +402,7 @@ export default function PredictionPage() {
           }}
           losersFinalScore={losersFinalScore}
           readonly={isPredictionsClosed}
+          players={players}
         />
       </div>
 

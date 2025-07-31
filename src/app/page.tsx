@@ -318,7 +318,7 @@ export default function Home() {
                         </div>
                       </div>
                       <div className="text-center flex-1">
-                        <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] font-black font-quicksand gradient-rotate gradient-text-fix leading-tight whitespace-nowrap drop-shadow-[0_0_10px_rgba(0,172,78,0.8)] tracking-tighter scale-95">
+                        <h1 className="text-[2.85rem] sm:text-[4.275rem] md:text-[5.7rem] lg:text-[7.6rem] xl:text-[9.5rem] font-black font-quicksand gradient-rotate gradient-text-fix leading-tight whitespace-nowrap drop-shadow-[0_0_10px_rgba(0,172,78,0.8)] tracking-tighter scale-95">
                           FULL COMBO
                         </h1>
                       </div>
