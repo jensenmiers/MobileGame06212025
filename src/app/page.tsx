@@ -43,8 +43,8 @@ export default function Home() {
         };
                       case 'awaiting':
                   return {
-                    border: 'border-[#562424]/80 group-hover:border-[#562424]/90',
-                    background: 'bg-[#562424]/80 group-hover:bg-[#562424]/90'
+                    border: 'border-red-600/80 group-hover:border-red-400/90',
+                    background: 'bg-red-600/80 group-hover:bg-red-400/90'
                   };
       default:
         return {
