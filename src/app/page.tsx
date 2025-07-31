@@ -302,6 +302,7 @@ export default function Home() {
               {/* Sticky Header - Only Logo + FULL COMBO */}
               <div className="sticky top-0 z-50 bg-black/70 backdrop-blur-sm rounded-t-lg">
                 <div className="flex flex-col items-center justify-center text-center px-3 py-1">
+                  {/* Logo and Title Container */}
                   <div className="flex justify-center mb-0 w-full px-0">
                     <div className="flex flex-row items-center gap-1 sm:gap-2 justify-center">
                       <div className="flex-shrink-0 h-10 sm:h-12 md:h-14 lg:h-16 xl:h-18 w-auto aspect-square relative">
@@ -324,11 +325,40 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
+                  {/* X (Twitter) Link */}
+                  <a 
+                    href="https://twitter.com/fullcombogg" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center mb-1"
+                  >
+                    <svg 
+                      className="w-6 h-6 sm:w-7 sm:h-7" 
+                      viewBox="0 0 24 24" 
+                      style={{
+                        background: 'linear-gradient(45deg, #00ac4e, #8ac249, #bed62f, #8ac249, #00ac4e)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text'
+                      }}
+                    >
+                      <defs>
+                        <linearGradient id="xGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#00ac4e" />
+                          <stop offset="25%" stopColor="#8ac249" />
+                          <stop offset="50%" stopColor="#bed62f" />
+                          <stop offset="75%" stopColor="#8ac249" />
+                          <stop offset="100%" stopColor="#00ac4e" />
+                        </linearGradient>
+                      </defs>
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" fill="url(#xGradient)"/>
+                    </svg>
+                  </a>
                 </div>
               </div>
               
               {/* Welcome/Sign-in Section - Not sticky */}
-              <CardHeader className="space-y-0 pb-1 pt-4">
+              <CardHeader className="space-y-0 pb-1 pt-0">
                 <div className="flex flex-col items-center justify-center text-center">
                   {/* Welcome message for logged in users */}
                   {user && (
@@ -342,8 +372,14 @@ export default function Home() {
                   {/* Sign in message for non-logged in users */}
                   {!user && (
                     <div className="w-full text-center">
+                      <h2 className="text-lg sm:text-2xl font-bold text-yellow-400 mb-1">
+                        💰 $500 in Total Cash Prizes 💰
+                      </h2>
+                      <h3 className="text-xs sm:text-base font-semibold text-yellow-400 mb-1">
+                        A Bonus $100 ($200 total) for the first to two wins
+                      </h3>
                       <h2 className="text-lg sm:text-2xl font-bold text-white mb-0">
-                        Sign in to create predictions
+                        Sign in to Make Predictions
                       </h2>
                     </div>
                   )}
@@ -440,6 +476,10 @@ export default function Home() {
                             }
                             priority
                           />
+                          {/* $50 Prize Sticker */}
+                          <div className="absolute top-0 right-0 bg-yellow-400 text-black font-bold text-xs px-1 py-0.5 rounded-bl shadow-lg border border-yellow-300 z-10 opacity-80">
+                            $50 PRIZE
+                          </div>
                         </div>
                         
                         {/* Status banner positioned below the image within the same button */}
