@@ -275,7 +275,11 @@ export default function PredictionPage() {
       await tournamentService.submitPrediction(predictionData);
       const timestamp = formatFullTimestamp(new Date().toISOString());
       setSubmissionTimestamp(timestamp);
-      setSubmissionMessage({ type: 'success', text: `Prediction submitted at ${timestamp}. You can update it until the top 8 starts.` });
+      const top8Time = gameUiDetailsMap[tournamentName]?.topBracketStartTime || 'TBD';
+      setSubmissionMessage({ 
+        type: 'success', 
+        text: `Prediction submitted at ${timestamp}. You can update your submission as many times as you want until top 8 starts at approximately **${top8Time}**.` 
+      });
     } catch (error) {
       const err = error as Error;
       console.error('❌ Failed to submit prediction:', error);
@@ -361,9 +365,9 @@ export default function PredictionPage() {
       {/* Awaiting Top Bracket Message */}
       {tournament && !tournament.predictions_open && (
         <div className="w-full max-w-2xl mb-4">
-          <div className="text-center p-4 bg-blue-900/20 border border-blue-600/50 rounded-lg">
-            <div className="text-blue-300 font-semibold text-lg">
-              ⏳ Wait for {gameUiDetailsMap[tournament.name]?.topBracketPhase || 'TOP BRACKET'} for full prediction list
+          <div className="text-center p-4 bg-red-900/20 border border-red-600/50 rounded-lg">
+            <div className="text-red-300 font-semibold text-lg">
+              ⏳ Wait for {gameUiDetailsMap[tournament.name]?.topBracketPhase || 'TOP BRACKET'} at {gameUiDetailsMap[tournament.name]?.estimatedTopBracketTime || 'TBD'} for full predictions
             </div>
           </div>
         </div>
@@ -501,7 +505,13 @@ export default function PredictionPage() {
             submissionMessage.type === 'info' ? 'bg-blue-900/50 text-blue-200' :
             'bg-red-900/50 text-red-200'
           }`}>
-            {submissionMessage.text}
+            {submissionMessage.type === 'success' && submissionMessage.text.includes('**') ? (
+              <span dangerouslySetInnerHTML={{
+                __html: submissionMessage.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+              }} />
+            ) : (
+              submissionMessage.text
+            )}
             {submissionMessage.type === 'error' && submissionMessage.text.includes('profile') && (
               <button
                 onClick={retryProfileSync}
