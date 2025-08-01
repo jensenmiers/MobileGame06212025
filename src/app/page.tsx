@@ -238,14 +238,9 @@ export default function Home() {
     const tournament = getTournamentBySlug(gameSlug);
     if (!tournament) return;
     
-    // Route directly based on prediction status
-    if (arePredictionsOpen(tournament)) {
-      // Predictions are open - go to prediction page
-      router.push(`/${gameSlug}/prediction`);
-    } else {
-      // Predictions are closed - go to leaderboard page  
-      router.push(`/${gameSlug}/leaderboard`);
-    }
+    // Always route to prediction page for all tournaments
+    // The prediction page will handle showing appropriate content based on tournament status
+    router.push(`/${gameSlug}/prediction`);
   };
 
   const handleLogout = async () => {
@@ -441,9 +436,6 @@ export default function Home() {
                       <h3 className="text-sm sm:text-lg font-semibold text-yellow-400 mb-1">
                         $100 Bonus for the First to Two Wins
                       </h3>
-                      <h2 className="text-lg sm:text-2xl font-bold text-white mb-0">
-                        Sign in to Make Predictions
-                      </h2>
                     </div>
                   )}
                 </div>
@@ -453,6 +445,9 @@ export default function Home() {
               {/* Social Login Section - only show if not logged in */}
               {!user && (
                 <div className="flex flex-col items-center space-y-2 mb-6">
+                  <h2 className="text-lg sm:text-2xl font-bold text-white mb-2">
+                    Login to Start:
+                  </h2>
                   <SocialLogin />
                 </div>
               )}
@@ -480,7 +475,7 @@ export default function Home() {
                     const topBracketText = uiDetails?.topBracketPhase || 'TOP BRACKET';
                     bannerText = `AWAITING\n${topBracketText}`;
                     statusColors = getStatusColors('awaiting');
-                    isClickable = false;
+                    isClickable = true; // Allow clicking to view predictions page
                   } else if (hasResults) {
                     // Tournament completed - has results
                     bannerText = 'VIEW RESULTS';

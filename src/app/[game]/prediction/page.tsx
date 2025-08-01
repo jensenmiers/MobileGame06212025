@@ -352,11 +352,22 @@ export default function PredictionPage() {
             FULL COMBO
           </h1>
         </div>
-        <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-4 w-full text-white">
+        <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-1 w-full text-white">
           <span>Predict the top 4 players for</span><br />
           <span className="block text-xl sm:text-2xl md:text-2xl lg:text-3xl font-bold text-yellow-400 mt-1">{tournamentTitle}</span>
         </h2>
       </div>
+
+      {/* Awaiting Top Bracket Message */}
+      {tournament && !tournament.predictions_open && (
+        <div className="w-full max-w-2xl mb-4">
+          <div className="text-center p-4 bg-blue-900/20 border border-blue-600/50 rounded-lg">
+            <div className="text-blue-300 font-semibold text-lg">
+              ⏳ Wait for {gameUiDetailsMap[tournament.name]?.topBracketPhase || 'TOP BRACKET'} for full prediction list
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Prediction Slots */}
       <div className="w-full max-w-2xl mb-8">
