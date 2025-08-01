@@ -153,7 +153,7 @@ export default function RulesPage() {
                 </ul>
                 <div className="mt-4 p-3 bg-blue-900/20 border border-blue-800/30 rounded-lg">
                   <p className="text-blue-200 text-sm">
-                    <strong>Example:</strong> If you predict Player A for 1st place (worth 300 points) but they finish 2nd, you still earn 255 points (300 × 0.85).
+                    <strong>Example:</strong> If you predict Player A for 1st place but they finish 2nd, you earn 187 points (220 × 0.85) - using the actual 2nd place points with the 85% multiplier for being 1 position off.
                   </p>
                 </div>
               </div>
@@ -288,36 +288,57 @@ export default function RulesPage() {
           </CardContent>
         </Card>
 
-        {/* Pro Tips Section */}
-        <Card className="bg-black/70 border-purple-600/50 rounded-lg shadow-xl overflow-hidden mb-6">
-          <CardHeader className="border-b border-purple-700/50">
+
+
+        {/* Payouts Section */}
+        <Card className="bg-black/70 border-green-600/50 rounded-lg shadow-xl overflow-hidden mb-6">
+          <CardHeader className="border-b border-green-700/50">
             <CardTitle className="text-white flex items-center gap-2">
-              <span className="text-purple-400">💡 Pro Tips for Success</span>
+              <span className="text-green-400">💰 Payouts & Rewards</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 sm:p-6">
-            <ul className="space-y-3 text-sm sm:text-base text-gray-300">
-              <li className="flex items-start gap-2">
-                <span className="text-purple-400 mt-1">💪</span>
-                <span><strong className="text-white">Study the brackets</strong> - tournament seedings give hints about likely performance.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-purple-400 mt-1">🔥</span>
-                <span><strong className="text-white">Consider recent form</strong> - hot players often outperform their seeding.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-purple-400 mt-1">🎯</span>
-                <span><strong className="text-white">Don't chase perfect scores</strong> - proximity scoring means "close enough" still earns solid points.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-purple-400 mt-1">🎲</span>
-                <span><strong className="text-white">Bonus predictions matter</strong> - up to 120 extra points available for perfect bonus calls.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-purple-400 mt-1">⏰</span>
-                <span><strong className="text-white">Submit early</strong> - avoid last-minute technical issues and secure a better tiebreaker position.</span>
-              </li>
-            </ul>
+            <div className="space-y-6 text-sm sm:text-base">
+              <div>
+                <h3 className="text-lg font-semibold text-green-300 mb-3">Tournament Winners</h3>
+                <ul className="space-y-2 text-gray-300">
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 mt-1">•</span>
+                    <span><strong className="text-white">$50</strong> awarded to the top predictor of each tournament leaderboard</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 mt-1">•</span>
+                    <span>Winners are determined by highest total points at tournament completion</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 mt-1">•</span>
+                    <span>Ties are resolved by earliest prediction submission time</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold text-green-300 mb-3">Multi-Tournament Champion Bonus</h3>
+                <ul className="space-y-2 text-gray-300">
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 mt-1">•</span>
+                    <span><strong className="text-white">$100 bonus</strong> awarded to the first player to win two different tournaments</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 mt-1">•</span>
+                    <span>Tournament end times determine the chronological order of wins</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 mt-1">•</span>
+                    <span>The "first to win two" bonus is based on when tournaments actually finish, not when they start</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 mt-1">•</span>
+                    <span>This bonus is in addition to the standard $50 per tournament win</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </CardContent>
         </Card>
 

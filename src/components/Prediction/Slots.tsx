@@ -42,6 +42,8 @@ const positionIcons = [
   "🏅"  // 4th place
 ];
 
+const positionPoints = [300, 220, 160, 100];
+
 export default function Slots({ predictions, onSlotFill, onSlotSwap, onSlotClear, availablePlayers, bracketReset, onBracketResetChange, grandFinalsScore, onGrandFinalsScoreChange, winnersFinalScore, onWinnersFinalScoreChange, losersFinalScore, onLosersFinalScoreChange, readonly = false, players = [] }: SlotsProps) {
   const [bonusExpanded, setBonusExpanded] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -85,10 +87,15 @@ export default function Slots({ predictions, onSlotFill, onSlotSwap, onSlotClear
           `}
         >
           <div className="flex items-center justify-between w-full gap-4">
-            <div className="flex items-center gap-3 w-[4.25rem] min-w-[4.25rem] justify-start">
+            <div className="flex items-center gap-3 w-[5.5rem] min-w-[5.5rem] justify-start">
               <span className="text-2xl">{positionIcons[index]}</span>
-              <div className="text-xl font-bold text-white">
-                {label}
+              <div className="flex flex-col">
+                <div className="text-xl font-bold text-white">
+                  {label}
+                </div>
+                <div className="text-xs text-gray-300 font-medium">
+                  {positionPoints[index]} pts
+                </div>
               </div>
             </div>
             
@@ -134,20 +141,6 @@ export default function Slots({ predictions, onSlotFill, onSlotSwap, onSlotClear
             <div className="text-lg font-bold text-white">Bonus Picks</div>
           </div>
           <div className="flex items-center gap-2">
-            {bracketReset && (
-              <span className="text-xs bg-purple-600/30 px-2 py-1 rounded text-purple-200">
-                {bracketReset === 'upper_no_reset' ? '👑' : 
-                 bracketReset === 'upper_with_reset' ? '🔄' : 
-                 bracketReset === 'lower_bracket' ? '⚡' : ''}
-              </span>
-            )}
-            {grandFinalsScore && (
-              <span className="text-xs bg-purple-600/30 px-2 py-1 rounded text-purple-200">
-                {grandFinalsScore === 'score_3_0' ? '🧹' : 
-                 grandFinalsScore === 'score_3_1' ? '🎯' : 
-                 grandFinalsScore === 'score_3_2' ? '🔥' : ''}
-              </span>
-            )}
             <svg 
               className={`w-5 h-5 text-purple-300 transition-transform ${bonusExpanded ? 'rotate-180' : ''}`}
               fill="none" 
@@ -162,7 +155,10 @@ export default function Slots({ predictions, onSlotFill, onSlotSwap, onSlotClear
         {bonusExpanded && (
           <div className="border-t border-purple-500/20 p-3 bg-purple-900/5">
             <div className="mb-1 flex items-center justify-between gap-2">
-              <h4 className="text-base font-semibold text-white m-0 p-0">Grand Finals Bracket Reset</h4>
+                              <div className="flex items-center gap-2">
+                  <h4 className="text-base font-semibold text-white m-0 p-0">Grand Finals</h4>
+                  <span className="text-xs text-purple-300 font-medium">+48 pts</span>
+                </div>
               {bracketReset && !readonly && (
                 <button
                   onClick={() => onBracketResetChange(null)}
@@ -226,7 +222,10 @@ export default function Slots({ predictions, onSlotFill, onSlotSwap, onSlotClear
             {/* Grand Finals Score Section */}
             <div className="mt-6 pt-4 border-t border-purple-500/20">
               <div className="mb-1 flex items-center justify-between gap-2">
-                <h4 className="text-base font-semibold text-white m-0 p-0">Grand Final Score</h4>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-base font-semibold text-white m-0 p-0">Grand Final Score</h4>
+                  <span className="text-xs text-purple-300 font-medium">+42 pts</span>
+                </div>
                 {grandFinalsScore && !readonly && (
                   <button
                     onClick={() => onGrandFinalsScoreChange(null)}
@@ -287,7 +286,10 @@ export default function Slots({ predictions, onSlotFill, onSlotSwap, onSlotClear
             {/* Winners Final Score Section */}
             <div className="mt-6 pt-4 border-t border-purple-500/20">
               <div className="mb-1 flex items-center justify-between gap-2">
-                <h4 className="text-base font-semibold text-white m-0 p-0">Winners Final Score</h4>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-base font-semibold text-white m-0 p-0">Winners Final Score</h4>
+                  <span className="text-xs text-purple-300 font-medium">+16 pts</span>
+                </div>
                 {winnersFinalScore && !readonly && (
                   <button
                     onClick={() => onWinnersFinalScoreChange(null)}
@@ -348,7 +350,10 @@ export default function Slots({ predictions, onSlotFill, onSlotSwap, onSlotClear
             {/* Losers Final Score Section */}
             <div className="mt-6 pt-4 border-t border-purple-500/20">
               <div className="mb-1 flex items-center justify-between gap-2">
-                <h4 className="text-base font-semibold text-white m-0 p-0">Losers Final Score</h4>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-base font-semibold text-white m-0 p-0">Losers Final Score</h4>
+                  <span className="text-xs text-purple-300 font-medium">+14 pts</span>
+                </div>
                 {losersFinalScore && !readonly && (
                   <button
                     onClick={() => onLosersFinalScoreChange(null)}
