@@ -24,6 +24,7 @@ interface PhaseStatus {
   activeEntrantCount: number | null;
   shouldSync: boolean;
   phaseLastChecked: string;
+  activeEntrantIds?: string[]; // Add active entrant IDs to the interface
 }
 
 interface PhaseData {
@@ -179,6 +180,12 @@ export async function getPhaseStatus(tournamentSlug: string, gameTitle: string):
     throw new Error('No phases found for this tournament');
   }
 
+  // 🔍 DEBUG: Log all phases to understand tournament structure
+  console.log(`🔍 [PHASE INVESTIGATION] Found ${allPhases.length} total phases:`);
+  allPhases.forEach((phase, index) => {
+    console.log(`  ${index + 1}. "${phase.name}" - State: ${phase.state} (1=waiting, 2=active, 3=complete) - Groups: ${phase.phaseGroups.nodes.length}`);
+  });
+
   // Enhanced phase selection logic
   // First, check if tournament has started by looking at set states
   const allPhaseGroups = allPhases.flatMap(phase => phase.phaseGroups.nodes);
@@ -203,50 +210,81 @@ export async function getPhaseStatus(tournamentSlug: string, gameTitle: string):
     // For unstarted tournaments, we should block sync
     return {
       currentPhase: currentPhase.name,
-      activeEntrantCount: 0, // No active entrants in unstarted tournament
+      activeEntrantCount: null, // No active entrants in unstarted tournament
       shouldSync: false,
       phaseLastChecked: new Date().toISOString(),
+      activeEntrantIds: [], // No active entrants in unstarted tournament
     };
   }
 
   // For tournaments in progress, use improved phase selection
-  // Filter out completed phases (state === 3) and phases with no active sets
-  const incompletePhases = allPhases.filter(phase => {
-    // Check if phase has any active sets (waiting or in-progress)
+  console.log(`🔍 [PHASE INVESTIGATION] Analyzing phase selection logic...`);
+  
+  // First, categorize all phases by their state and active sets
+  const phaseAnalysis = allPhases.map(phase => {
     const hasActiveSets = phase.phaseGroups.nodes.some(pg => 
       pg.sets?.nodes?.some(set => set.state === 1 || set.state === 2)
     );
-    return phase.state !== 3 && hasActiveSets;
+    const hasCompletedSets = phase.phaseGroups.nodes.some(pg => 
+      pg.sets?.nodes?.some(set => set.state === 3)
+    );
+    return {
+      phase,
+      hasActiveSets,
+      hasCompletedSets,
+      isComplete: phase.state === 3,
+      isActive: phase.state === 2,
+      isWaiting: phase.state === 1
+    };
   });
+  
+  console.log(`🔍 [PHASE INVESTIGATION] Phase analysis:`);
+  phaseAnalysis.forEach((analysis, index) => {
+    const { phase, hasActiveSets, hasCompletedSets, isComplete, isActive, isWaiting } = analysis;
+    console.log(`  ${index + 1}. "${phase.name}": State=${phase.state} (Complete=${isComplete}, Active=${isActive}, Waiting=${isWaiting}), ActiveSets=${hasActiveSets}, CompletedSets=${hasCompletedSets}`);
+  });
+  
+  // NEW LOGIC: Look for the most advanced phase that has entrants
+  // Priority: 1) Active phases with active sets, 2) Active phases with completed sets, 3) Waiting phases
+  const phasesWithActiveSets = phaseAnalysis.filter(a => a.hasActiveSets);
+  const activePhasesWithCompletedSets = phaseAnalysis.filter(a => a.isActive && a.hasCompletedSets && !a.hasActiveSets);
+  const waitingPhases = phaseAnalysis.filter(a => a.isWaiting);
+  
+  console.log(`🔍 [PHASE INVESTIGATION] Categorized phases:`);
+  console.log(`  - Phases with active sets: ${phasesWithActiveSets.length}`);
+  console.log(`  - Active phases with only completed sets: ${activePhasesWithCompletedSets.length}`);
+  console.log(`  - Waiting phases: ${waitingPhases.length}`);
 
   let currentPhase: PhaseData;
+  let selectedAnalysis: any;
   
-  if (incompletePhases.length > 0) {
-    // Sort phases by tournament progression order
-    // For EVO-style tournaments: Round 1 -> Round 2 -> Round 3 -> Top 24 -> Top 8
-    const phaseOrder = ['Round 1', 'Round 2', 'Round 3', 'Round 4', 'Top 24', 'Top 16', 'Top 8', 'Top 4', 'Grand Finals'];
-    
-    const sortedPhases = incompletePhases.sort((a, b) => {
-      const aIndex = phaseOrder.findIndex(name => a.name.toLowerCase().includes(name.toLowerCase()));
-      const bIndex = phaseOrder.findIndex(name => b.name.toLowerCase().includes(name.toLowerCase()));
-      
-      // If both phases are in our known order, sort by that
-      if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-      }
-      
-      // If only one is in our known order, prioritize it
-      if (aIndex !== -1) return -1;
-      if (bIndex !== -1) return 1;
-      
-      // Fallback to phase group count (smaller = later in tournament)
-      return a.phaseGroups.nodes.length - b.phaseGroups.nodes.length;
-    });
-    
-    currentPhase = sortedPhases[0];
+  // NEW IMPROVED SELECTION LOGIC
+  if (phasesWithActiveSets.length > 0) {
+    // Priority 1: Phases with currently active sets (ongoing matches)
+    selectedAnalysis = phasesWithActiveSets[0];
+    currentPhase = selectedAnalysis.phase;
+    console.log(`🔍 [PHASE INVESTIGATION] ✅ Selected "${currentPhase.name}" - has active sets (ongoing matches)`);
+  } else if (activePhasesWithCompletedSets.length > 0) {
+    // Priority 2: Active phases where all sets are complete (phase is done, entrants have advanced)
+    selectedAnalysis = activePhasesWithCompletedSets[0];
+    currentPhase = selectedAnalysis.phase;
+    console.log(`🔍 [PHASE INVESTIGATION] ✅ Selected "${currentPhase.name}" - active phase with completed sets (recently finished)`);
+  } else if (waitingPhases.length > 0) {
+    // Priority 3: Waiting phases (next phase in progression)
+    selectedAnalysis = waitingPhases[0];
+    currentPhase = selectedAnalysis.phase;
+    console.log(`🔍 [PHASE INVESTIGATION] ✅ Selected "${currentPhase.name}" - waiting phase (next in progression)`);
   } else {
-    // Fallback: if no incomplete phases with active sets, pick the one with most phase groups (earliest)
-    currentPhase = allPhases.sort((a, b) => b.phaseGroups.nodes.length - a.phaseGroups.nodes.length)[0];
+    // Fallback: Use old logic with better logging
+    console.log(`🔍 [PHASE INVESTIGATION] ⚠️  NO SUITABLE PHASES FOUND - Using fallback logic...`);
+    const fallbackPhases = allPhases.sort((a, b) => b.phaseGroups.nodes.length - a.phaseGroups.nodes.length);
+    console.log(`🔍 [PHASE INVESTIGATION] Fallback candidates:`);
+    fallbackPhases.forEach((phase, index) => {
+      console.log(`  ${index + 1}. "${phase.name}" - State: ${phase.state}, Groups: ${phase.phaseGroups.nodes.length}`);
+    });
+    currentPhase = fallbackPhases[0];
+    selectedAnalysis = { hasActiveSets: false, hasCompletedSets: true }; // Default to looking for advanced entrants
+    console.log(`🔍 [PHASE INVESTIGATION] ⚠️  FALLBACK: Selected "${currentPhase.name}" - This might be the wrong phase!`);
   }
 
   console.log(`🔍 [getPhaseStatus] Current phase: ${currentPhase.name} (${currentPhase.phaseGroups.nodes.length} groups, state: ${currentPhase.state})`);
@@ -264,6 +302,7 @@ export async function getPhaseStatus(tournamentSlug: string, gameTitle: string):
         activeEntrantCount: null, // We didn't count because it would be too many
         shouldSync: false,
         phaseLastChecked: new Date().toISOString(),
+        activeEntrantIds: [], // Too many to count safely
       };
     }
   }
@@ -277,6 +316,7 @@ export async function getPhaseStatus(tournamentSlug: string, gameTitle: string):
       activeEntrantCount: null, // Too many to count safely
       shouldSync: false,
       phaseLastChecked: new Date().toISOString(),
+      activeEntrantIds: [], // Too many to count safely
     };
   }
 
@@ -313,6 +353,14 @@ export async function getPhaseStatus(tournamentSlug: string, gameTitle: string):
   // Step 4: Count unique active entrants by querying each phase group individually
   const activeEntrantIds = new Set<string>();
   
+  // Determine which entrants to include based on the selected phase analysis
+  const includeActiveWaiting = selectedAnalysis?.hasActiveSets || false;
+  const includeAdvanced = selectedAnalysis?.hasCompletedSets || false;
+  
+  console.log(`🔍 [ENTRANT DETECTION] Detection strategy:`);
+  console.log(`  - Include entrants in active/waiting sets: ${includeActiveWaiting}`);
+  console.log(`  - Include entrants who advanced from completed sets: ${includeAdvanced}`);
+  
   for (const groupId of phaseGroupIds) {
     const entrantsResponse = await fetch(START_GG_API_URL, {
       method: 'POST',
@@ -343,12 +391,18 @@ export async function getPhaseStatus(tournamentSlug: string, gameTitle: string):
       const phaseGroup = setsData.phaseGroup as PhaseGroupData;
       if (phaseGroup && phaseGroup.sets && phaseGroup.sets.nodes) {
         for (const set of phaseGroup.sets.nodes) {
-          // Only look at waiting (1) and in-progress (2) sets
-          if (set.state === 1 || set.state === 2) {
+          // IMPROVED LOGIC: Include different entrants based on phase analysis
+          const shouldIncludeSet = 
+            (includeActiveWaiting && (set.state === 1 || set.state === 2)) || // Active/waiting sets
+            (includeAdvanced && set.state === 3); // Completed sets (entrants who advanced)
+            
+          if (shouldIncludeSet) {
             for (const slot of set.slots) {
-              // Include all entrants in active sets (they're all still active)
               if (slot.entrant && slot.entrant.id) {
                 activeEntrantIds.add(slot.entrant.id);
+                if (set.state === 3) {
+                  console.log(`🔍 [ADVANCED] Found entrant who advanced: ${slot.entrant.name} (ID: ${slot.entrant.id})`);
+                }
               }
             }
           }
@@ -367,6 +421,7 @@ export async function getPhaseStatus(tournamentSlug: string, gameTitle: string):
     activeEntrantCount,
     shouldSync,
     phaseLastChecked: new Date().toISOString(),
+    activeEntrantIds: Array.from(activeEntrantIds), // Include the active entrant IDs
   };
 }
 
@@ -679,7 +734,9 @@ export async function getLeaderboard(tournamentId: string): Promise<LeaderboardE
       return b.points - a.points; // Higher points first
     }
     // If points are equal, sort by submission time (earlier first)
-    return new Date(a.firstSubmittedAt).getTime() - new Date(b.firstSubmittedAt).getTime();
+    const aTime = a.firstSubmittedAt ? new Date(a.firstSubmittedAt).getTime() : 0;
+    const bTime = b.firstSubmittedAt ? new Date(b.firstSubmittedAt).getTime() : 0;
+    return aTime - bTime;
   });
   
   leaderboard.forEach((entry, index) => {

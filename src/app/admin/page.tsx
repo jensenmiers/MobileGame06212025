@@ -934,12 +934,12 @@ function TournamentCard({
                   <div>
                     <strong>Sync Status:</strong> {
                       phaseStatus.shouldSync === true
-                        ? "✅ Safe to sync (≤32 active entrants)"
+                        ? "✅ Safe to sync (32 or fewer active entrants)"
                         : phaseStatus.activeEntrantCount === 0 && phaseStatus.currentPhase.toLowerCase().includes('round 1')
-                        ? "🚫 Blocked (tournament not started yet)"
+                        ? "🚫 Blocked (Tournament hasn't started yet)"
                         : phaseStatus.activeEntrantCount === null && phaseStatus.currentPhase.toLowerCase().includes('round 1')
-                        ? "🚫 Blocked (too many entrants in early rounds)"
-                        : "🚫 Blocked (>32 active entrants or tournament complete)"
+                        ? "🚫 Blocked (Too many entrants in early rounds)"
+                        : "🚫 Blocked (Tournament complete or there are over 32 active entrantsstil)"
                     }
                   </div>
                   <div style={{ fontSize: 12, opacity: 0.7 }}>

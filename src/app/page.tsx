@@ -431,10 +431,10 @@ export default function Home() {
                   {!user && (
                     <div className="w-full text-center">
                       <h2 className="text-lg sm:text-2xl font-bold text-yellow-400 mb-1">
-                        💰 $500 in Total Cash Prizes 💰
+                        💰 $500 in Prizes - Free To Play 💰
                       </h2>
                       <h3 className="text-sm sm:text-lg font-semibold text-yellow-400 mb-1">
-                        $100 Bonus for the First to Two Wins
+                        $100 bonus for the 1st to 2 wins.
                       </h3>
                     </div>
                   )}

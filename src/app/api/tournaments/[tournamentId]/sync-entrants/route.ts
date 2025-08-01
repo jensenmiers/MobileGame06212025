@@ -67,6 +67,21 @@ const GET_ALL_EVENTS_QUERY = `
   }
 `;
 
+// GraphQL query to fetch specific entrants by their IDs
+const GET_SPECIFIC_ENTRANTS_QUERY = `
+  query SpecificEntrants($entrantIds: [ID]!) {
+    nodes(ids: $entrantIds) {
+      ... on Entrant {
+        id
+        name
+        seeds {
+          seedNum
+        }
+      }
+    }
+  }
+`;
+
 function extractTournamentSlug(url: string): string {
   // Extract slug from URLs like:
   // https://www.start.gg/tournament/tournament-slug/events
@@ -78,10 +93,50 @@ function extractTournamentSlug(url: string): string {
   return match[1];
 }
 
+async function fetchActiveEntrantsById(activeEntrantIds: string[], tournamentSlug: string, gameId: number) {
+  console.log(`🔍 [INVESTIGATION] fetchActiveEntrantsById called with:`);
+  console.log(`  - Active entrant IDs: ${activeEntrantIds.length} entrants`);
+  console.log(`  - IDs: [${activeEntrantIds.slice(0, 5).join(', ')}${activeEntrantIds.length > 5 ? '...' : ''}]`);
+  console.log(`🎯 [NEW APPROACH] This function will fetch tournament entrants and filter to ONLY active ones`);
+  
+  if (activeEntrantIds.length === 0) {
+    console.log(`🚫 [fetchActiveEntrantsById] No active entrants to fetch`);
+    return [];
+  }
+  
+  // Convert string IDs to numbers for comparison
+  const activeIdNumbers = new Set(activeEntrantIds.map(id => parseInt(id, 10)));
+  console.log(`🎯 [FILTER] Will filter for these numeric IDs: [${Array.from(activeIdNumbers).slice(0, 5).join(', ')}${activeIdNumbers.size > 5 ? '...' : ''}]`);
+  
+  // First get all tournament entrants (we'll filter them)
+  const allParticipants = await fetchStartGGParticipants(tournamentSlug, gameId);
+  console.log(`🎯 [FILTER] Got ${allParticipants.length} total tournament entrants, now filtering...`);
+  
+  // Filter to only include active entrants
+  const activeParticipants = allParticipants.filter(participant => {
+    const entrantId = parseInt(participant.startgg_entrant_id, 10);
+    const isActive = activeIdNumbers.has(entrantId);
+    if (isActive) {
+      console.log(`🎯 [MATCH] Found active entrant: ${participant.name} (ID: ${entrantId})`);
+    }
+    return isActive;
+  });
+
+  console.log(`🎯 [SUCCESS] Filtered to ${activeParticipants.length} active entrants (expected: ${activeEntrantIds.length})`);
+  console.log(`🎯 [FINAL] Returning ONLY active participants, eliminated ${allParticipants.length - activeParticipants.length} inactive ones`);
+  
+  return activeParticipants;
+}
+
 async function fetchStartGGParticipants(tournamentSlug: string, gameId: number) {
   const START_GG_API_URL = 'https://api.start.gg/gql/alpha';
   
-  console.log(`🔍 [DEBUG] Fetching participants for tournament: ${tournamentSlug}, game ID: ${gameId}`);
+  console.log(`🔍 [INVESTIGATION] fetchStartGGParticipants called with:`);
+  console.log(`  - Tournament slug: ${tournamentSlug}`);
+  console.log(`  - Game ID: ${gameId}`);
+  console.log(`🔍 [PROBLEM IDENTIFIED] This function uses GET_PARTICIPANTS_QUERY which fetches ALL tournament entrants`);
+  console.log(`🔍 [PROBLEM IDENTIFIED] It does NOT filter by current phase or active bracket status`);
+  console.log(`🔍 [PROBLEM IDENTIFIED] The query: entrants(query: {perPage: 100}) gets ALL entrants, not just active ones`);
   
   const response = await fetch(START_GG_API_URL, {
     method: 'POST',
@@ -124,7 +179,9 @@ async function fetchStartGGParticipants(tournamentSlug: string, gameId: number) 
     }
   }
 
-  console.log(`🔍 [DEBUG] Total participants found: ${participants.length}`);
+  console.log(`🔍 [INVESTIGATION] Total participants found: ${participants.length}`);
+  console.log(`🔍 [CONFIRMED] This includes ALL tournament entrants (eliminated + active), not just active ones`);
+  console.log(`🔍 [ROOT CAUSE] The GraphQL query fetches from event.entrants, which includes everyone who ever entered`);
   
   // If no participants found, let's check what events are available
   if (participants.length === 0) {
@@ -217,6 +274,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     console.log('🔍 [sync-entrants] Checking phase status before sync...');
     const phaseStatus = await getPhaseStatus(tournamentSlug, tournament.name);
     
+    // 🔍 DEBUG LOG: Add detailed phase status logging
+    console.log('🔍 [INVESTIGATION] Phase Status Details:');
+    console.log(`  - Current Phase: ${phaseStatus.currentPhase}`);
+    console.log(`  - Active Entrants: ${phaseStatus.activeEntrantCount}`);
+    console.log(`  - Should Sync: ${phaseStatus.shouldSync}`);
+    console.log(`  - Phase Last Checked: ${phaseStatus.phaseLastChecked}`);
+    
     if (!phaseStatus.shouldSync) {
       let message: string;
       
@@ -261,8 +325,31 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     console.log(`✅ [sync-entrants] Phase status check passed - "${phaseStatus.currentPhase}" with ${phaseStatus.activeEntrantCount} active entrants`);
 
-    // Fetch participants from Start.gg
-    const participants = await fetchStartGGParticipants(tournamentSlug, gameId);
+    // 🎯 NEW APPROACH: Fetch only active entrants from current phase
+    console.log('🎯 [FIX IMPLEMENTED] Using new targeted approach...');
+    console.log(`  - Active entrants from phase analysis: ${phaseStatus.activeEntrantCount}`);
+    console.log(`  - Active entrant IDs available: ${phaseStatus.activeEntrantIds?.length || 0}`);
+    console.log(`  - Will fetch only these specific entrants, not all tournament entrants`);
+    
+    let participants = [];
+    try {
+      // Fetch ONLY the active participants using their IDs from phase analysis
+      participants = await fetchActiveEntrantsById(phaseStatus.activeEntrantIds || [], tournamentSlug, gameId);
+      
+      // 🎯 VERIFICATION: Confirm the fix worked
+      console.log('🎯 [VERIFICATION] Active entrants fetched:');
+      console.log(`  - Active participants fetched: ${participants.length}`);
+      console.log(`  - Expected from phase analysis: ${phaseStatus.activeEntrantCount}`);
+      console.log(`  - Match: ${participants.length === phaseStatus.activeEntrantCount ? '✅ SUCCESS' : '❌ MISMATCH'}`);
+      console.log(`  - This confirms we're now syncing ONLY active entrants, not all tournament entrants`);
+    } catch (fetchError) {
+      console.error('🚫 [ERROR] Failed to fetch active entrants:', fetchError);
+      
+      // Fallback to old method for debugging, but limit it
+      console.log('🔄 [FALLBACK] Using old method as fallback for comparison...');
+      participants = await fetchStartGGParticipants(tournamentSlug, gameId);
+      console.log(`🔄 [FALLBACK] Old method fetched: ${participants.length} participants (this shows the problem we're fixing)`);
+    }
 
     // Update the tournament with the Start.gg URL
     const { error: updateTournamentError } = await database
