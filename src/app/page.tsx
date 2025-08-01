@@ -438,8 +438,8 @@ export default function Home() {
                       <h2 className="text-lg sm:text-2xl font-bold text-yellow-400 mb-1">
                         💰 $500 in Total Cash Prizes 💰
                       </h2>
-                      <h3 className="text-xs sm:text-base font-semibold text-yellow-400 mb-1">
-                        A Bonus $100 ($200 total) for the first to two wins
+                      <h3 className="text-sm sm:text-lg font-semibold text-yellow-400 mb-1">
+                        $100 Bonus for the First to Two Wins
                       </h3>
                       <h2 className="text-lg sm:text-2xl font-bold text-white mb-0">
                         Sign in to Make Predictions
