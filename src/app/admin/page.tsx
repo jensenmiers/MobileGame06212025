@@ -190,6 +190,7 @@ function TournamentCard({
     phaseLastChecked: string;
   } | null>(null);
   const [loadingPhaseStatus, setLoadingPhaseStatus] = useState(false);
+  const [importingTop8Seeds, setImportingTop8Seeds] = useState(false);
 
   // Add state for column widths
   const [colWidths, setColWidths] = useState([
@@ -553,6 +554,48 @@ function TournamentCard({
     } finally {
       setSyncingEntrants(false);
       console.log(`🔄 [SYNC DEBUG] Sync operation completed`);
+    }
+  };
+
+  const handleImportTop8Seeds = async () => {
+    setImportingTop8Seeds(true);
+    try {
+      console.log(`🎮 [IMPORT DEBUG] Starting top 8 seeds import for tournament ${tournament.id}`);
+      
+      const response = await fetch(`/api/admin/tournaments/${tournament.id}/import-top8-seeds`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        console.log(`✅ [IMPORT DEBUG] Import success:`, data);
+        setInlineMessage({ 
+          message: `✅ ${data.message}`, 
+          type: "success" 
+        });
+        
+        // Refresh participants data
+        setTimeout(() => {
+          onRefreshParticipants();
+        }, 1000);
+      } else {
+        console.error(`❌ [IMPORT DEBUG] Import failed:`, data);
+        setInlineMessage({ 
+          message: `❌ ${data.error || 'Failed to import top 8 seeds'}`, 
+          type: "error" 
+        });
+      }
+    } catch (error) {
+      console.error('❌ [IMPORT DEBUG] Network error:', error);
+      setInlineMessage({ 
+        message: "❌ Network error while importing top 8 seeds", 
+        type: "error" 
+      });
+    } finally {
+      setImportingTop8Seeds(false);
+      console.log(`🎮 [IMPORT DEBUG] Import operation completed`);
     }
   };
 
@@ -952,6 +995,28 @@ function TournamentCard({
               {syncingEntrants ? "Updating..." : "Update Entrants"}
             </button>
           </div>
+          
+          <button
+            type="button"
+            onClick={handleImportTop8Seeds}
+            disabled={importingTop8Seeds}
+            style={{
+              background: importingTop8Seeds ? "#444" : "#003300",
+              color: "#fff",
+              border: "1px solid #228B22",
+              borderRadius: 6,
+              padding: "12px 20px",
+              fontWeight: 600,
+              cursor: importingTop8Seeds ? "not-allowed" : "pointer",
+              fontSize: 16,
+              marginBottom: 16,
+              display: "block",
+              marginLeft: "auto",
+              marginRight: "auto"
+            }}
+          >
+            {importingTop8Seeds ? "Importing..." : "Import top 8 seeds from EVO"}
+          </button>
           <hr style={{ border: 0, borderTop: '1px solid #228B22', height: 1, margin: '16px 0', marginLeft: -24, marginRight: -24, width: 'calc(100% + 48px)' }} />
           {/* Cutoff time input and other controls here... */}
           <div style={{ display: "flex", alignItems: "center", marginBottom: 16, gap: 24 }}>
