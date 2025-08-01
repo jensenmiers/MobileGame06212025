@@ -30,6 +30,20 @@ export default function PredictionPage() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionMessage, setSubmissionMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
+  const [submissionTimestamp, setSubmissionTimestamp] = useState<string | null>(null);
+  const [lastSubmissionTimestamp, setLastSubmissionTimestamp] = useState<string | null>(null);
+
+  // Helper to format full timestamp with month, day, and time
+  const formatFullTimestamp = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleString([], { 
+      month: 'short', 
+      day: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit' 
+    });
+  };
 
   const isComplete = predictions.every(prediction => prediction !== null);
   const params = useParams();
@@ -124,6 +138,11 @@ export default function PredictionPage() {
             setGrandFinalsScore(existingPredictionData.grand_finals_score || null);
             setWinnersFinalScore(existingPredictionData.winners_final_score || null);
             setLosersFinalScore(existingPredictionData.losers_final_score || null);
+            
+            // Set the last submission timestamp
+            if (existingPredictionData.created_at) {
+              setLastSubmissionTimestamp(formatFullTimestamp(existingPredictionData.created_at));
+            }
             
             console.log('🔄 Loaded existing prediction:', {
               prediction_id: existingPredictionData.id,
@@ -254,7 +273,9 @@ export default function PredictionPage() {
 
     try {
       await tournamentService.submitPrediction(predictionData);
-      setSubmissionMessage({ type: 'success', text: 'Prediction submitted successfully! You can update it until the top 8 starts.' });
+      const timestamp = formatFullTimestamp(new Date().toISOString());
+      setSubmissionTimestamp(timestamp);
+      setSubmissionMessage({ type: 'success', text: `Prediction submitted at ${timestamp}. You can update it until the top 8 starts.` });
     } catch (error) {
       const err = error as Error;
       console.error('❌ Failed to submit prediction:', error);
@@ -478,6 +499,11 @@ export default function PredictionPage() {
                 Setup Profile
               </button>
             )}
+          </div>
+        )}
+        {lastSubmissionTimestamp && !submissionMessage && (
+          <div className="mt-4 text-center p-3 rounded-md bg-gray-900/50 text-gray-300">
+            Last submission at {lastSubmissionTimestamp}
           </div>
         )}
       </div>

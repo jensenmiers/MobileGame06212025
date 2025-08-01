@@ -210,10 +210,16 @@ export default function LeaderboardPage() {
     return p ? p.name : "?";
   }
 
-  // Helper to format time only (HH:mm:ss)
-  function formatTimeOnly(dateString: string): string {
+  // Helper to format full timestamp with month, day, and time
+  function formatFullTimestamp(dateString: string): string {
     const date = new Date(dateString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    return date.toLocaleString([], { 
+      month: 'short', 
+      day: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit' 
+    });
   }
 
   // Sort predictions by most recent submission (descending)
@@ -341,7 +347,7 @@ export default function LeaderboardPage() {
                           </div>
                         </div>
                         <div className="text-right min-w-[80px] flex items-center justify-end">
-                          <span className="font-mono text-base text-gray-300">{formatTimeOnly(prediction.created_at)}</span>
+                          <span className="font-mono text-base text-gray-300">{formatFullTimestamp(prediction.created_at)}</span>
                         </div>
                         {isExpanded && (
                           <div className="col-span-2 flex-1 flex-col">
@@ -469,18 +475,23 @@ export default function LeaderboardPage() {
                         {isExpanded && (
                           <div className="col-span-2 flex-1 flex-col">
                             {prediction ? (
-                              <div className="text-base md:text-lg mt-1 text-white flex flex-wrap items-center gap-x-1 gap-y-1">
-                                <span className="whitespace-nowrap">{getParticipantName(prediction.slot_1_participant_id)}</span>
-                                <span className="text-yellow-400 mx-1">&gt;</span>
-                                <span className="whitespace-nowrap">{getParticipantName(prediction.slot_2_participant_id)}</span>
-                                <span className="text-yellow-400 mx-1">&gt;</span>
-                                <span className="whitespace-nowrap">{getParticipantName(prediction.slot_3_participant_id)}</span>
-                                <span className="text-yellow-400 mx-1">&gt;</span>
-                                <span className="whitespace-nowrap">{getParticipantName(prediction.slot_4_participant_id)}</span>
-                                {formatBonusPredictions(prediction.bracket_reset, prediction.grand_finals_score, prediction.winners_final_score, prediction.losers_final_score) && (
-                                  <span className="text-yellow-400">{formatBonusPredictions(prediction.bracket_reset, prediction.grand_finals_score, prediction.winners_final_score, prediction.losers_final_score)}</span>
-                                )}
-                              </div>
+                              <>
+                                <div className="text-base md:text-lg mt-1 text-white flex flex-wrap items-center gap-x-1 gap-y-1">
+                                  <span className="whitespace-nowrap">{getParticipantName(prediction.slot_1_participant_id)}</span>
+                                  <span className="text-yellow-400 mx-1">&gt;</span>
+                                  <span className="whitespace-nowrap">{getParticipantName(prediction.slot_2_participant_id)}</span>
+                                  <span className="text-yellow-400 mx-1">&gt;</span>
+                                  <span className="whitespace-nowrap">{getParticipantName(prediction.slot_3_participant_id)}</span>
+                                  <span className="text-yellow-400 mx-1">&gt;</span>
+                                  <span className="whitespace-nowrap">{getParticipantName(prediction.slot_4_participant_id)}</span>
+                                  {formatBonusPredictions(prediction.bracket_reset, prediction.grand_finals_score, prediction.winners_final_score, prediction.losers_final_score) && (
+                                    <span className="text-yellow-400">{formatBonusPredictions(prediction.bracket_reset, prediction.grand_finals_score, prediction.winners_final_score, prediction.losers_final_score)}</span>
+                                  )}
+                                </div>
+                                <div className="text-xs text-gray-400 mt-2 font-mono">
+                                  Submitted: {formatFullTimestamp(prediction.created_at)}
+                                </div>
+                              </>
                             ) : (
                               <div className="text-yellow-200 text-xs mt-1">Picks unavailable</div>
                             )}
