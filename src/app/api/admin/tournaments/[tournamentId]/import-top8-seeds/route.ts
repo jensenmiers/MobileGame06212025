@@ -10,26 +10,38 @@ const TOP8_IMPORT_DATA: Record<string, Array<{ name: string; startgg_entrant_id:
     { name: 'PAR | Rewind', startgg_entrant_id: 19490080, seed: 4 },
     { name: 'RBT/T7G | Scorpionprocs', startgg_entrant_id: 20367543, seed: 5 },
     { name: 'Grr', startgg_entrant_id: 19578805, seed: 6 },
-    { name: 'STG | Onlinecale213', startgg_entrant_id: 20342926, seed: 7 },
-    { name: '2Game | SnakeDoe', startgg_entrant_id: 20368055, seed: 8 }
+    { name: '2Game | SnakeDoe', startgg_entrant_id: 20368055, seed: 7 },
+    { name: 'STG | Onlinecale213', startgg_entrant_id: 20342926, seed: 8 }
   ],
   'Tekken 8': [
-    { name: 'Yamasa | Nobi', startgg_entrant_id: 20546937, seed: 8 }
+    { name: 'DRX | Knee', startgg_entrant_id: 19498207, seed: 1 },
+    { name: 'DNF | ULSAN', startgg_entrant_id: 19497415, seed: 2 },
+    { name: 'Falcons | ATIF', startgg_entrant_id: 19502162, seed: 3 },
+    { name: 'DNF | Mulgold', startgg_entrant_id: 19496092, seed: 4 },
+    { name: 'TM | RB | Arslan Ash', startgg_entrant_id: 20367697, seed: 5 },
+    { name: 'VARREL | Rangchu', startgg_entrant_id: 19803901, seed: 6 },
+    { name: 'DRX | LowHigh', startgg_entrant_id: 19497479, seed: 7 },
+    { name: 'TeamYAMASA | NOBI', startgg_entrant_id: 20360365, seed: 8 }
   ],
   'Street Fighter 6': [
+    { name: 'DRX | Leshar', startgg_entrant_id: 20456283, seed: 1 },
+    { name: 'ZETA | Kakeru', startgg_entrant_id: 20354653, seed: 2 },
+    { name: 'FLY | Punk', startgg_entrant_id: 20339658, seed: 3 },
     { name: 'WBG RB | MenaRD', startgg_entrant_id: 20642179, seed: 4 },
-    { name: 'REJECT | Fuudo', startgg_entrant_id: 20555368, seed: 5 },
-    { name: 'Chapmanly', startgg_entrant_id: 20546719, seed: 6 },
+    { name: 'Falcons | NL', startgg_entrant_id: 19508078, seed: 5 },
+    { name: 'REJECT | Fuudo', startgg_entrant_id: 20555368, seed: 6 },
     { name: 'MOUZ | EndingWalker', startgg_entrant_id: 20529509, seed: 7 },
-    { name: 'Aeroblazer', startgg_entrant_id: 20554304, seed: 8 }
+    { name: '2Game | Blaz', startgg_entrant_id: 20368583, seed: 8 }
   ],
   'Guilty Gear Strive': [
     { name: 'PAR | Daru_I-No', startgg_entrant_id: 20354852, seed: 1 },
+    { name: 'Ditto | RedDitto', startgg_entrant_id: 20203519, seed: 2 },
     { name: 'tatuma', startgg_entrant_id: 20562927, seed: 3 },
     { name: 'Fly | NitroNY', startgg_entrant_id: 20668803, seed: 4 },
-    { name: 'PAR | Jack', startgg_entrant_id: 20361279, seed: 5 },
-    { name: 'Kshuewhatdamoo', startgg_entrant_id: 20568667, seed: 6 },
-    { name: 'TSM | Leffen', startgg_entrant_id: 20361308, seed: 7 }
+    { name: 'Kshuewhatdamoo', startgg_entrant_id: 20568667, seed: 5 },
+    { name: 'PAR | Jack', startgg_entrant_id: 20361279, seed: 6 },
+    { name: 'TSM | Leffen', startgg_entrant_id: 20361308, seed: 7 },
+    { name: 'Verix', startgg_entrant_id: 19989496, seed: 8 }
   ],
   'Under Night In Birth II': [
     { name: 'Senaru', startgg_entrant_id: 20089096, seed: 1 },
@@ -37,32 +49,39 @@ const TOP8_IMPORT_DATA: Record<string, Array<{ name: string; startgg_entrant_id:
     { name: 'PAR | BigBlack', startgg_entrant_id: 20338465, seed: 3 },
     { name: 'BNP | knotts', startgg_entrant_id: 19493587, seed: 4 },
     { name: '2GB Combo', startgg_entrant_id: 20309760, seed: 5 },
-    { name: 'BBB | OmniDeag', startgg_entrant_id: 20545121, seed: 7 },
-    { name: 'Ugly_ | Shaly', startgg_entrant_id: 20470451, seed: 8 }
+    { name: 'ちょび/chobi', startgg_entrant_id: 19787395, seed: 6 },
+    { name: 'Ugly_ | Shaly', startgg_entrant_id: 20470451, seed: 7 },
+    { name: 'BBB | OmniDeag', startgg_entrant_id: 20545121, seed: 8 }
   ],
   'Fatal Fury: City of the Wolves': [
+    { name: 'KSG | xiaohai', startgg_entrant_id: 20233344, seed: 1 },
     { name: 'DFM/PWS | GO1', startgg_entrant_id: 20336929, seed: 2 },
+    { name: 'CAG | Fenritti', startgg_entrant_id: 20565913, seed: 3 },
+    { name: 'SS熊本 | Nemo', startgg_entrant_id: 19497484, seed: 4 },
     { name: 'Falcons | Kindevu', startgg_entrant_id: 20555311, seed: 5 },
     { name: 'T1 | ZJZ', startgg_entrant_id: 20370525, seed: 6 },
-    { name: 'ONIC | NYChrisG', startgg_entrant_id: 20371869, seed: 7 },
-    { name: 'AG | Reynald', startgg_entrant_id: 20552498, seed: 8 }
+    { name: 'AG | Reynald', startgg_entrant_id: 20552498, seed: 7 },
+    { name: 'ONIC | NYChrisG', startgg_entrant_id: 20371869, seed: 8 }
   ],
   'Samurai Shodown': [
+    { name: 'XBF | Scrub Saibot', startgg_entrant_id: 19508554, seed: 1 },
     { name: 'WATANABE SHACHOU', startgg_entrant_id: 20323514, seed: 2 },
+    { name: 'ぐっぴー', startgg_entrant_id: 20538565, seed: 3 },
     { name: 'XBF | Maki', startgg_entrant_id: 20370528, seed: 4 },
     { name: 'bubba000', startgg_entrant_id: 19497904, seed: 5 },
     { name: 'royalpsycho', startgg_entrant_id: 20549021, seed: 6 },
-    { name: 'BBBoySonicX', startgg_entrant_id: 20177592, seed: 7 },
-    { name: 'Healing Vision', startgg_entrant_id: 20350949, seed: 8 }
+    { name: 'Healing Vision', startgg_entrant_id: 20350949, seed: 7 },
+    { name: 'BBoySonicX', startgg_entrant_id: 20177592, seed: 8 }
   ],
   'THE KING OF FIGHTERS XV': [
     { name: 'GHZ | TheGio', startgg_entrant_id: 20562800, seed: 1 },
-    { name: 'LEV | Layec', startgg_entrant_id: 20369380, seed: 2 },
-    { name: 'QAD | Wero Asamiya', startgg_entrant_id: 20582800, seed: 3 },
-    { name: 'Liquid | ViolentKain', startgg_entrant_id: 19455413, seed: 4 },
+    { name: 'Falcons ET', startgg_entrant_id: 20519342, seed: 2 },
+    { name: 'LEV | Layec', startgg_entrant_id: 20369380, seed: 3 },
+    { name: 'QAD | Wero Asamiya', startgg_entrant_id: 20582800, seed: 4 },
     { name: 'Falcon | Tamago', startgg_entrant_id: 19498430, seed: 5 },
-    { name: 'Comitê | PiterErn', startgg_entrant_id: 20553115, seed: 6 },
-    { name: 'LEV | PAKO', startgg_entrant_id: 20229890, seed: 7 }
+    { name: 'Liquid | ViolentKain', startgg_entrant_id: 19455413, seed: 6 },
+    { name: 'Comitê | PiterErn', startgg_entrant_id: 20553115, seed: 7 },
+    { name: 'LEV | PAKO', startgg_entrant_id: 20229890, seed: 8 }
   ]
 };
 
