@@ -335,7 +335,7 @@ export default function LeaderboardPage() {
                         className={
                           isExpanded
                             ? `grid grid-cols-[1fr_auto] items-center w-full pl-1 pr-1 py-3 mb-2 transition-all duration-200 rounded-lg border-2 border-green-400 bg-green-900/10 shadow-lg cursor-pointer`
-                            : `grid grid-cols-[1fr_auto] items-center w-full pl-1 pr-1 py-2 transition-all duration-200 rounded-lg bg-gray-900/50 hover:bg-gray-800/70 border-l-4 border-l-green-400 cursor-pointer`
+                            : `grid grid-cols-[1fr_auto] items-center w-full pl-1 pr-1 py-2 transition-all duration-200 rounded-lg bg-gray-900/50 hover:bg-gray-800/70 hover:shadow-md border-l-4 border-l-green-400 cursor-pointer group`
                         }
                         onClick={() => setExpandedRanks((prev) => prev.includes(idx) ? prev.filter((r) => r !== idx) : [...prev, idx])}
                       >
@@ -346,8 +346,16 @@ export default function LeaderboardPage() {
                             </h3>
                           </div>
                         </div>
-                        <div className="text-right min-w-[80px] flex items-center justify-end">
+                        <div className="text-right min-w-[80px] flex items-center justify-end gap-2">
                           <span className="font-mono text-base text-gray-300">{formatFullTimestamp(prediction.created_at)}</span>
+                          <svg 
+                            className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
                         </div>
                         {isExpanded && (
                           <div className="col-span-2 flex-1 flex-col">
@@ -452,7 +460,7 @@ export default function LeaderboardPage() {
                         className={
                           isExpanded
                             ? `grid grid-cols-[1fr_auto] items-center w-full pl-1 pr-1 py-3 mb-2 transition-all duration-200 rounded-lg shadow-lg cursor-pointer border-l-8 ${player.rank === 1 ? 'border-l-yellow-400 border-t-yellow-400 border-r-yellow-400 border-b-yellow-400 border-2' : player.rank === 2 ? 'border-l-gray-300 border-t-gray-300 border-r-gray-300 border-b-gray-300 border-2' : player.rank === 3 ? 'border-l-amber-600 border-t-amber-600 border-r-amber-600 border-b-amber-600 border-2' : 'border-l-gray-700 border-t-gray-700 border-r-gray-700 border-b-gray-700 border-2'} bg-yellow-900/10`
-                            : `grid grid-cols-[1fr_auto] items-center w-full pl-1 pr-1 py-2 transition-all duration-200 rounded-lg ${getRankColor(player.rank)} hover:bg-gray-800/70 border-l-8 ${player.rank === 1 ? 'border-l-yellow-400' : player.rank === 2 ? 'border-l-gray-300' : player.rank === 3 ? 'border-l-amber-600' : 'border-l-gray-700'} cursor-pointer`
+                            : `grid grid-cols-[1fr_auto] items-center w-full pl-1 pr-1 py-2 transition-all duration-200 rounded-lg ${getRankColor(player.rank)} hover:bg-gray-800/70 hover:shadow-md border-l-8 ${player.rank === 1 ? 'border-l-yellow-400' : player.rank === 2 ? 'border-l-gray-300' : player.rank === 3 ? 'border-l-amber-600' : 'border-l-gray-700'} cursor-pointer group`
                         }
                         onClick={() => toggleExpand(player.rank, userId, username)}
                       >
@@ -468,9 +476,17 @@ export default function LeaderboardPage() {
                             </div>
                           </div>
                         </div>
-                        <div className="text-right min-w-[80px] flex items-center justify-end">
+                        <div className="text-right min-w-[80px] flex items-center justify-end gap-2">
                           <span className={`font-bold ${isExpanded ? "text-2xl" : "text-lg sm:text-xl md:text-2xl"} ${player.rank === 1 ? 'text-yellow-400' : player.rank === 2 ? 'text-gray-300' : player.rank === 3 ? 'text-amber-600' : 'text-white'}`}>{player.points}</span>
                           <span className={`ml-1 ${isExpanded ? "text-sm text-yellow-200" : "text-xs sm:text-sm " + (player.rank === 1 ? 'text-yellow-200' : player.rank === 2 ? 'text-gray-300' : player.rank === 3 ? 'text-amber-600' : 'text-gray-300')}`}>pts</span>
+                          <svg 
+                            className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''} ${player.rank === 1 ? 'text-yellow-400' : player.rank === 2 ? 'text-gray-300' : player.rank === 3 ? 'text-amber-600' : 'text-gray-400'}`}
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
                         </div>
                         {isExpanded && (
                           <div className="col-span-2 flex-1 flex-col">
