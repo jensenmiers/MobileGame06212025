@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { X, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
@@ -32,6 +32,20 @@ export default function ParticipantModal({
   currentPosition
 }: ParticipantModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Disable body scrolling when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      // Store the original overflow style
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = 'hidden';
+      
+      // Restore original overflow when modal closes
+      return () => {
+        document.body.style.overflow = originalStyle;
+      };
+    }
+  }, [isOpen]);
 
   // Filter participants based on search term
   const filteredParticipants = useMemo(() => {
@@ -80,7 +94,6 @@ export default function ParticipantModal({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 bg-gray-800/50 border-gray-700 text-white placeholder-gray-400 focus:border-green-500 focus:ring-green-500/20"
-              autoFocus
             />
           </div>
         </div>
