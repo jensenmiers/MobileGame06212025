@@ -222,6 +222,16 @@ export default function LeaderboardPage() {
     });
   }
 
+  // Helper to format time only (HH:mm:ss)
+  function formatTimeOnly(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit' 
+    });
+  }
+
   // Sort predictions by most recent submission (descending)
   const predictorsList = (tournament && isTournamentPending(tournament, hasResults))
     ? allPredictions
@@ -347,7 +357,9 @@ export default function LeaderboardPage() {
                           </div>
                         </div>
                         <div className="text-right min-w-[80px] flex items-center justify-end gap-2">
-                          <span className="font-mono text-base text-gray-300">{formatFullTimestamp(prediction.created_at)}</span>
+                          {!isExpanded && (
+                            <span className="font-mono text-base text-gray-300">{formatTimeOnly(prediction.created_at)}</span>
+                          )}
                           <svg 
                             className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
                             fill="none" 
@@ -370,6 +382,9 @@ export default function LeaderboardPage() {
                               {formatBonusPredictions(prediction.bracket_reset, prediction.grand_finals_score, prediction.winners_final_score, prediction.losers_final_score) && (
                                 <span className="text-green-400">{formatBonusPredictions(prediction.bracket_reset, prediction.grand_finals_score, prediction.winners_final_score, prediction.losers_final_score)}</span>
                               )}
+                            </div>
+                            <div className="text-xs text-gray-400 mt-2 font-mono">
+                              Submitted: {formatFullTimestamp(prediction.created_at)}
                             </div>
                           </div>
                         )}
