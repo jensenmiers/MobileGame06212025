@@ -238,9 +238,20 @@ export default function Home() {
     const tournament = getTournamentBySlug(gameSlug);
     if (!tournament) return;
     
-    // Always route to prediction page for all tournaments
-    // The prediction page will handle showing appropriate content based on tournament status
-    router.push(`/${gameSlug}/prediction`);
+    // Determine routing based on tournament status
+    const predictionsOpen = arePredictionsOpen(tournament);
+    const hasResults = tournamentsWithResults.has(tournament.id);
+    
+    if (hasResults) {
+      // Tournament completed - route to leaderboard to view results
+      router.push(`/${gameSlug}/leaderboard`);
+    } else if (!predictionsOpen && tournament.predictions_open) {
+      // Predictions closed but no results yet (RESULTS PENDING) - route to leaderboard
+      router.push(`/${gameSlug}/leaderboard`);
+    } else {
+      // Predictions open or awaiting top bracket - route to prediction page
+      router.push(`/${gameSlug}/prediction`);
+    }
   };
 
   const handleLogout = async () => {
@@ -414,6 +425,8 @@ export default function Home() {
                   </div>
                 </div>
               </div>
+              
+
               
               {/* Welcome/Sign-in Section - Not sticky */}
               <CardHeader className="space-y-0 pb-1 pt-0">
